@@ -8,11 +8,6 @@ import com.leo.hbase.sdk.core.annotation.HBaseTable;
  * <p>User2 Pojo</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/23 11:53 上午
- * @since 1.0
  */
 @HBaseTable(name = "user2", uniqueFamily = "info")
 public class UserPojo2 {

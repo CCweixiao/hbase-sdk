@@ -11,11 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>测试的一个controller</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/8 5:07 下午
- * @since 1.0
  */
 @RestController
 public class IndexController {

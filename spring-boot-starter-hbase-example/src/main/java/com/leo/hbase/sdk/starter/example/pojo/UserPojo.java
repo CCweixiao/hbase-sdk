@@ -13,11 +13,6 @@ import java.util.Map;
  * <p>用户数据绑定类</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/8 5:31 下午
- * @since 1.0
  */
 @HBaseTable(schema = "test", name = "user", uniqueFamily = "info")
 public class UserPojo extends PeoplePojo {

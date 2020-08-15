@@ -7,11 +7,6 @@ import com.leo.hbase.sdk.core.annotation.HBaseRowKey;
  * <p>People pojo</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 11:24 上午
- * @since 1.0
  */
 public class PeoplePojo {
     @HBaseRowKey

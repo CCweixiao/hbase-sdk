@@ -7,7 +7,7 @@
     <groupId>com.github.CCweixiao</groupId>
     <artifactId>hbase-sdk</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>hbase-sdk</name>
     <url>https://github.com/CCweixiao/hbase-sdk.git</url>

@@ -12,11 +12,6 @@ import java.util.List;
  * <p>UserService2</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/23 6:00 下午
- * @since 1.0
  */
 @Service
 public class UserService2 {
