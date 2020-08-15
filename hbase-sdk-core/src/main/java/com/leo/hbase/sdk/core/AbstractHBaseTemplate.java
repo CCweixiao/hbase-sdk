@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractHBaseTemplate implements HBaseOperations {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHBaseTemplate.class);
+    protected static final int REPLICATION_SCOPE_0 = 0;
+    protected static final int REPLICATION_SCOPE_1 = 1;
 
     private Configuration configuration;
 
