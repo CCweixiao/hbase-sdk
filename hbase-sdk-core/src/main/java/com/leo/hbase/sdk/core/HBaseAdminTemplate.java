@@ -14,11 +14,6 @@ import java.util.stream.Collectors;
 
 /**
  * @author leo.jie (weixiao.me@aliyun.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 9:46 下午
- * @since 1.0
  */
 public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAdminOperations {
     public HBaseAdminTemplate(Configuration configuration) {

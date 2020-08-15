@@ -4,11 +4,6 @@ package com.leo.hbase.sdk.core.example;
  * <p>描述人的数据模型类</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 10:14 上午
- * @since 1.0
  */
 public class People {
     private int id;

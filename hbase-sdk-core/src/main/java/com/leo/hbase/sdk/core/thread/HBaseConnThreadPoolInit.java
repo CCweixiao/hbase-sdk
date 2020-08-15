@@ -10,11 +10,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>HBase连接线程池初始化</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/4 5:05 下午
- * @since 1.0
  */
 @Deprecated
 public class HBaseConnThreadPoolInit {

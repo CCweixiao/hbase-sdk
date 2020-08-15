@@ -17,15 +17,10 @@ import java.util.stream.Collectors;
  * <p>反射工具类</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 10:09 上午
- * @since 1.0
  */
 public class ReflectUtil {
     /**
-     * 获取某一个类的所有字段，转成map，<fieldName, field>
+     * 获取某一个类的所有字段，转成map
      *
      * @param clazz 目标类的定义字段
      * @return 所有字段的map
@@ -75,7 +70,7 @@ public class ReflectUtil {
     }
 
     /**
-     * 获取某一个类的所有字段，转成map，<fieldName, field>
+     * 获取某一个类的所有字段，转成map
      *
      * @param clazz 目标类的定义字段
      * @return 所有字段的map

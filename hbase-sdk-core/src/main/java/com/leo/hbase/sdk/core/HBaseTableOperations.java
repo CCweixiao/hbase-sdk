@@ -10,11 +10,6 @@ import java.util.Map;
  * the interface is used to defining some operations of HBase table.
  *
  * @author leo.jie (weixiao.me@aliyun.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 9:34 下午
- * @since 1.0
  */
 public interface HBaseTableOperations {
 
@@ -35,7 +30,7 @@ public interface HBaseTableOperations {
     void save(String tableName, Mutation mutation);
 
     /**
-     * save Map<String, Object> data to HBase
+     * save Map data to HBase
      *
      * @param tableName the name of table.
      * @param rowKey    row key
@@ -107,7 +102,7 @@ public interface HBaseTableOperations {
 
 
     /**
-     * get by row key, return Map<String, Object>
+     * get by row key, return Map
      *
      * @param tableName table name
      * @param rowName   rowKey Name
@@ -116,7 +111,7 @@ public interface HBaseTableOperations {
     Map<String, Object> getByRowKey(String tableName, String rowName);
 
     /**
-     * get by row key with family, return Map<String, Object>
+     * get by row key with family, return Map
      *
      * @param tableName  table name
      * @param rowName    rowKey Name
@@ -126,7 +121,7 @@ public interface HBaseTableOperations {
     Map<String, Object> getByRowKeyWithFamily(String tableName, String rowName, String familyName);
 
     /**
-     * get by row key with family name and qualifier names, return Map<String, Object>
+     * get by row key with family name and qualifier names, return
      *
      * @param tableName  table name
      * @param rowName    rowKey Name

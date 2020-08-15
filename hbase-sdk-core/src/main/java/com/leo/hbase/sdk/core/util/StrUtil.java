@@ -3,11 +3,6 @@ package com.leo.hbase.sdk.core.util;
 /**
  * string util
  * @author leo.jie (weixiao.me@aliyun.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 9:24 下午
- * @since 1.0
  */
 public class StrUtil {
     public static boolean isBlank(CharSequence str){

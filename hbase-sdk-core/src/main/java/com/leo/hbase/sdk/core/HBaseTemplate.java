@@ -17,11 +17,6 @@ import java.util.*;
 
 /**
  * @author leo.jie (weixiao.me@aliyun.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 9:56 下午
- * @since 1.0
  */
 public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOperations {
     public HBaseTemplate(Configuration configuration) {

@@ -14,11 +14,6 @@ import org.springframework.context.annotation.Configuration;
  * <p>HBaseTemplate自动配置</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/4 5:24 下午
- * @since 1.0
  */
 @Configuration
 @EnableConfigurationProperties(HBaseProperties.class)

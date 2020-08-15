@@ -4,11 +4,6 @@ package com.leo.hbase.sdk.core.util;
  * <p>驼峰命名法与_的相互转换</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 11:30 上午
- * @since 1.0
  */
 public class FieldOrTableNameUtil {
     /**

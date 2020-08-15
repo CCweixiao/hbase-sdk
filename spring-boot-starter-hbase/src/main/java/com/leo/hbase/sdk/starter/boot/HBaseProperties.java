@@ -6,11 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <p>HBase的连接配置</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/4 5:09 下午
- * @since 1.0
  */
 @ConfigurationProperties(prefix = "spring.data.hbase")
 public class HBaseProperties {

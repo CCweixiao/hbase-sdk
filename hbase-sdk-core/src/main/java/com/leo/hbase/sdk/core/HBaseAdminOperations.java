@@ -8,11 +8,6 @@ import java.util.List;
  * <p>the interface is used to define operation of admin，被{@link HBaseTemplate}实现。</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/5/13 5:28 下午
- * @since 1.0
  */
 public interface HBaseAdminOperations {
 

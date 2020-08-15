@@ -22,11 +22,6 @@ import java.util.stream.Collectors;
  * <p>the abstract class of HBaseTemplate,</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/9 6:50 下午
- * @since 1.0
  */
 public abstract class AbstractHBaseTemplate implements HBaseOperations {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHBaseTemplate.class);
@@ -121,10 +116,10 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
     }
 
     /**
-     * the result of get will be converted to a Map<String, Object>
+     * the result of get will be converted to a
      *
      * @param result get result
-     * @return Map<String, Object> result
+     * @return result
      */
     protected Map<String, Object> mapperRowToMap(Result result) {
         final String rowKey = Bytes.toString(result.getRow());

@@ -4,11 +4,46 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.leo.hbase.sdk</groupId>
+    <groupId>com.github.CCweixiao</groupId>
     <artifactId>hbase-sdk</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0</version>
+
+    <name>hbase-sdk</name>
+    <url>https://github.com/CCweixiao/hbase-sdk.git</url>
+    <description>hbase orm框架</description>
+
+    <licenses>
+        <!-- 开源协议 -->
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <!-- scm 信息 -->
+        <url>https://github.com/CCweixiao/hbase-sdk</url>
+        <connection>https://github.com/CCweixiao/hbase-sdk.git</connection>
+    </scm>
+
+    <developers>
+        <!-- 开发者信息 -->
+        <developer>
+            <id>leojie</id>
+            <name>leojie</name>
+            <url>https://www.jielongping.com</url>
+            <email>leohjie1314@gmail.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <organization>bigdata</organization>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
     <modules>
+        <!-- 项目模块名称 -->
         <module>spring-boot-starter-hbase</module>
         <module>hbase-sdk-core</module>
         <module>spring-boot-starter-hbase-example</module>
@@ -19,6 +54,8 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- 会跳过发布的 -->
+<!--        <maven.deploy.skip>true</maven.deploy.skip>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot-2.version>2.1.7.RELEASE</spring-boot-2.version>
         <hbase.version>1.4.3</hbase.version>
@@ -70,33 +107,84 @@
         </repository>
     </repositories>
 
-    <developers>
-        <developer>
-            <id>weixiaotome</id>
-            <name>leo.jie</name>
-            <url>https://www.jielongping.com</url>
-            <email>leohjie1314@gmail.com</email>
-            <roles>
-                <role>project manager</role>
-            </roles>
-            <organization>bigdata</organization>
-        </developer>
-    </developers>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.leo.hbase.sdk</groupId>
+                <groupId>com.github.CCweixiao</groupId>
                 <artifactId>hbase-sdk-core</artifactId>
-                <version>1.0.0</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.leo.hbase.sdk</groupId>
+                <groupId>com.github.CCweixiao</groupId>
                 <artifactId>spring-boot-starter-hbase</artifactId>
-                <version>1.0.0</version>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <distributionManagement>
+                <snapshotRepository>
+                    <!-- 对应setting.xml中的server id -->
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
     <build>
         <resources>

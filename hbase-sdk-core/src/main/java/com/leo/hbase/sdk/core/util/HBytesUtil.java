@@ -13,11 +13,6 @@ import java.util.List;
  * <p>HBase bytes 类型转换工具类</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
- * @version 1.0
- * @organization bigdata
- * @website https://www.jielongping.com
- * @date 2020/6/8 12:02 下午
- * @since 1.0
  */
 public class HBytesUtil {
 
