@@ -6,10 +6,7 @@ import com.leo.hbase.sdk.core.model.HTableModel;
 import com.leo.hbase.sdk.core.model.SnapshotModel;
 import com.leo.hbase.sdk.core.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -59,6 +56,14 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             }
             NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespace).build();
             admin.createNamespace(namespaceDescriptor);
+            return true;
+        });
+    }
+
+    @Override
+    public boolean deleteNamespace(String namespace) {
+        return this.execute(admin -> {
+            admin.deleteNamespace(namespace);
             return true;
         });
     }

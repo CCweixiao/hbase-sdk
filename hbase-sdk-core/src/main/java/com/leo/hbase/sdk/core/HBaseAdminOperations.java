@@ -38,6 +38,13 @@ public interface HBaseAdminOperations {
     boolean createNamespace(String namespace);
 
     /**
+     * drop namespace
+     * @param namespace namespace
+     * @return dropped successfully or not.
+     */
+    boolean deleteNamespace(String namespace);
+
+    /**
      * table is exists or not
      *
      * @param tableName the name of HBase table.
