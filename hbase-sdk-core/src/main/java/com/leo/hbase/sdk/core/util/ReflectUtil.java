@@ -3,7 +3,6 @@ package com.leo.hbase.sdk.core.util;
 
 import com.leo.hbase.sdk.core.annotation.HBaseColumn;
 import com.leo.hbase.sdk.core.annotation.HBaseTable;
-import com.leo.hbase.sdk.core.example.User;
 import com.leo.hbase.sdk.core.exception.HBaseOperationsException;
 
 import java.lang.reflect.Field;
@@ -275,39 +274,4 @@ public class ReflectUtil {
         return type == boolean.class || type == Boolean.class;
     }
 
-
-    public static void main(String[] args) {
-        System.out.println(getHBaseTableName(User.class));
-        // Field[] fields = Vip.class.getDeclaredFields();
-        /*Method[] methods = getAllMethods(Vip.class);
-        for (Method method : methods) {
-            System.out.println(method.getName());
-        }*/
-
-       /* Field[] superClassFields = getAllFields(People.class);
-        for (Field superClassField : superClassFields) {
-            System.out.println(superClassField.getName());
-        }
-        System.out.println(superClassFields);*/
-        //Field[] fields = getAllFields(Vip.class);
-        //System.out.println(fields);
-
-        //System.out.println(getHBaseTableName(Vip.class));
-        //System.out.println(getUniqueTableFamily(Vip.class));
-        /*Field[] fields = getAllFields(Vip.class);
-        for (Field field : fields) {
-            System.out.println(getHBaseColumnName("INFO", field));
-        }*/
-
-        //System.out.println("isVip".substring(2));
-        /*for (Field field : Test.class.getDeclaredFields()) {
-            System.out.println(getGetterName(field));
-            System.out.println(getSetterName(field));
-            int d = field.getModifiers();
-//            System.out.println(Modifier.isStatic(d));
-//            System.out.println(Modifier.isFinal(d));
-//            System.out.println(Modifier.isPublic(d));
-            System.out.println("--------");
-        }*/
-    }
 }
