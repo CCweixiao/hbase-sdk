@@ -1,0 +1,4 @@
+spring:
+  data:
+    hbase:
+      quorum: node1

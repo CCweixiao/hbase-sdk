@@ -44,9 +44,13 @@
 
     <modules>
         <!-- 项目模块名称 -->
-        <module>spring-boot-starter-hbase</module>
-        <module>hbase-sdk-core</module>
-        <module>spring-boot-starter-hbase-example</module>
+        <module>hbase-sdk-common</module>
+        <module>hbase-sdk-core_1.4</module>
+        <module>spring-boot-starter-hbase_1.4</module>
+        <module>hbase-sdk-core_2.1</module>
+        <module>spring-boot-starter-hbase_2.1</module>
+        <module>spring-boot-starter-hbase-example_1.4</module>
+        <module>spring-boot-starter-hbase-example_2.1</module>
     </modules>
 
     <properties>
@@ -58,7 +62,8 @@
 <!--        <maven.deploy.skip>true</maven.deploy.skip>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot-2.version>2.1.7.RELEASE</spring-boot-2.version>
-        <hbase.version>1.4.3</hbase.version>
+        <hbase1.4.version>1.4.3</hbase1.4.version>
+        <hbase2.1.version>2.1.3</hbase2.1.version>
         <gson.version>2.8.5</gson.version>
         <junit.version>4.9</junit.version>
     </properties>
@@ -111,13 +116,34 @@
         <dependencies>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
-                <artifactId>hbase-sdk-core</artifactId>
+                <artifactId>hbase-sdk-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
-                <artifactId>spring-boot-starter-hbase</artifactId>
+                <artifactId>hbase-sdk-core_1.4</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CCweixiao</groupId>
+                <artifactId>spring-boot-starter-hbase_1.4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CCweixiao</groupId>
+                <artifactId>hbase-sdk-core_2.1</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CCweixiao</groupId>
+                <artifactId>spring-boot-starter-hbase_2.1</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -125,10 +151,7 @@
 
     <profiles>
         <profile>
-            <id>default</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <id>deploy</id>
             <build>
                 <plugins>
                     <plugin>
