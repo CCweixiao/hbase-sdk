@@ -1,17 +1,15 @@
-<p align="center">
-   <h3>hbase-sdk</h3>
-</p>
+<p align="center"><h3>hbase-sdk</h3></p>
 
 <p align="center">基于hbase-client的相关API开发而来的一款轻量级的HBase ORM框架。 😋</p>
 
 <p align="center">hbase-sdk分为spring-boot-starter-hbase和hbase-sdk-core两部分。</p>
 
-<p align="center">SpringBoot项目中引入spring-boot-starter-hbase，在普通的Java项目中可以使用hbase-sdk-core。</p>
+<p align="center">SpringBoot项目中引入spring-boot-starter-hbase，在普通的Java项目中则可以使用hbase-sdk-core。</p>
 
 <p align="center">
     🐾 <a href="#快速开始" target="_blank">快速开始</a> | 
     🎬 <a href="#" target="_blank">视频教程</a> | 
-    🌚 <a href="https://www.jielongping.com" target="_blank">官方文档</a> | 
+    🌚 <a href="https://github.com/CCweixiao/hbase-sdk/blob/master/README.md" target="_blank">官方文档</a> | 
     💰 <a href="https://www.jielongping.com" target="_blank">捐赠我们</a> |
     🌾 <a href="README.md">English</a>
 </p>
@@ -21,8 +19,8 @@
 
 ## hbase-sdk
 
-`hbase-sdk` 是一款轻量的ORM框架，封装了对HBase的数据读写和对集群的运维管理操作。
-如果觉得这个项目不错可以 [star](https://github.com/biezhi/blade/stargazers) 支持或者 [捐赠](https://lets-blade.com/donate) 它 :blush:
+`hbase-sdk` 是一款轻量级的ORM框架，封装了对HBase的数据读写和对集群的运维管理等操作。
+如果觉得这个项目不错可以 [star](https://github.com/CCweixiao/hbase-sdk/stargazers) 支持或者 [捐赠](https://www.jielongping.com) 它 :blush:
 
 ## 功能特性
 
