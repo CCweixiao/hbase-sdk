@@ -1,6 +1,5 @@
 package com.github.CCweixiao;
 
-import com.github.CCweixiao.HBaseTemplate;
 import com.github.CCweixiao.entity.UserEntity;
 import org.junit.Before;
 import org.junit.Test;
