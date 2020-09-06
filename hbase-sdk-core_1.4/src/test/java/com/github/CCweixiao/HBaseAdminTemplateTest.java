@@ -66,16 +66,13 @@ public class HBaseAdminTemplateTest {
 
         HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableName));
 
-        //tableDescriptor.setConfiguration("tag", "测试用户表");
-        //tableDescriptor.setConfiguration("createUser", "leo");
-
         tableDescriptor.setValue("tag", "测试用户表");
         tableDescriptor.setValue("createUser", "leo");
 
 
         HColumnDescriptor columnDescriptor = new HColumnDescriptor("INFO");
         columnDescriptor.setScope(1);
-        //columnDescriptor.setCompressionType(Compression.Algorithm.SNAPPY);
+        columnDescriptor.setCompressionType(Compression.Algorithm.SNAPPY);
         columnDescriptor.setTimeToLive(2147483647);
         columnDescriptor.setMaxVersions(3);
 

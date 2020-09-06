@@ -4,10 +4,7 @@ import com.github.CCweixiao.entity.UserEntity;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>HBaseTemplate Test</p>
@@ -121,5 +118,21 @@ public class HBaseTemplateTest {
     public void testFindByPrefix() {
         final List<UserEntity> userEntities = hBaseTemplate.findByPrefix("11", 10, UserEntity.class);
         System.out.println("用户数据批量查询");
+    }
+
+    @Test
+    public void testDeleteData() {
+        hBaseTemplate.delete("TEST:LEO_USER", "12003");
+        hBaseTemplate.delete("TEST:LEO_USER", "11004", "INFO2");
+        hBaseTemplate.delete("TEST:LEO_USER", "10001", "info1", "addresses");
+        System.out.println("数据删除完成");
+    }
+
+    @Test
+    public void testDeleteBatch() {
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Arrays.asList("10001", "10002"));
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Collections.singletonList("10003"), "INFO2");
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Collections.singletonList("10004"),
+                "info1", "age", "username");
     }
 }

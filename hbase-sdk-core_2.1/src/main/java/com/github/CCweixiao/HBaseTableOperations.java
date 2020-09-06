@@ -336,5 +336,79 @@ public interface HBaseTableOperations {
      */
     <T> List<T> findByPrefix(String tableName, String prefix, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
 
+    /**
+     * delete data
+     *
+     * @param tableName table name
+     * @param rowKey    rowKey
+     */
+    void delete(String tableName, String rowKey);
+
+    /**
+     * delete data of family
+     *
+     * @param tableName table name
+     * @param rowKey    row key
+     * @param family    family
+     */
+    void delete(String tableName, String rowKey, String family);
+
+    /**
+     * delete data of family and column
+     *
+     * @param tableName  table name
+     * @param rowKey     row key
+     * @param family     family
+     * @param qualifiers columns.
+     */
+    void delete(String tableName, String rowKey, String family, List<String> qualifiers);
+
+    /**
+     * delete data of family and column
+     *
+     * @param tableName  table name
+     * @param rowKey     row key
+     * @param family     family
+     * @param qualifiers columns.
+     */
+    void delete(String tableName, String rowKey, String family, String... qualifiers);
+
+
+    /**
+     * delete batch data
+     *
+     * @param tableName table name
+     * @param rowKeys    rowKey
+     */
+    void deleteBatch(String tableName, List<String> rowKeys);
+
+    /**
+     * delete batch data of family
+     *
+     * @param tableName table name
+     * @param rowKeys    row key
+     * @param family    family
+     */
+    void deleteBatch(String tableName, List<String> rowKeys, String family);
+
+    /**
+     * delete batch data of family and column
+     *
+     * @param tableName  table name
+     * @param rowKeys     row key
+     * @param family     family
+     * @param qualifiers columns.
+     */
+    void deleteBatch(String tableName, List<String> rowKeys, String family, List<String> qualifiers);
+
+    /**
+     * delete batch data of family and column
+     *
+     * @param tableName  table name
+     * @param rowKeys     row key
+     * @param family     family
+     * @param qualifiers columns.
+     */
+    void deleteBatch(String tableName, List<String> rowKeys, String family, String... qualifiers);
 
 }

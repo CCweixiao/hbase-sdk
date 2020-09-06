@@ -12,6 +12,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -330,6 +331,74 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         return find(tableName, scan, limit, rowMapper);
     }
 
+    @Override
+    public void delete(String tableName, String rowKey) {
+        delete(tableName, rowKey, null, new ArrayList<>());
+    }
+
+    @Override
+    public void delete(String tableName, String rowKey, String family) {
+        delete(tableName, rowKey, family, new ArrayList<>());
+    }
+
+    @Override
+    public void delete(String tableName, String rowKey, String family, List<String> qualifiers) {
+        if (StrUtil.isBlank(tableName)) {
+            throw new HBaseOperationsException("the table name is not empty.");
+        }
+        if (StrUtil.isBlank(rowKey)) {
+            throw new HBaseOperationsException("the row key of the table will be deleted is not empty.");
+        }
+        Delete delete = delete(rowKey, family, qualifiers);
+        this.execute(tableName, table -> {
+            table.mutate(delete);
+        });
+    }
+
+    @Override
+    public void delete(String tableName, String rowKey, String family, String... qualifiers) {
+        if (qualifiers == null || qualifiers.length == 0) {
+            delete(tableName, rowKey, family);
+        } else {
+            delete(tableName, rowKey, family, Arrays.asList(qualifiers));
+        }
+    }
+
+    @Override
+    public void deleteBatch(String tableName, List<String> rowKeys) {
+        deleteBatch(tableName, rowKeys, null, new ArrayList<>());
+    }
+
+    @Override
+    public void deleteBatch(String tableName, List<String> rowKeys, String family) {
+        deleteBatch(tableName, rowKeys, family, new ArrayList<>());
+    }
+
+    @Override
+    public void deleteBatch(String tableName, List<String> rowKeys, String family, List<String> qualifiers) {
+        if (StrUtil.isBlank(tableName)) {
+            throw new HBaseOperationsException("the table name is not empty.");
+        }
+        if (rowKeys == null || rowKeys.isEmpty()) {
+            throw new HBaseOperationsException("the row keys of the table will be deleted is not empty.");
+        }
+        List<Mutation> mutations = rowKeys.stream().map(rowKey -> delete(rowKey, family, qualifiers)).collect(Collectors.toList());
+
+        this.execute(tableName, mutator -> {
+            mutator.mutate(mutations);
+        });
+
+    }
+
+    @Override
+    public void deleteBatch(String tableName, List<String> rowKeys, String family, String... qualifiers) {
+        if (qualifiers == null || qualifiers.length == 0) {
+            deleteBatch(tableName, rowKeys, family);
+        } else {
+            deleteBatch(tableName, rowKeys, family, Arrays.asList(qualifiers));
+        }
+    }
+
     private Get get(String rowName, String familyName, List<String> qualifiers) {
         Get get = new Get(Bytes.toBytes(rowName));
         if (StrUtil.isNotBlank(familyName)) {
@@ -372,5 +441,22 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         data.forEach((fieldName, fieldValue) -> put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(":"))),
                 Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(":") + 1)), HBytesUtil.toBytes(fieldValue)));
         return put;
+    }
+
+    private Delete delete(String rowKey, String family, List<String> qualifiers) {
+        Delete delete = new Delete(Bytes.toBytes(rowKey));
+        if (qualifiers != null && qualifiers.size() > 0) {
+            if (StrUtil.isBlank(family)) {
+                throw new HBaseOperationsException("the family is not empty, when qualifiers not empty.");
+            }
+            for (String qualifier : qualifiers) {
+                delete.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier));
+            }
+        } else {
+            if (StrUtil.isNotBlank(family)) {
+                delete.addFamily(Bytes.toBytes(family));
+            }
+        }
+        return delete;
     }
 }

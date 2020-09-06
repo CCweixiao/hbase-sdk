@@ -37,19 +37,42 @@
 
 `Maven` 配置：
 
-创建一个基础的 `Maven` 工程
+创建一个基础的 `Maven` 工程，HBase SDK API开发时基于的HBase版本主要是1.4.3和2.1.0。
+
+所以，如果你的HBase版本是1.x，可以使用如下依赖。
 
 ```xml
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
-    <artifactId>hbase-sdk-core</artifactId>
-    <version>1.0.1</version>
+    <artifactId>hbase-sdk-core_1.4</artifactId>
+    <version>1.0.3</version>
 </dependency>
 ```
 
-目前的最新版本是`1.0.1`
+如果你的HBase版本是2.x，则可以使用如下依赖。
 
-### 2. 在SpringBoot项目中使用
+```xml
+<dependency>
+    <groupId>com.github.CCweixiao</groupId>
+    <artifactId>hbase-sdk-core_2.1</artifactId>
+    <version>1.0.3</version>
+</dependency>
+```
+
+`hbase-sdk`目前最新的版本是`1.0.4`。
+
+当然，如果你想重新编译，以适配你自己的HBase版本，也可以选择下载源码，修改项目pom.xml文件中的hbase.version来运行如下编译命令：
+
+```shell script
+mvn clean install -Dmaven.test.skip=true
+```
+
+### 2. 项目结构
+
+![project](https://leo-jie-pic.oss-cn-beijing.aliyuncs.com/leo_blog/2020-09-06-131351.jpg)
+
+
+### 3. 在SpringBoot项目中使用
 
 `Maven` 配置：
 
@@ -58,14 +81,14 @@
 ```xml
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
-    <artifactId>spring-boot-starter-hbase</artifactId>
-    <version>1.0.1</version>
+    <artifactId>spring-boot-starter-hbase_1.4</artifactId>
+    <version>1.0.3</version>
 </dependency>
 ```
 
 spring-boot-starter-hbase这个模块中已经包含了hbase-sdk-core。
 
-### 3. 引入hbase-client的依赖
+### 4. 引入hbase-client的依赖
 
 除了引入`hbase-sdk`的相关依赖之外，你还需要引入`hbase-client`的依赖，
 `hbase-client`的版本目前建议为`1.2.x`、`1.4.x`、`2.1.x`。其实hbase-client新旧API有所差异。未来，`hbase-sdk`在对hbase的版本支持方面会更加完善。
@@ -78,15 +101,15 @@ spring-boot-starter-hbase这个模块中已经包含了hbase-sdk-core。
 </dependency>        
 ```
 
-### 4. 配置HBase数据库连接
+### 5. 配置HBase数据库连接
 
 **普通项目**
 
 ```java
 // 数据读写操作
-HBaseTemplate hBaseTemplate = new HBaseTemplate("docker-hbase", "2181");
+HBaseTemplate hBaseTemplate = new HBaseTemplate("node1", "2181");
 //集群管理操作
-HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate("docker-hbase", "2181");
+HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate("node1", "2181");
 ```
 
 **spring boot项目**
@@ -97,7 +120,7 @@ application.yaml
 spring:
   data:
     hbase:
-      quorum: docker-hbase
+      quorum: node1
 ```
 
 
@@ -134,56 +157,334 @@ public class UserService {
 
 ### 创建namespace
 
-```java
-  HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate("docker-hbase", "2181");
+HBase管理员操作API与原API其实差异并不大。
 
-hBaseAdminTemplate.createNamespace("LEO_TEST");
+```java
+    @Test
+    public void testCreateNamespace() {
+        String namespaceName = "LEO_NS2";
+        Map<String, String> para = new HashMap<>();
+        para.put("tag", "测试命名空间");
+        para.put("createBy", "leo");
+        para.put("updateBy", "");
+        NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceName)
+                .addConfiguration(para)
+                .build();
+        hBaseTemplate.createNamespace(namespaceDescriptor);
+    }
 ```
 
 ### 创建表
 
 ```java
+    @Test
+    public void testCreateTable() {
+        String tableName = "LEO_NS:USER";
 
+        HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableName));
+
+        tableDescriptor.setValue("tag", "测试用户表");
+        tableDescriptor.setValue("createUser", "leo");
+
+
+        HColumnDescriptor columnDescriptor = new HColumnDescriptor("INFO");
+        columnDescriptor.setScope(1);
+        columnDescriptor.setCompressionType(Compression.Algorithm.SNAPPY);
+        columnDescriptor.setTimeToLive(2147483647);
+        columnDescriptor.setMaxVersions(3);
+
+        HColumnDescriptor columnDescriptor2 = new HColumnDescriptor("INFO2");
+        columnDescriptor2.setScope(0);
+        columnDescriptor2.setTimeToLive(864000);
+        columnDescriptor2.setMaxVersions(3);
+
+        tableDescriptor.addFamily(columnDescriptor).addFamily(columnDescriptor2);
+
+        hBaseTemplate.createTable(tableDescriptor, Bytes.toBytes(0), Bytes.toBytes(100), 10);
+    }
 ```
 
 ### 更多操作
 
-## 创建Model
+... ...
 
-### Model约定
+## 数据读写
 
-### 创建Model
+类似于Hibernate，你也可以使用hbase-sdk框架所提供的ORM特性，来实现对HBase的读写操作。
 
-### Model配置
+## 保存数据
+
+### 创建数据模型类
+
+```java
+public class ModelEntity {
+    private String createBy;
+    private Long createTime;
+
+    public String getCreateBy() {
+        return createBy;
+    }
+
+    public void setCreateBy(String createBy) {
+        this.createBy = createBy;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+}
+```
+
+```java
+@HBaseTable(schema = "TEST", name = "LEO_USER", uniqueFamily = "info1")
+public class UserEntity extends ModelEntity{
+    @HBaseRowKey
+    private String userId;
+
+    private String username;
+    private int age;
+    private List<String> addresses;
+    private Map<String,Object> contactInfo;
+    private Double pay;
+
+    @HBaseColumn(name = "is_vip", family = "INFO2", toUpperCase = true)
+    private boolean isVip;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public boolean isVip() {
+        return isVip;
+    }
+
+    public void setVip(boolean vip) {
+        isVip = vip;
+    }
+
+    public List<String> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<String> addresses) {
+        this.addresses = addresses;
+    }
+
+    public Map<String, Object> getContactInfo() {
+        return contactInfo;
+    }
+
+    public void setContactInfo(Map<String, Object> contactInfo) {
+        this.contactInfo = contactInfo;
+    }
+
+    public Double getPay() {
+        return pay;
+    }
+
+    public void setPay(Double pay) {
+        this.pay = pay;
+    }
+
+    @Override
+    public String toString() {
+        return "UserEntity{" +
+                "userId='" + userId + '\'' +
+                ", username='" + username + '\'' +
+                ", age=" + age +
+                ", addresses=" + addresses +
+                ", contactInfo=" + contactInfo +
+                ", pay=" + pay +
+                ", isVip=" + isVip +
+                '}';
+    }
+}
+```
+
+@HBaseTable(schema = "TEST", name = "LEO_USER", uniqueFamily = "info1")
+
+HBaseTable注解用于定义HBase的表信息，schema用于定义该表的命名空间，如果不指定，默认是default，
+name用于定义该表的表名，如果不指定，表名则为类名的组合单词拆分加'_'拼接，如：UserEntity对应的表名为：user_entity。
+uniqueFamily用于定义如果所有的字段不特配置列簇名，则使用此处配置的列簇名。
+
+
+@HBaseRowKey
+private String userId;
+
+该注解表示userId字段为rowKey字段。
+
+
+@HBaseColumn(name = "is_vip", family = "INFO2", toUpperCase = true)
+private boolean isVip;
+该注解用于定义一个字段信息，name用于定义字段名，如果不指定，则默认使用字段名的组合单词拆分加'_'拼接，如：isVip，对应的字段名是：is_vip.
+family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否转大写，默认false，不做操作。
+
+
+### 保存数据
+
+```java
+   @Test
+    public void testSaveUser() {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUserId("10001");
+        userEntity.setUsername("leo");
+        userEntity.setAge(18);
+        userEntity.setVip(true);
+        userEntity.setAddresses(Arrays.asList("北京", "上海"));
+        userEntity.setCreateBy("admin");
+        userEntity.setCreateTime(System.currentTimeMillis());
+
+        Map<String, Object> contactInfo = new HashMap<>(2);
+        contactInfo.put("email", "2326130720@qq.com");
+        contactInfo.put("phone", "18739577988");
+        contactInfo.put("address", "浦东新区");
+
+        userEntity.setContactInfo(contactInfo);
+        userEntity.setPay(100000.0d);
+
+        try {
+            hBaseTemplate.save(userEntity);
+            System.out.println("用户数据保存成功！");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+```
+
+除此之外，保存数据时也可以不必构造数据模型类，而直接构造map数据模型。
+
+```java
+    @Test
+    public void testToSave() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("info1:addresses", Arrays.asList("广州", "深圳"));
+        data.put("info1:username", "leo");
+        data.put("info1:age", 18);
+        data.put("INFO2:IS_VIP", true);
+        data.put("info1:pay", 10000.1d);
+        data.put("info1:create_by", "tom");
+        data.put("info1:create_time", System.currentTimeMillis());
+        Map<String, Object> contactInfo = new HashMap<>(2);
+        contactInfo.put("email", "2326130720@qq.com");
+        contactInfo.put("phone", "18739577988");
+        contactInfo.put("address", "浦东新区");
+        data.put("info1:contact_info", contactInfo);
+        hBaseTemplate.save("TEST:LEO_USER", "10002", data);
+        System.out.println("用户数据保存成功！");
+    }
+```
+
+### 批量保存数据
+
+```java
+    @Test
+    public void testToSaveBatch() {
+        Map<String, Map<String, Object>> data = new HashMap<>();
+
+        Map<String, Object> data1 = new HashMap<>();
+        data1.put("info1:username", "kangkang");
+        data1.put("info1:age", 18);
+        data1.put("INFO2:IS_VIP", true);
+
+        Map<String, Object> data2 = new HashMap<>();
+        data2.put("info1:username", "jane");
+        data2.put("info1:age", 18);
+        data2.put("INFO2:IS_VIP", false);
+
+        data.put("12003", data1);
+        data.put("11004", data2);
+
+        hBaseTemplate.saveBatch("TEST:LEO_USER", data);
+        System.out.println("用户数据批量保存成功！");
+    }
+```
 
 ## 查询数据
 
 ### 根据RowKey查询
 
+```java
+    @Test
+    public void testGet() {
+        UserEntity userEntity = hBaseTemplate.getByRowKey("10001", UserEntity.class);
+        final UserEntity userEntity1 = hBaseTemplate.getByRowKey("10002", UserEntity.class);
+        System.out.println("用户数据获取成功！");
+        System.out.println(userEntity);
+    }
+```
+
+```java
+    @Test
+    public void testGetToMap() {
+        Map<String, Object> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
+        System.out.println(Boolean.valueOf(userInfo.get("INFO2:IS_VIP").toString()));
+        System.out.println(userInfo);
+    }
+```
+
 ### scan查询
 
-## 保存数据
+```java
+    @Test
+    public void testFind() {
+        final List<UserEntity> userEntities = hBaseTemplate.findAll(10, UserEntity.class);
+        System.out.println(userEntities);
+        System.out.println("用户数据批量查询");
+    }
 
-## 更新和删除
+    @Test
+    public void testFindByPrefix() {
+        final List<UserEntity> userEntities = hBaseTemplate.findByPrefix("11", 10, UserEntity.class);
+        System.out.println("用户数据批量查询");
+    }
+```
+
+### 删除数据
+
+```java
+    @Test
+    public void testDeleteData() {
+        hBaseTemplate.delete("TEST:LEO_USER", "12003");
+        hBaseTemplate.delete("TEST:LEO_USER", "11004", "INFO2");
+        hBaseTemplate.delete("TEST:LEO_USER", "10001", "info1", "addresses");
+        System.out.println("数据删除完成");
+    }
+```
+
+```java
+    @Test
+    public void testDeleteBatch() {
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Arrays.asList("10001", "10002"));
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Collections.singletonList("10003"), "INFO2");
+        hBaseTemplate.deleteBatch("TEST:LEO_USER", Collections.singletonList("10004"),
+                "info1", "age", "username");
+    }
+```
 
 
-这一切看起来多么的简单，不过上面的功能可是冰山一角，查看文档和示例项目有更多惊喜:
 
-+ [Blade Demos](https://github.com/lets-blade/blade-demos)
-+ [Blade 资源列表](https://github.com/lets-blade/awesome-blade)
 
-## 联系我们
-
-- Twitter: [biezhi](https://twitter.com/biezhii)
-- Mail: biezhi.me#gmail.com
-- [TG 交流群](https://t.me/letsblade)
-
-## 贡献者们
-
-非常感谢下面的开发者朋友对本项目的帮助，如果你也愿意提交PR，非常欢迎！
-
-![contributors.svg](https://opencollective.com/blade/contributors.svg?width=890&button=false)
-
-## 开源协议
-
-请查看 [Apache License](LICENSE)
