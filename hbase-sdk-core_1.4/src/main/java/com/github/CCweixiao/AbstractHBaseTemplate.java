@@ -165,7 +165,10 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
         if (allMethodMap == null || allMethodMap.isEmpty()) {
             throw new HBaseOperationsException("please assign standard getter and setter methods for " + clazz.getSimpleName() + ".");
         }
-        for (Field field : clazz.getDeclaredFields()) {
+        //final Field[] declaredFields = clazz.getDeclaredFields();
+        final Field[] allFields = ReflectUtil.getAllFields(clazz);
+
+        for (Field field : allFields) {
             if (ReflectUtil.isNotGeneralProperty(field)) {
                 continue;
             }
