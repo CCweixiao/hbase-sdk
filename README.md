@@ -45,7 +45,7 @@
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
     <artifactId>hbase-sdk-core_1.4</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
@@ -55,15 +55,19 @@
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
     <artifactId>hbase-sdk-core_2.1</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
-`hbase-sdk`目前最新的版本是`1.0.4`。
+`hbase-sdk`目前最新的版本是`1.0.5`。你可以在maven仓库中搜索CCweixiao来获取hbase-sdk相关jar包的最新版本。
+[https://mvnrepository.com/artifact/com.github.CCweixiao](https://mvnrepository.com/artifact/com.github.CCweixiao)
 
 当然，如果你想重新编译，以适配你自己的HBase版本，也可以选择下载源码，修改项目pom.xml文件中的hbase.version来运行如下编译命令：
 
 ```shell script
+git clone https://github.com/CCweixiao/hbase-sdk.git
+git clone https://gitee.com/weixiaotome/hbase-sdk.git
+cd hbase-sdk
 mvn clean install -Dmaven.test.skip=true
 ```
 
