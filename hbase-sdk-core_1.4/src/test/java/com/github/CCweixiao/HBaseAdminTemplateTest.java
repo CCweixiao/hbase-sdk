@@ -48,7 +48,7 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testGetNamespace() {
-        String namespaceName = "LEO_NS2";
+        String namespaceName = "LEO_NS2233";
         final NamespaceDescriptor namespaceDescriptor = hBaseTemplate.getNamespaceDescriptor(namespaceName);
         System.out.println(namespaceDescriptor.getName());
         System.out.println(namespaceDescriptor.getConfiguration());
