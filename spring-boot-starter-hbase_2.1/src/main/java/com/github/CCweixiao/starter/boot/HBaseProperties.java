@@ -13,6 +13,7 @@ public class HBaseProperties {
     private String zkClientPort = "2181";
     private String rootDir="/hbase";
     private String nodeParent="/hbase";
+    private String clientProperties="";
     private String threadPoolName="HBase-DataSource";
     private int corePoolSize=2;
     private int maximumPoolSize=4;
@@ -80,5 +81,13 @@ public class HBaseProperties {
 
     public void setZkClientPort(String zkClientPort) {
         this.zkClientPort = zkClientPort;
+    }
+
+    public String getClientProperties() {
+        return clientProperties;
+    }
+
+    public void setClientProperties(String clientProperties) {
+        this.clientProperties = clientProperties;
     }
 }
