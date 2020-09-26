@@ -1,10 +1,10 @@
 package com.github.CCweixiao.starter.example.controller;
 
 
+import com.github.CCweixiao.model.SnapshotDesc;
 import com.github.CCweixiao.starter.example.pojo.UserPojo;
 import com.github.CCweixiao.starter.example.service.AdminService;
 import com.github.CCweixiao.starter.example.service.UserService;
-import org.apache.hadoop.hbase.client.SnapshotDescription;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +29,7 @@ public class IndexController {
     }
 
     @GetMapping("/getAllSnapshot")
-    public List<SnapshotDescription> getAllSnapshot() {
+    public List<SnapshotDesc> getAllSnapshot() {
         return adminService.getAllSnapshot();
     }
 }
