@@ -5,11 +5,12 @@ import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.util.HBytesUtil;
 import com.github.CCweixiao.util.ReflectUtil;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.*;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,11 +23,7 @@ import java.util.stream.Collectors;
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
-public abstract class AbstractHBaseTemplate implements HBaseOperations {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHBaseTemplate.class);
-    protected static final int REPLICATION_SCOPE_0 = 0;
-    protected static final int REPLICATION_SCOPE_1 = 1;
-
+public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTableOperations {
     private Configuration configuration;
 
     private volatile Connection connection;
@@ -52,68 +49,6 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
             throw new HBaseOperationsException("a valid configuration is provided.");
         }
         this.setConfiguration(configuration);
-    }
-
-    @Override
-    public <T> T execute(AdminCallback<T> action) {
-        Admin admin = null;
-        try {
-            admin = this.getConnection().getAdmin();
-            return action.doInAdmin(admin);
-        } catch (Throwable throwable) {
-            throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != admin) {
-                try {
-                    admin.close();
-                } catch (IOException e) {
-                    LOGGER.error("the resource of admin released failed.");
-                    LOGGER.error(e.getMessage());
-                }
-            }
-        }
-    }
-
-    @Override
-    public <T> T execute(String tableName, TableCallback<T> action) {
-        Table table = null;
-        try {
-            table = this.getConnection().getTable(TableName.valueOf(tableName));
-            return action.doInTable(table);
-        } catch (Throwable throwable) {
-            throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != table) {
-                try {
-                    table.close();
-                } catch (IOException e) {
-                    LOGGER.error("the resource of table released failed.");
-                    LOGGER.error(e.getMessage());
-                }
-            }
-        }
-    }
-
-    @Override
-    public void execute(String tableName, MutatorCallback action) {
-        BufferedMutator mutator = null;
-        try {
-            BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-            mutator = this.getConnection().getBufferedMutator(mutatorParams.writeBufferSize(3 * 1024 * 1024));
-            action.doInMutator(mutator);
-        } catch (Throwable throwable) {
-            throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != mutator) {
-                try {
-                    mutator.flush();
-                    mutator.close();
-                } catch (IOException e) {
-                    LOGGER.error("the resource of mutator released failed.");
-                    LOGGER.error(e.getMessage());
-                }
-            }
-        }
     }
 
     /**
@@ -165,7 +100,6 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
         if (allMethodMap == null || allMethodMap.isEmpty()) {
             throw new HBaseOperationsException("please assign standard getter and setter methods for " + clazz.getSimpleName() + ".");
         }
-        //final Field[] declaredFields = clazz.getDeclaredFields();
         final Field[] allFields = ReflectUtil.getAllFields(clazz);
 
         for (Field field : allFields) {
@@ -209,6 +143,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
         return "row_key_" + uuid;
     }
 
+    @Override
     public Connection getConnection() {
         if (null == this.connection) {
             synchronized (this) {
@@ -252,5 +187,256 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations {
         return configuration;
     }
 
+    /**
+     * save batch
+     *
+     * @param tableName the name of table.
+     * @param mutations list of mutation,example: put list
+     */
+    public abstract void saveBatch(String tableName, List<Mutation> mutations);
 
+    /**
+     * save data to HBase by mutation
+     *
+     * @param tableName the name of table.
+     * @param mutation  mutation,example: put
+     */
+    public abstract void save(String tableName, Mutation mutation);
+
+
+    /**
+     * get by rowKey family qualifier.
+     *
+     * @param tableName the name of table.
+     * @param rowName   rowKey
+     * @param rowMapper your rowMapper
+     * @param <T>       mapping class type
+     * @return get result
+     */
+    public abstract <T> T get(String tableName, String rowName, RowMapper<T> rowMapper);
+
+    /**
+     * get by rowKey family qualifier.
+     *
+     * @param tableName  the name of table.
+     * @param rowName    rowKey
+     * @param familyName familyName
+     * @param rowMapper  your rowMapper
+     * @param <T>        mapping class type
+     * @return get result
+     */
+    public abstract <T> T get(String tableName, String rowName, String familyName, RowMapper<T> rowMapper);
+
+    /**
+     * get by rowKey family qualifier.
+     *
+     * @param tableName  the name of table.
+     * @param rowName    rowKey
+     * @param familyName familyName
+     * @param qualifiers list of qualifier name
+     * @param rowMapper  your rowMapper
+     * @param <T>        mapping class type
+     * @return get result
+     */
+    public abstract <T> T get(String tableName, String rowName, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
+
+
+    /**
+     * scan HBase
+     *
+     * @param tableName the name of table.
+     * @param scan      scan condition
+     * @param limit     result limit
+     * @param clazz     mapping class obj
+     * @param <T>       mapping class type
+     * @return result
+     */
+    public abstract <T> List<T> find(String tableName, Scan scan, int limit, Class<T> clazz);
+
+    /**
+     * scan all
+     *
+     * @param tableName tableName
+     * @param limit     limit
+     * @param rowMapper rowMapper
+     * @param <T>       mapping class type
+     * @return result
+     */
+    public abstract <T> List<T> findAll(String tableName, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan by family
+     *
+     * @param tableName tableName
+     * @param family    family
+     * @param limit     limit
+     * @param rowMapper rowMapper
+     * @param <T>       mapping class type
+     * @return result
+     */
+    public abstract <T> List<T> findByFamily(String tableName, String family, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan by family and qualifier
+     *
+     * @param tableName  tableName
+     * @param family     family
+     * @param qualifiers qualifiers
+     * @param limit      limit
+     * @param rowMapper  rowMapper
+     * @param <T>        mapping class type
+     * @return result
+     */
+    public abstract <T> List<T> findByFamilyAndQualifiers(String tableName, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan HBase
+     *
+     * @param tableName the name of table.
+     * @param scan      scan condition
+     * @param limit     result limit
+     * @param rowMapper your row mapper
+     * @param <T>       mapping class type
+     * @return result
+     */
+    public abstract <T> List<T> find(String tableName, Scan scan, int limit, RowMapper<T> rowMapper);
+
+
+    /**
+     * scan table by prefix.
+     *
+     * @param tableName table name
+     * @param prefix    prefix
+     * @param limit     limit
+     * @param rowMapper your row mapper
+     * @param <T>       mapping class type.
+     * @return class type
+     */
+    public abstract <T> List<T> findByPrefix(String tableName, String prefix, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan table by prefix with family.
+     *
+     * @param tableName table name
+     * @param prefix    prefix
+     * @param family    family name
+     * @param limit     limit
+     * @param rowMapper your row mapper
+     * @param <T>       mapping class type.
+     * @return class type
+     */
+    public abstract <T> List<T> findByPrefix(String tableName, String prefix, String family, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan table by prefix with family and qualifier.
+     *
+     * @param tableName  table name
+     * @param prefix     prefix
+     * @param family     family name
+     * @param qualifiers qualifiers
+     * @param limit      limit
+     * @param rowMapper  your row mapper
+     * @param <T>        mapping class type.
+     * @return class type
+     */
+    public abstract <T> List<T> findByPrefix(String tableName, String prefix, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
+
+
+    /**
+     * 查询数据
+     *
+     * @param tableName 表名
+     * @param rowKey    row kwy
+     * @return 查询结果
+     */
+    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey);
+
+    /**
+     * 查询数据
+     *
+     * @param tableName  表名
+     * @param rowKey     row kwy
+     * @param familyName 列簇名
+     * @return 查询结果
+     */
+    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName);
+
+    /**
+     * 查询数据
+     *
+     * @param tableName  表名
+     * @param rowKey     row kwy
+     * @param familyName 列簇名
+     * @param qualifiers 字段名筛选
+     * @return 查询结果
+     */
+    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName, List<String> qualifiers);
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName 表名
+     * @param limit     扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, Integer limit);
+
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @param limit      扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, Integer limit);
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @param qualifiers 字段名筛选
+     * @param limit      扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, Integer limit);
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @param startKey   开始key
+     * @param limit      扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, String startKey, Integer limit);
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @param qualifiers 字段名筛选
+     * @param startKey   开始key
+     * @param limit      扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, Integer limit);
+
+
+    /**
+     * 查询数据，返回Map 类型
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @param qualifiers 字段名筛选
+     * @param startKey   开始key
+     * @param endKey     结束key
+     * @param limit      扫描行数
+     * @return 查询结果
+     */
+    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, String endKey, Integer limit);
 }

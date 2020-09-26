@@ -1,24 +1,29 @@
 package com.github.CCweixiao;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.NamespaceDesc;
+import com.github.CCweixiao.model.SnapshotDesc;
+import com.github.CCweixiao.model.TableDesc;
 import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.Admin;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.NamespaceDescriptor;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Pair;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * @author leo.jie (weixiao.me@aliyun.com)
+ * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAdminOperations {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
     public HBaseAdminTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -37,86 +42,181 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public HTableDescriptor[] listTables() {
-        return this.execute(Admin::listTables);
+    public List<TableDesc> listTables() {
+        return listTables("", false);
     }
 
     @Override
-    public HTableDescriptor[] listTables(String regex, boolean includeSysTables) {
-        return this.execute(admin -> admin.listTables(regex, includeSysTables));
+    public List<TableDesc> listTables(boolean includeSysTables) {
+        return listTables("", includeSysTables);
     }
 
     @Override
-    public TableName[] listTableNames() {
-        return this.execute(Admin::listTableNames);
-    }
-
-    @Override
-    public TableName[] listTableNames(String regex, boolean includeSysTables) {
-        return this.execute(admin -> admin.listTableNames(regex, includeSysTables));
-    }
-
-    @Override
-    public HTableDescriptor getTableDescriptor(String tableName) {
-        return this.execute(admin -> admin.getTableDescriptor(TableName.valueOf(tableName)));
-    }
-
-    @Override
-    public boolean createTable(HTableDescriptor desc) {
+    public List<TableDesc> listTables(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
-            admin.createTable(desc);
-            return true;
+            HTableDescriptor[] tableDescriptors;
+            if (StrUtil.isBlank(regex)) {
+                tableDescriptors = admin.listTables((Pattern) null, includeSysTables);
+            } else {
+                tableDescriptors = admin.listTables(regex, includeSysTables);
+            }
+            if (tableDescriptors == null || tableDescriptors.length == 0) {
+                return new ArrayList<>();
+            }
+            return parseHTableDescriptorsToTableDescList(tableDescriptors);
         });
     }
 
     @Override
-    public boolean createTable(HTableDescriptor desc, byte[] startKey, byte[] endKey, int numRegions) {
+    public List<String> listTableNames() {
+        return listTableNames("", false);
+
+    }
+
+    @Override
+    public List<String> listTableNames(boolean includeSysTables) {
+        return listTableNames("", includeSysTables);
+    }
+
+    @Override
+    public List<String> listTableNames(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
-            admin.createTable(desc, startKey, endKey, numRegions);
-            return true;
+            TableName[] tableNames;
+            if (StrUtil.isBlank(regex)) {
+                tableNames = admin.listTableNames((Pattern) null, includeSysTables);
+            } else {
+                tableNames = admin.listTableNames(regex, includeSysTables);
+            }
+            if (tableNames == null || tableNames.length == 0) {
+                return new ArrayList<>();
+            }
+            return Arrays.stream(tableNames).map(TableName::getNameAsString).collect(Collectors.toList());
         });
     }
 
     @Override
-    public boolean createTable(HTableDescriptor desc, byte[][] splitKeys) {
+    public List<TableDesc> listTableDescByNamespace(String namespaceName) {
         return this.execute(admin -> {
-            admin.createTable(desc, splitKeys);
-            return true;
+            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
+            if (tableDescriptors == null || tableDescriptors.length == 0) {
+                return new ArrayList<>();
+            }
+            return parseHTableDescriptorsToTableDescList(tableDescriptors);
         });
     }
 
     @Override
-    public boolean createTableAsync(HTableDescriptor desc, byte[][] splitKeys) {
+    public List<String> listTableNamesByNamespace(String namespaceName) {
+        List<TableDesc> tableDescList = listTableDescByNamespace(namespaceName);
+        return tableDescList.stream().map(TableDesc::getTableName).collect(Collectors.toList());
+    }
+
+    @Override
+    public TableDesc getTableDesc(String tableName) {
         return this.execute(admin -> {
-            admin.createTableAsync(desc, splitKeys);
-            return true;
+            HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            return parseHTableDescriptorToTableDesc(tableDescriptor);
         });
     }
 
     @Override
-    public boolean modifyTable(String tableName, HTableDescriptor tableDescriptor) {
-        return this.execute(admin -> {
-            admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
-            return true;
+    public boolean createTable(TableDesc desc, boolean isAsync) {
+        String tableName = desc.getTableName();
+        tableIsExistsError(tableName);
+
+        final List<FamilyDesc> familyDescList = desc.getFamilyDescList();
+        if (familyDescList == null || familyDescList.isEmpty()) {
+            throw new HBaseOperationsException("请为表" + tableName + "指定一个或多个列簇！");
+        }
+
+        final Map<String, Long> familyCountMap = familyDescList.stream().collect(Collectors.groupingBy(FamilyDesc::getFamilyName, Collectors.counting()));
+        familyCountMap.forEach((familyName, count) -> {
+            if (count > 1) {
+                throw new HBaseOperationsException("同一张表中的列簇名" + familyName + "应该是唯一的！");
+            }
         });
+
+        return this.execute(admin -> {
+            HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(desc.getTableName()));
+            if (desc.getTableProps() != null && !desc.getTableProps().isEmpty()) {
+                desc.getTableProps().forEach(tableDescriptor::setConfiguration);
+            }
+            for (FamilyDesc familyDesc : familyDescList) {
+                HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+                tableDescriptor.addFamily(columnDescriptor);
+            }
+            String startKey = desc.getStartKey();
+            String endKey = desc.getEndKey();
+            Integer numRegions = desc.getPreSplitRegions();
+
+            boolean preSplit1 = StrUtil.isNotBlank(desc.getPreSplitKeys());
+            boolean preSplit2 = (StrUtil.isNotBlank(startKey) && StrUtil.isNotBlank(endKey) && numRegions > 0);
+
+            if (preSplit1) {
+                if (preSplit2) {
+                    throw new HBaseOperationsException("只能同时指定一种预分区的方式！");
+                } else {
+                    String[] splitKeys = desc.getPreSplitKeys().split(",");
+                    if (isAsync) {
+                        admin.createTableAsync(tableDescriptor, getSplitKeyBytes(splitKeys));
+                    } else {
+                        admin.createTable(tableDescriptor, getSplitKeyBytes(splitKeys));
+                    }
+                    return true;
+                }
+            } else {
+                if (preSplit2) {
+                    final byte[] startKeyBytes = Bytes.toBytes(startKey);
+                    final byte[] endKeyBytes = Bytes.toBytes(endKey);
+
+                    if (numRegions < 3) {
+                        throw new HBaseOperationsException("请至少指定3个分区！");
+                    }
+
+                    if (Bytes.compareTo(startKeyBytes, endKeyBytes) >= 0) {
+                        throw new HBaseOperationsException("预分区开始的key必须要小于预分区结束的key！");
+                    }
+
+                    if (numRegions == 3) {
+                        if (isAsync) {
+                            admin.createTableAsync(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
+                        } else {
+                            admin.createTable(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
+                        }
+                        return true;
+                    }
+                    byte[][] splitKeys = Bytes.split(startKeyBytes, endKeyBytes, numRegions - 3);
+
+                    if (splitKeys == null || splitKeys.length != numRegions - 1) {
+                        throw new HBaseOperationsException("无法将预分区的起止键范围分割成足够的region！");
+                    }
+                    if (isAsync) {
+                        admin.createTableAsync(tableDescriptor, splitKeys);
+                    } else {
+                        admin.createTable(tableDescriptor, splitKeys);
+                    }
+                } else {
+                    admin.createTable(tableDescriptor);
+                }
+                return true;
+            }
+        });
+    }
+
+
+    @Override
+    public boolean modifyTable(String tableName, TableDesc desc) {
+        throw new HBaseOperationsException("暂不支持修改表！");
     }
 
     @Override
     public boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable) {
-        checkTable(oldTableName);
-
-        if (StrUtil.isBlank(newTableName)) {
-            throw new HBaseOperationsException("new table name is not empty.");
+        tableIsNotExistsError(oldTableName);
+        tableIsExistsError(newTableName);
+        if (isTableEnabled(oldTableName)) {
+            throw new HBaseOperationsException("重命名表前请禁用表！");
         }
-
-        if (this.tableExists(newTableName)) {
-            throw new HBaseOperationsException("new table " + newTableName + " is exists.");
-        }
-
         return this.execute(admin -> {
-            if (admin.isTableEnabled(TableName.valueOf(oldTableName))) {
-                admin.disableTable(TableName.valueOf(oldTableName));
-            }
             final String tempSnapShotName = oldTableName.replace(":", "_") +
                     "_SNAPSHOT_RENAME_" + UUID.randomUUID().toString().replaceAll("-", "");
             admin.snapshot(tempSnapShotName, TableName.valueOf(oldTableName));
@@ -124,6 +224,8 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             admin.deleteSnapshot(tempSnapShotName);
             if (deleteOldTable) {
                 admin.deleteTable(TableName.valueOf(oldTableName));
+            } else {
+                admin.enableTableAsync(TableName.valueOf(oldTableName));
             }
             return true;
         });
@@ -138,11 +240,6 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public HTableDescriptor[] deleteTables(String regex) {
-        return this.execute(admin -> admin.deleteTables(regex));
-    }
-
-    @Override
     public boolean truncateTable(String tableName, boolean preserveSplits) {
         return this.execute(admin -> {
             admin.truncateTable(TableName.valueOf(tableName), preserveSplits);
@@ -151,33 +248,26 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public boolean enableTable(String tableName) {
+    public boolean enableTable(String tableName, boolean isAsync) {
         return this.execute(admin -> {
-            admin.enableTable(TableName.valueOf(tableName));
+            if (isAsync) {
+                admin.enableTableAsync(TableName.valueOf(tableName));
+            } else {
+                admin.enableTable(TableName.valueOf(tableName));
+            }
             return true;
         });
     }
 
-    @Override
-    public boolean enableTableAsync(String tableName) {
-        return this.execute(admin -> {
-            admin.enableTableAsync(TableName.valueOf(tableName));
-            return true;
-        });
-    }
 
     @Override
-    public boolean disableTable(String tableName) {
+    public boolean disableTable(String tableName, boolean isAsync) {
         return this.execute(admin -> {
-            admin.disableTable(TableName.valueOf(tableName));
-            return true;
-        });
-    }
-
-    @Override
-    public boolean disableTableAsync(String tableName) {
-        return this.execute(admin -> {
-            admin.disableTableAsync(TableName.valueOf(tableName));
+            if (isAsync) {
+                admin.disableTableAsync(TableName.valueOf(tableName));
+            } else {
+                admin.disableTable(TableName.valueOf(tableName));
+            }
             return true;
         });
     }
@@ -198,30 +288,36 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public Pair<Integer, Integer> getAlterStatus(String tableName) {
-        return this.execute(admin -> admin.getAlterStatus(TableName.valueOf(tableName)));
-    }
-
-    @Override
-    public boolean addColumn(String tableName, HColumnDescriptor column) {
+    public boolean addFamily(String tableName, FamilyDesc familyDesc) {
         return this.execute(admin -> {
-            admin.addColumn(TableName.valueOf(tableName), column);
+            admin.getTableDescriptor(TableName.valueOf(tableName)).getFamilies().forEach(hColumnDescriptor -> {
+                if (hColumnDescriptor.getNameAsString().equals(familyDesc.getFamilyName())) {
+                    throw new HBaseOperationsException("列簇" + familyDesc.getFamilyName() + "在表" + tableName + "中已经存在！");
+                }
+            });
+            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+            admin.addColumn(TableName.valueOf(tableName), columnDescriptor);
             return true;
         });
     }
 
     @Override
-    public boolean deleteColumn(String tableName, String columnName) {
+    public boolean deleteFamily(String tableName, String familyName) {
         return this.execute(admin -> {
-            admin.deleteColumn(TableName.valueOf(tableName), Bytes.toBytes(columnName));
+            admin.deleteColumn(TableName.valueOf(tableName), Bytes.toBytes(familyName));
             return true;
         });
     }
 
     @Override
-    public boolean modifyColumn(String tableName, HColumnDescriptor descriptor) {
+    public boolean modifyFamily(String tableName, FamilyDesc familyDesc) {
         return this.execute(admin -> {
-            admin.modifyColumn(TableName.valueOf(tableName), descriptor);
+            final List<String> families = admin.getTableDescriptor(TableName.valueOf(tableName)).getFamilies().stream().map(HColumnDescriptor::getNameAsString).collect(Collectors.toList());
+            if (!families.contains(familyDesc.getFamilyName())) {
+                throw new HBaseOperationsException("待修改列簇" + familyDesc.getFamilyName() + "不存在！");
+            }
+            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+            admin.modifyColumn(TableName.valueOf(tableName), columnDescriptor);
             return true;
         });
     }
@@ -261,63 +357,77 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public ClusterStatus getClusterStatus() {
-        return this.execute(Admin::getClusterStatus);
-    }
+    public boolean createNamespace(NamespaceDesc namespaceDesc) {
+        if (namespaceIsExists(namespaceDesc.getNamespaceName())) {
+            throw new HBaseOperationsException("命名空间" + namespaceDesc.getNamespaceName() + "已经存在");
+        }
 
-    @Override
-    public boolean createNamespace(NamespaceDescriptor descriptor) {
         return this.execute(admin -> {
-            admin.createNamespace(descriptor);
+            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName())
+                    .addConfiguration(namespaceDesc.getNamespaceProps()).build();
+            admin.createNamespace(namespaceDescriptor);
             return true;
         });
     }
 
     @Override
-    public boolean modifyNamespace(NamespaceDescriptor descriptor) {
+    public boolean namespaceIsExists(String namespaceName) {
+        final List<String> namespaces = listNamespaces();
+        if (namespaces == null || namespaces.isEmpty()) {
+            return false;
+        }
+        return namespaces.contains(namespaceName);
+    }
+
+    @Override
+    public boolean deleteNamespace(String namespaceName) {
         return this.execute(admin -> {
-            admin.modifyNamespace(descriptor);
+            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
+            if (tableDescriptors != null && tableDescriptors.length > 0) {
+                throw new HBaseOperationsException("命名空间" + namespaceName + "下存在表，不能被删除");
+            }
+            admin.deleteNamespace(namespaceName);
             return true;
         });
     }
 
     @Override
-    public boolean deleteNamespace(String name) {
+    public NamespaceDesc getNamespaceDesc(String namespaceName) {
         return this.execute(admin -> {
-            admin.deleteNamespace(name);
-            return true;
+            final NamespaceDescriptor namespaceDescriptor = admin.getNamespaceDescriptor(namespaceName);
+            NamespaceDesc namespaceDesc = new NamespaceDesc();
+            namespaceDesc.setNamespaceName(namespaceDescriptor.getName());
+            namespaceDesc.setNamespaceProps(namespaceDescriptor.getConfiguration());
+            return namespaceDesc;
         });
     }
 
     @Override
-    public NamespaceDescriptor getNamespaceDescriptor(String name) {
-        return this.execute(admin -> admin.getNamespaceDescriptor(name));
-    }
-
-    @Override
-    public NamespaceDescriptor[] listNamespaceDescriptors() {
-        return this.execute(Admin::listNamespaceDescriptors);
+    public List<NamespaceDesc> listNamespaceDescriptors() {
+        return this.execute(admin -> Arrays.stream(admin.listNamespaceDescriptors()).map(namespaceDescriptor -> {
+            NamespaceDesc namespaceDesc = new NamespaceDesc();
+            namespaceDesc.setNamespaceName(namespaceDescriptor.getName());
+            namespaceDesc.setNamespaceProps(namespaceDescriptor.getConfiguration());
+            return namespaceDesc;
+        }).collect(Collectors.toList()));
     }
 
     @Override
     public List<String> listNamespaces() {
-        return Arrays.stream(listNamespaceDescriptors()).map(NamespaceDescriptor::getName).collect(Collectors.toList());
+        return listNamespaceDescriptors().stream().map(NamespaceDesc::getNamespaceName).collect(Collectors.toList());
+
     }
 
     @Override
-    public HTableDescriptor[] listTableDescriptorsByNamespace(String name) {
-        return this.execute(admin -> admin.listTableDescriptorsByNamespace(name));
-    }
-
-    @Override
-    public List<String> listTableNamesByNamespace(String name) {
-        return Arrays.stream(listTableDescriptorsByNamespace(name)).map(HTableDescriptor::getNameAsString).collect(Collectors.toList());
-    }
-
-
-    @Override
-    public List<HRegionInfo> getTableRegions(String tableName) {
-        return this.execute(admin -> admin.getTableRegions(TableName.valueOf(tableName)));
+    public List<TableDesc> listTableDescriptorsByNamespace(String namespaceName) {
+        return this.execute(admin -> {
+            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
+            if (tableDescriptors == null || tableDescriptors.length == 0) {
+                return new ArrayList<>();
+            } else {
+                return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
+            }
+        });
     }
 
     @Override
@@ -331,19 +441,28 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public List<HBaseProtos.SnapshotDescription> listSnapshots() {
-        return this.execute(Admin::listSnapshots);
-    }
-
-    @Override
-    public List<HBaseProtos.SnapshotDescription> listSnapshots(String regex) {
-        return this.execute(admin -> admin.listSnapshots(regex));
-    }
-
-    @Override
-    public boolean snapshot(String snapshotName, String tableName) {
+    public List<SnapshotDesc> listSnapshots() {
         return this.execute(admin -> {
-            admin.snapshot(snapshotName, TableName.valueOf(tableName));
+            final List<HBaseProtos.SnapshotDescription> listSnapshots = admin.listSnapshots();
+            if (listSnapshots == null || listSnapshots.isEmpty()) {
+                return new ArrayList<>();
+            } else {
+                return listSnapshots.stream().map(snapshotDescription -> {
+                    SnapshotDesc snapshotDesc = new SnapshotDesc();
+                    snapshotDesc.setSnapshotName(snapshotDescription.getName());
+                    snapshotDesc.setTableName(snapshotDescription.getTable());
+                    snapshotDesc.setCreateTime(snapshotDescription.getCreationTime());
+                    return snapshotDesc;
+                }).collect(Collectors.toList());
+            }
+        });
+    }
+
+    @Override
+    public boolean snapshot(SnapshotDesc snapshotDesc) {
+        tableIsNotExistsError(snapshotDesc.getTableName());
+        return this.execute(admin -> {
+            admin.snapshot(snapshotDesc.getSnapshotName(), TableName.valueOf(snapshotDesc.getTableName()));
             return true;
         });
     }
@@ -358,6 +477,8 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
 
     @Override
     public boolean cloneSnapshot(String snapshotName, String tableName) {
+        tableIsExistsError(tableName);
+
         return this.execute(admin -> {
             admin.cloneSnapshot(snapshotName, TableName.valueOf(tableName));
             return true;
@@ -380,6 +501,66 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
         });
     }
 
+    private List<TableDesc> parseHTableDescriptorsToTableDescList(HTableDescriptor[] tableDescriptors) {
+        return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
+    }
+
+    private TableDesc parseHTableDescriptorToTableDesc(HTableDescriptor tableDescriptor) {
+        TableDesc tableDesc = new TableDesc();
+        String tableName = tableDescriptor.getNameAsString();
+        tableDesc.setNamespaceName(HMHBaseConstant.getNamespaceName(tableName));
+        tableDesc.setTableName(tableName);
+        tableDesc.setDisabled(isTableDisabled(tableName));
+        tableDesc.setMetaTable(tableDescriptor.isMetaTable());
+        tableDesc.setTableProps(tableDescriptor.getConfiguration());
+        tableDesc.setTableDesc(tableDescriptor.toString());
+        return tableDesc;
+    }
+
+    /**
+     * FamilyDesc -> HColumnDescriptor
+     *
+     * @param familyDesc 自定义列簇描述
+     * @return HColumnDescriptor
+     */
+    private HColumnDescriptor parseFamilyDescToHColumnDescriptor(FamilyDesc familyDesc) {
+        HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyDesc.getFamilyName());
+        columnDescriptor.setMaxVersions(familyDesc.getMaxVersions());
+        columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
+        columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+        return columnDescriptor;
+    }
+
+    private void checkTableNameIsNotEmpty(String tableName) {
+        if (StrUtil.isBlank(tableName)) {
+            throw new HBaseOperationsException("表名不能为空！");
+        }
+    }
+
+    private void tableIsNotExistsError(String tableName) {
+        checkTableNameIsNotEmpty(tableName);
+
+        if (!tableExists(tableName)) {
+            throw new HBaseOperationsException("表" + tableName + "不存在！");
+        }
+    }
+
+    private void tableIsExistsError(String tableName) {
+        checkTableNameIsNotEmpty(tableName);
+        if (tableExists(tableName)) {
+            throw new HBaseOperationsException("表" + tableName + "已经存在！");
+        }
+    }
+
+    private byte[][] getSplitKeyBytes(String[] splitKeys) {
+        final List<byte[]> bytes = Arrays.stream(splitKeys).distinct().map(Bytes::toBytes).collect(Collectors.toList());
+        byte[][] splitKeyBytes = new byte[bytes.size()][];
+        for (int i = 0; i < bytes.size(); i++) {
+            splitKeyBytes[i] = bytes.get(i);
+        }
+        return splitKeyBytes;
+    }
+
     /**
      * 修改某张表某些列簇的
      *
@@ -389,10 +570,10 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
      * @return 修改replication scope是否成功
      */
     private boolean modifyTableReplicationScope(String tableName, int replicationScope, List<String> families) {
-        checkTable(tableName);
+        tableIsNotExistsError(tableName);
 
         if (families == null || families.isEmpty()) {
-            throw new HBaseOperationsException("the family names of table are not empty.");
+            throw new HBaseOperationsException("请传入一个或多个待修改的列簇");
         }
 
         return this.execute(admin -> {
@@ -408,21 +589,5 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
             return true;
         });
-    }
-
-    /**
-     * 检查表是否存在
-     *
-     * @param tableName 表名
-     */
-    public void checkTable(String tableName) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("table name is not empty.");
-        }
-
-        boolean tableIsCreated = this.tableExists(tableName);
-        if (!tableIsCreated) {
-            throw new HBaseOperationsException(tableName + " is not exists.");
-        }
     }
 }

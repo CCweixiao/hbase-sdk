@@ -2,6 +2,11 @@ package com.github.CCweixiao.starter.example.service;
 
 import com.github.CCweixiao.HBaseTemplate;
 import com.github.CCweixiao.starter.example.pojo.UserPojo;
+import com.github.CCweixiao.util.HBytesUtil;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -90,4 +95,9 @@ public class UserService {
         userPojo.setUserStatus(2);
         return userPojo;
     }
+
+    public List<Map<String, Object>> getDataWithMapper() {
+        return hBaseTemplate.getToListMap("TEST:LEO_USER", "10002");
+    }
+
 }
