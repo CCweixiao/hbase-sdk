@@ -6,9 +6,7 @@ import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * HBase admin template test
