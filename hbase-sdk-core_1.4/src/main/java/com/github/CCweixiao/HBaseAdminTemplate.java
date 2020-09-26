@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAdminOperations {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
     public HBaseAdminTemplate(Configuration configuration) {
         super(configuration);
     }

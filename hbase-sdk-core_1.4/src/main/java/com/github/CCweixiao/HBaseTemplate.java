@@ -3,6 +3,8 @@ package com.github.CCweixiao;
 import com.github.CCweixiao.annotation.HBaseRowKey;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * @author leo.jie (weixiao.me@aliyun.com)
  */
-public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOperations {
+public class HBaseTemplate extends AbstractHBaseTemplate {
     public HBaseTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -333,6 +335,62 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
     }
 
     @Override
+    public List<Map<String, Object>> getToListMap(String tableName, String rowKey) {
+        return getToListMap(tableName, rowKey, null, null);
+    }
+
+    @Override
+    public List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName) {
+        return getToListMap(tableName, rowKey, familyName, null);
+    }
+
+    @Override
+    public List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName, List<String> qualifiers) {
+        Get get = get(rowKey, familyName, qualifiers);
+        return this.execute(tableName, table -> {
+            Result result = table.get(get);
+            return getToResultMap(result);
+        });
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, Integer limit) {
+        return findToListMap(tableName, null, null, null, null, limit);
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, Integer limit) {
+        return findToListMap(tableName, familyName, null, null, null, limit);
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, Integer limit) {
+        return findToListMap(tableName, familyName, qualifiers, null, null, limit);
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, String startKey, Integer limit) {
+        return findToListMap(tableName, familyName, null, startKey, null, limit);
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, Integer limit) {
+        return findToListMap(tableName, familyName, qualifiers, startKey, null, limit);
+    }
+
+    @Override
+    public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, String endKey, Integer limit) {
+        Scan scan = scan(familyName, qualifiers);
+        if (StrUtil.isNotBlank(startKey)) {
+            scan.withStartRow(Bytes.toBytes(startKey));
+        }
+        if (StrUtil.isNotBlank(endKey)) {
+            scan.withStopRow(Bytes.toBytes(endKey));
+        }
+        return find(tableName, scan, limit, (result, rowNum) -> getToResultMap(result));
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         delete(tableName, rowKey, null, new ArrayList<>());
     }
@@ -400,6 +458,14 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         }
     }
 
+    /**
+     * 构造get
+     *
+     * @param rowName    row key
+     * @param familyName 列簇名
+     * @param qualifiers 筛选字段
+     * @return get
+     */
     private Get get(String rowName, String familyName, List<String> qualifiers) {
         Get get = new Get(Bytes.toBytes(rowName));
         if (StrUtil.isNotBlank(familyName)) {
@@ -413,6 +479,13 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         return get;
     }
 
+    /**
+     * 构造scan
+     *
+     * @param family     列簇名
+     * @param qualifiers 字段名筛选列表
+     * @return scan
+     */
     private Scan scan(String family, List<String> qualifiers) {
         Scan scan = new Scan();
         if (StrUtil.isNotBlank(family)) {
@@ -437,6 +510,13 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         return scan;
     }
 
+    /**
+     * 构造put的对象
+     *
+     * @param rowKey rowKey
+     * @param data   map类型的数据
+     * @return put
+     */
     private Put put(String rowKey, Map<String, Object> data) {
         Put put = new Put(HBytesUtil.toBytes(rowKey));
         data.forEach((fieldName, fieldValue) -> put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(":"))),
@@ -444,6 +524,14 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         return put;
     }
 
+    /**
+     * 构造delete
+     *
+     * @param rowKey     row key
+     * @param family     列簇名
+     * @param qualifiers 字段名筛选
+     * @return delete
+     */
     private Delete delete(String rowKey, String family, List<String> qualifiers) {
         Delete delete = new Delete(Bytes.toBytes(rowKey));
         if (qualifiers != null && qualifiers.size() > 0) {
@@ -459,5 +547,26 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
             }
         }
         return delete;
+    }
+
+    private Map<String, Object> resultToMap(Result result, Cell cell) {
+        Map<String, Object> resultMap = new HashMap<>(4);
+        String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
+        byte[] value = CellUtil.cloneValue(cell);
+        resultMap.put("rowKey", Bytes.toString(result.getRow()));
+        resultMap.put("familyName", fieldName);
+        resultMap.put("timestamp", cell.getTimestamp());
+        resultMap.put("value", HBytesUtil.toObject(value, Object.class));
+        return resultMap;
+    }
+
+    private List<Map<String, Object>> getToResultMap(Result result) {
+        List<Cell> cs = result.listCells();
+        List<Map<String, Object>> dataMaps = new ArrayList<>(cs.size());
+        for (Cell cell : cs) {
+            Map<String, Object> resultMap = resultToMap(result, cell);
+            dataMaps.add(resultMap);
+        }
+        return dataMaps;
     }
 }

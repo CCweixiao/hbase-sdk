@@ -147,29 +147,14 @@ public class HBaseTemplateTest {
     }
 
     @Test
-    public void testGetDataWithMapper() {
-        final List<Map<String, Object>> mapList = hBaseTemplate.get("TEST:LEO_USER", "10002",
-                (result, rowNum) -> {
-                    List<Cell> cs = result.listCells();
-                    List<Map<String, Object>> dataMaps = new ArrayList<>(cs.size());
-                    for (Cell cell : cs) {
-                        Map<String, Object> resultMap = resultToMap(result, cell);
-                        dataMaps.add(resultMap);
-                    }
-                    return dataMaps;
-                });
+    public void testGetToListMap() {
+        final List<Map<String, Object>> mapList = hBaseTemplate.getToListMap("LEO_NS2:USER", "10000099");
         System.out.println(mapList);
     }
 
-    private Map<String, Object> resultToMap(Result result, Cell cell) {
-        Map<String, Object> resultMap = new HashMap<>(4);
-        String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
-        byte[] value = CellUtil.cloneValue(cell);
-        resultMap.put("rowKey", Bytes.toString(result.getRow()));
-        resultMap.put("familyName", fieldName);
-        resultMap.put("timestamp", cell.getTimestamp());
-        resultMap.put("value", HBytesUtil.toObject(value, Object.class));
-        return resultMap;
+    @Test
+    public void testFindToListMap() {
+        final List<List<Map<String, Object>>> mapList = hBaseTemplate.findToListMap("LEO_NS2:USER", 1);
+        System.out.println(mapList);
     }
-
 }
