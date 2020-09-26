@@ -2,6 +2,11 @@ package com.github.CCweixiao.starter.example.service;
 
 import com.github.CCweixiao.HBaseTemplate;
 import com.github.CCweixiao.starter.example.pojo.UserPojo;
+import com.github.CCweixiao.util.HBytesUtil;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,5 +94,29 @@ public class UserService {
         userPojo.setRoles(new String[]{"admin", "user", "vip"});
         userPojo.setUserStatus(2);
         return userPojo;
+    }
+
+    public List<Map<String, Object>> getDataWithMapper() {
+        return hBaseTemplate.get("TEST:LEO_USER", "10002",
+                (result, rowNum) -> {
+                    List<Cell> cs = result.listCells();
+                    List<Map<String, Object>> dataMaps = new ArrayList<>(cs.size());
+                    for (Cell cell : cs) {
+                        Map<String, Object> resultMap = resultToMap(result, cell);
+                        dataMaps.add(resultMap);
+                    }
+                    return dataMaps;
+                });
+    }
+
+    private Map<String, Object> resultToMap(Result result, Cell cell) {
+        Map<String, Object> resultMap = new HashMap<>(4);
+        String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
+        byte[] value = CellUtil.cloneValue(cell);
+        resultMap.put("rowKey", Bytes.toString(result.getRow()));
+        resultMap.put("familyName", fieldName);
+        resultMap.put("timestamp", cell.getTimestamp());
+        resultMap.put("value", HBytesUtil.toObject(value, Object.class));
+        return resultMap;
     }
 }

@@ -1,18 +1,18 @@
 package com.github.CCweixiao;
 
-import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.SnapshotDescription;
-import org.apache.hadoop.hbase.util.Pair;
+import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.NamespaceDesc;
+import com.github.CCweixiao.model.SnapshotDesc;
+import com.github.CCweixiao.model.TableDesc;
 
 import java.util.List;
 
 /**
- * <p>该接口用于定义管理员操作的API，被{@link HBaseTemplate}实现。</p>
+ * <p>该接口用于定义管理员操作的API</p>
  *
- * @author leo.jie (leojie1314@gmail.com)
+ * @author leojie 2020/9/25 10:44 下午
  */
 public interface HBaseAdminOperations {
-
     /**
      * HBase表是否存在
      *
@@ -26,8 +26,13 @@ public interface HBaseAdminOperations {
      *
      * @return 所有的HBase表及其描述
      */
-    HTableDescriptor[] listTables();
+    List<TableDesc> listTables();
 
+    /**
+     * @param includeSysTables 是否包含系统表
+     * @return 所有的HBase表及其描述
+     */
+    List<TableDesc> listTables(boolean includeSysTables);
 
     /**
      * 正则查询HBase表及其描述
@@ -36,23 +41,47 @@ public interface HBaseAdminOperations {
      * @param includeSysTables 是否包含系统表
      * @return 筛选出的HBase表及其描述
      */
-    HTableDescriptor[] listTables(String regex, boolean includeSysTables);
+    List<TableDesc> listTables(String regex, boolean includeSysTables);
 
     /**
      * 获取所有表名
      *
-     * @return 表名数组
+     * @return 所有表名
      */
-    TableName[] listTableNames();
+    List<String> listTableNames();
 
     /**
-     * 正则筛选表名
+     * 获取所有表名
      *
-     * @param regex            正则表达式
      * @param includeSysTables 是否包含系统表
-     * @return 表名数组
+     * @return 所有表名
      */
-    TableName[] listTableNames(final String regex, final boolean includeSysTables);
+    List<String> listTableNames(boolean includeSysTables);
+
+    /**
+     * 获取所有表名
+     *
+     * @param regex            查询正则
+     * @param includeSysTables 是否包含系统表
+     * @return 所有表名
+     */
+    List<String> listTableNames(String regex, boolean includeSysTables);
+
+    /**
+     * 获取某一命名空间下的所有表信息
+     *
+     * @param namespaceName 命名空间名称
+     * @return 所有表信息
+     */
+    List<TableDesc> listTableDescByNamespace(final String namespaceName);
+
+    /**
+     * 获取某一命名空间下的所有表名
+     *
+     * @param namespaceName 命名空间名称
+     * @return 所有表名
+     */
+    List<String> listTableNamesByNamespace(final String namespaceName);
 
     /**
      * 获取某一张表的描述信息
@@ -60,58 +89,32 @@ public interface HBaseAdminOperations {
      * @param tableName 表名
      * @return 表描述
      */
-    HTableDescriptor getTableDescriptor(final String tableName);
+    TableDesc getTableDesc(final String tableName);
 
     /**
      * 创建表
      *
-     * @param desc 表的描述信息
+     * @param desc    表的描述信息
+     * @param isAsync 是否是异步的方式
      * @return 表是否被创建成功
      */
-    boolean createTable(final HTableDescriptor desc);
+    boolean createTable(final TableDesc desc, boolean isAsync);
 
-    /**
-     * 创建表
-     *
-     * @param desc       表的描述信息
-     * @param startKey   预分区开始key
-     * @param endKey     预分区结束key
-     * @param numRegions region数
-     * @return 表是否被创建成功
-     */
-    boolean createTable(final HTableDescriptor desc, byte[] startKey, byte[] endKey, int numRegions);
-
-    /**
-     * 创建表
-     *
-     * @param desc      表的描述信息
-     * @param splitKeys 指定的预分区key列表
-     * @return 表是否被创建成功
-     */
-    boolean createTable(final HTableDescriptor desc, byte[][] splitKeys);
-
-    /**
-     * 异步方式创建表
-     *
-     * @param desc      表的描述信息
-     * @param splitKeys 指定的预分区key列表
-     * @return 表是否被创建成功
-     */
-    boolean createTableAsync(final HTableDescriptor desc, final byte[][] splitKeys);
 
     /**
      * 修改表
      *
-     * @param tableName       表名
-     * @param tableDescriptor 表描述
+     * @param tableName 表名
+     * @param desc      表描述
      * @return 表是否被修改成功
      */
-    boolean modifyTable(final String tableName, final HTableDescriptor tableDescriptor);
+    boolean modifyTable(final String tableName, final TableDesc desc);
 
     /**
      * 修改表名
-     * @param oldTableName 旧表名
-     * @param newTableName 新表名
+     *
+     * @param oldTableName   旧表名
+     * @param newTableName   新表名
      * @param deleteOldTable 是否删除旧表
      * @return 修改表名结果
      */
@@ -126,54 +129,33 @@ public interface HBaseAdminOperations {
     boolean deleteTable(final String tableName);
 
     /**
-     * 正则删除表
-     *
-     * @param regex 正则表达式
-     * @return 不能被删除表的描述信息
-     */
-    HTableDescriptor[] deleteTables(String regex);
-
-    /**
      * 清空表
      *
      * @param tableName      表名
-     * @param preserveSplits 是否保留预分区
+     * @param preserveSplits 是否保留预分区信息
      * @return 表是否被成功清空
      */
     boolean truncateTable(final String tableName, final boolean preserveSplits);
-
 
     /**
      * 启用表
      *
      * @param tableName 表名
+     * @param isAsync 是否是异步的
      * @return 启用表是否成功
      */
-    boolean enableTable(String tableName);
+    boolean enableTable(String tableName, boolean isAsync);
 
-    /**
-     * 异步方式启用表
-     *
-     * @param tableName 表名
-     * @return 启用表是否成功
-     */
-    boolean enableTableAsync(String tableName);
 
     /**
      * 禁用表
      *
      * @param tableName 表名
+     * @param isAsync 是否是异步的
      * @return 禁用表是否成功
      */
-    boolean disableTable(String tableName);
+    boolean disableTable(String tableName, boolean isAsync);
 
-    /**
-     * 异步方式禁用表
-     *
-     * @param tableName 表名
-     * @return 禁用表是否成功
-     */
-    boolean disableTableAsync(String tableName);
 
     /**
      * 表是否被启用
@@ -199,53 +181,50 @@ public interface HBaseAdminOperations {
      */
     boolean isTableAvailable(String tableName);
 
-    /**
-     * 针对异步操作，获取某张表的修改命令的执行状态，Pair.getFirst()表示哪些region已经被更新了，Pair.getSecond()表示总的region数
-     *
-     * @param tableName 表名
-     * @return 异步命令的执行状态
-     */
-    Pair<Integer, Integer> getAlterStatus(final String tableName);
 
     /**
      * 为某张表新增一个列簇
      *
-     * @param tableName 表名
-     * @param column    列簇名
+     * @param tableName  表名
+     * @param familyDesc 列簇定义信息
      * @return 新增列簇是否成功
      */
-    boolean addColumn(final String tableName, final HColumnDescriptor column);
+    boolean addFamily(final String tableName, final FamilyDesc familyDesc);
+
 
     /**
      * 删除一个列簇
      *
      * @param tableName  表名
-     * @param columnName 列名
+     * @param familyName 列簇名
      * @return 删除列簇是否成功
      */
-    boolean deleteColumn(final String tableName, final String columnName);
+    boolean deleteFamily(final String tableName, final String familyName);
 
     /**
      * 修改一个列簇
      *
      * @param tableName  表名
-     * @param descriptor 列簇描述
+     * @param familyDesc 列簇描述
      * @return 修改列簇是否成功
      */
-    boolean modifyColumn(final String tableName, final HColumnDescriptor descriptor);
+    boolean modifyFamily(final String tableName, final FamilyDesc familyDesc);
 
     /**
      * 启用replication
+     *
      * @param tableName 表名
-     * @param families 列簇名
+     * @param families  列簇名
      * @return 启用replication是否成功
      */
     boolean enableReplicationScope(String tableName, List<String> families);
 
+
     /**
      * 禁用replication
+     *
      * @param tableName 表名
-     * @param families 列簇名
+     * @param families  列簇名
      * @return 禁用replication是否成功
      */
     boolean disableReplicationScope(String tableName, List<String> families);
@@ -274,52 +253,45 @@ public interface HBaseAdminOperations {
      */
     boolean majorCompact(final String tableName);
 
-    /**
-     * 获取集群所有节点的状态
-     *
-     * @return 集群所有节点的状态
-     */
-    ClusterStatus getClusterStatus();
-
 
     /**
      * 创建一个命名空间
      *
-     * @param descriptor 该新命名空间的描述
+     * @param namespaceDesc 该命名空间的描述
      * @return namespace是否创建成功
      */
-    boolean createNamespace(final NamespaceDescriptor descriptor);
+    boolean createNamespace(final NamespaceDesc namespaceDesc);
 
     /**
-     * 修改命名空间的描述信息
-     *
-     * @param descriptor 修改后命名空间的描述
-     * @return namespace是否修改成功
+     * 判断命名空间是否存在
+     * @param namespaceName 命名空间名称
+     * @return 是否存在
      */
-    boolean modifyNamespace(final NamespaceDescriptor descriptor);
+    boolean namespaceIsExists(final String namespaceName);
+
 
     /**
      * 删除命名空间
      *
-     * @param name 命名空间名称
+     * @param namespaceName 命名空间名称
      * @return namespace是否删除成功
      */
-    boolean deleteNamespace(final String name);
+    boolean deleteNamespace(final String namespaceName);
 
     /**
      * 获取一个命名空间的描述
      *
-     * @param name 命名空间名称
+     * @param namespaceName 命名空间的名称
      * @return 该命名空间的描述
      */
-    NamespaceDescriptor getNamespaceDescriptor(final String name);
+    NamespaceDesc getNamespaceDesc(final String namespaceName);
 
     /**
      * 获取所有命名空间的描述
      *
      * @return 所有命名空间的描述
      */
-    NamespaceDescriptor[] listNamespaceDescriptors();
+    List<NamespaceDesc> listNamespaceDescriptors();
 
     /**
      * 获取HBase所有的命名空间名称
@@ -328,31 +300,13 @@ public interface HBaseAdminOperations {
      */
     List<String> listNamespaces();
 
-
     /**
      * 获取某一命名空间下的所有表描述
      *
-     * @param name 命名空间名称
-     * @return 所有表描述信息
+     * @param namespaceName 命名空间名称
+     * @return 该命名空间下的所有表描述信息
      */
-    HTableDescriptor[] listTableDescriptorsByNamespace(final String name);
-
-    /**
-     * 获取某一命名空间下的所有表名
-     *
-     * @param name 命名空间名称
-     * @return 所有表名
-     */
-    List<String> listTableNamesByNamespace(final String name);
-
-
-    /**
-     * 获取某一张表的所有region信息
-     *
-     * @param tableName 表名
-     * @return 该表的所有region信息
-     */
-    List<HRegionInfo> getTableRegions(final String tableName);
+    List<TableDesc> listTableDescriptorsByNamespace(final String namespaceName);
 
     /**
      * 获取某张表最后一次的major compact时间戳，如果是0则最新的HFile无法被找到
@@ -375,24 +329,15 @@ public interface HBaseAdminOperations {
      *
      * @return 所有快照
      */
-    List<SnapshotDescription> listSnapshots();
-
-    /**
-     * 正则查询所有快照
-     *
-     * @param regex 正则表达式
-     * @return 所有快照
-     */
-    List<SnapshotDescription> listSnapshots(String regex);
+    List<SnapshotDesc> listSnapshots();
 
     /**
      * 创建快照
      *
-     * @param snapshotName 快照名称
-     * @param tableName    表名
+     * @param snapshotDesc 快照信息描述
      * @return 创建快照是否成功
      */
-    boolean snapshot(final String snapshotName, final String tableName);
+    boolean snapshot(SnapshotDesc snapshotDesc);
 
     /**
      * 恢复快照
@@ -419,6 +364,7 @@ public interface HBaseAdminOperations {
      */
     boolean deleteSnapshot(final String snapshotName);
 
+
     /**
      * 根据正则批量删除快照
      *
@@ -426,6 +372,5 @@ public interface HBaseAdminOperations {
      * @return 删除快照是否成功
      */
     boolean deleteSnapshots(final String regex);
-
 
 }

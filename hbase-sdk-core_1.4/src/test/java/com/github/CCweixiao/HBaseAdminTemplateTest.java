@@ -1,11 +1,8 @@
 package com.github.CCweixiao;
 
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.io.compress.Compression;
-import org.apache.hadoop.hbase.util.Bytes;
+import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.NamespaceDesc;
+import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,29 +26,31 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testListNamespace() {
         List<String> namespaces = hBaseTemplate.listNamespaces();
-
         System.out.println(namespaces);
     }
 
     @Test
     public void testCreateNamespace() {
         String namespaceName = "LEO_NS2";
-        Map<String, String> para = new HashMap<>();
-        para.put("tag", "测试命名空间");
-        para.put("createBy", "leo");
-        para.put("updateBy", "");
-        NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceName)
-                .addConfiguration(para)
-                .build();
-        hBaseTemplate.createNamespace(namespaceDescriptor);
+        if (hBaseTemplate.namespaceIsExists(namespaceName)) {
+            hBaseTemplate.deleteNamespace(namespaceName);
+        }
+
+        NamespaceDesc namespaceDesc = new NamespaceDesc();
+        namespaceDesc.setNamespaceName(namespaceName);
+
+        namespaceDesc = namespaceDesc.addNamespaceProp("tag", "测试命名空间")
+                .addNamespaceProp("createBy", "leo").addNamespaceProp("updateBy", "");
+
+        hBaseTemplate.createNamespace(namespaceDesc);
     }
 
     @Test
     public void testGetNamespace() {
-        String namespaceName = "LEO_NS2233";
-        final NamespaceDescriptor namespaceDescriptor = hBaseTemplate.getNamespaceDescriptor(namespaceName);
-        System.out.println(namespaceDescriptor.getName());
-        System.out.println(namespaceDescriptor.getConfiguration());
+        String namespaceName = "LEO_NS2";
+        final NamespaceDesc namespaceDesc = hBaseTemplate.getNamespaceDesc(namespaceName);
+        System.out.println(namespaceDesc.getNamespaceName());
+        System.out.println(namespaceDesc.getNamespaceProps());
     }
 
     @Test
@@ -62,47 +61,52 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "LEO_NS:USER";
+        String tableName = "LEO_NS2:USER";
 
-        HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableName));
+        TableDesc tableDesc = new TableDesc();
+        tableDesc.setTableName(tableName);
 
-        tableDescriptor.setValue("tag", "测试用户表");
-        tableDescriptor.setValue("createUser", "leo");
+        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
 
+        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
+                .familyName("INFO")
+                .replicationScope(1)
+                .compressionType("NONE")
+                .timeToLive(2147483647)
+                .maxVersions(3).build();
 
-        HColumnDescriptor columnDescriptor = new HColumnDescriptor("INFO");
-        columnDescriptor.setScope(1);
-        columnDescriptor.setCompressionType(Compression.Algorithm.SNAPPY);
-        columnDescriptor.setTimeToLive(2147483647);
-        columnDescriptor.setMaxVersions(3);
+        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
+                .familyName("INFO2")
+                .replicationScope(0)
+                .compressionType("NONE")
+                .timeToLive(864000)
+                .maxVersions(3).build();
 
-        HColumnDescriptor columnDescriptor2 = new HColumnDescriptor("INFO2");
-        columnDescriptor2.setScope(0);
-        columnDescriptor2.setTimeToLive(864000);
-        columnDescriptor2.setMaxVersions(3);
+        tableDesc = tableDesc.addFamilyDesc(familyDesc1)
+                .addFamilyDesc(familyDesc2);
 
-        tableDescriptor.addFamily(columnDescriptor).addFamily(columnDescriptor2);
+        tableDesc.setStartKey("1");
+        tableDesc.setEndKey("100");
+        tableDesc.setPreSplitRegions(10);
 
-        hBaseTemplate.createTable(tableDescriptor, Bytes.toBytes(0), Bytes.toBytes(100), 10);
+        hBaseTemplate.createTable(tableDesc, false);
     }
 
     @Test
     public void getTableDesc() {
-        String tableName = "LEO_NS:USER";
-        final HTableDescriptor tableDescriptor = hBaseTemplate.getTableDescriptor(tableName);
-
-        System.out.println(tableDescriptor.getValue("createUser"));
-        System.out.println(tableDescriptor.getValue("tag"));
-
-        System.out.println(tableDescriptor.toString());
+        String tableName = "LEO_NS2:USER";
+        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
+        System.out.println(tableDesc.getProp("createUser"));
+        System.out.println(tableDesc.getProp("tag"));
+        System.out.println(tableDesc.getTableDesc());
     }
 
     @Test
     public void deleteTable() {
-        String tableName = "LEO_NS:USER";
+        String tableName = "LEO_NS2:USER";
         boolean disabled = hBaseTemplate.isTableDisabled(tableName);
         if (!disabled) {
-            hBaseTemplate.disableTable(tableName);
+            hBaseTemplate.disableTable(tableName, false);
         }
         boolean res = hBaseTemplate.deleteTable(tableName);
         System.out.println(res);
