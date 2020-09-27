@@ -26,13 +26,20 @@ public interface HBaseAdminOperations {
      *
      * @return 所有的HBase表及其描述
      */
-    List<TableDesc> listTables();
+    List<TableDesc> listTableDesc();
+
+    /**
+     * 获取某张表所有的列簇
+     *
+     * @return 所有的列簇信息
+     */
+    List<FamilyDesc> listFamilyDesc(String tableName);
 
     /**
      * @param includeSysTables 是否包含系统表
      * @return 所有的HBase表及其描述
      */
-    List<TableDesc> listTables(boolean includeSysTables);
+    List<TableDesc> listTableDesc(boolean includeSysTables);
 
     /**
      * 正则查询HBase表及其描述
@@ -41,7 +48,7 @@ public interface HBaseAdminOperations {
      * @param includeSysTables 是否包含系统表
      * @return 筛选出的HBase表及其描述
      */
-    List<TableDesc> listTables(String regex, boolean includeSysTables);
+    List<TableDesc> listTableDesc(String regex, boolean includeSysTables);
 
     /**
      * 获取所有表名
@@ -104,11 +111,10 @@ public interface HBaseAdminOperations {
     /**
      * 修改表
      *
-     * @param tableName 表名
      * @param desc      表描述
      * @return 表是否被修改成功
      */
-    boolean modifyTable(final String tableName, final TableDesc desc);
+    boolean modifyTableProps(final TableDesc desc);
 
     /**
      * 修改表名
@@ -141,7 +147,7 @@ public interface HBaseAdminOperations {
      * 启用表
      *
      * @param tableName 表名
-     * @param isAsync 是否是异步的
+     * @param isAsync   是否是异步的
      * @return 启用表是否成功
      */
     boolean enableTable(String tableName, boolean isAsync);
@@ -151,7 +157,7 @@ public interface HBaseAdminOperations {
      * 禁用表
      *
      * @param tableName 表名
-     * @param isAsync 是否是异步的
+     * @param isAsync   是否是异步的
      * @return 禁用表是否成功
      */
     boolean disableTable(String tableName, boolean isAsync);
@@ -264,6 +270,7 @@ public interface HBaseAdminOperations {
 
     /**
      * 判断命名空间是否存在
+     *
      * @param namespaceName 命名空间名称
      * @return 是否存在
      */
@@ -291,7 +298,7 @@ public interface HBaseAdminOperations {
      *
      * @return 所有命名空间的描述
      */
-    List<NamespaceDesc> listNamespaceDescriptors();
+    List<NamespaceDesc> listNamespaceDesc();
 
     /**
      * 获取HBase所有的命名空间名称
@@ -299,14 +306,6 @@ public interface HBaseAdminOperations {
      * @return 所有的命名空间名称
      */
     List<String> listNamespaces();
-
-    /**
-     * 获取某一命名空间下的所有表描述
-     *
-     * @param namespaceName 命名空间名称
-     * @return 该命名空间下的所有表描述信息
-     */
-    List<TableDesc> listTableDescriptorsByNamespace(final String namespaceName);
 
     /**
      * 获取某张表最后一次的major compact时间戳，如果是0则最新的HFile无法被找到

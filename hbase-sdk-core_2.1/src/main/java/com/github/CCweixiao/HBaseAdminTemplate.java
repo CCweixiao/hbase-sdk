@@ -40,17 +40,27 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public List<TableDesc> listTables() {
-        return listTables("", false);
+    public List<TableDesc> listTableDesc() {
+        return listTableDesc("", false);
     }
 
     @Override
-    public List<TableDesc> listTables(boolean includeSysTables) {
-        return listTables("", includeSysTables);
+    public List<FamilyDesc> listFamilyDesc(String tableName) {
+        tableIsNotExistsError(tableName);
+        return this.execute(admin -> {
+            TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
+            final ColumnFamilyDescriptor[] families = tableDescriptor.getColumnFamilies();
+            return parseFamilyDescriptorToFamilyDescList(families);
+        });
     }
 
     @Override
-    public List<TableDesc> listTables(String regex, boolean includeSysTables) {
+    public List<TableDesc> listTableDesc(boolean includeSysTables) {
+        return listTableDesc("", includeSysTables);
+    }
+
+    @Override
+    public List<TableDesc> listTableDesc(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
             List<TableDescriptor> tableDescriptors;
             if (StrUtil.isBlank(regex)) {
@@ -199,8 +209,19 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
 
 
     @Override
-    public boolean modifyTable(String tableName, TableDesc desc) {
-        throw new HBaseOperationsException("暂不支持修改表！");
+    public boolean modifyTableProps(TableDesc desc) {
+        tableIsNotExistsError(desc.getTableName());
+        return this.execute(admin -> {
+            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(desc.getTableName()));
+            //final TableDescriptor descriptor = admin.getDescriptor();
+            final Map<String, String> tableProps = desc.getTableProps();
+            if (tableProps != null && !tableProps.isEmpty()) {
+                tableProps.forEach(tableDescriptorBuilder::setValue);
+                admin.modifyTable(tableDescriptorBuilder.build());
+                return true;
+            }
+            return true;
+        });
     }
 
     @Override
@@ -363,8 +384,11 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
         }
 
         return this.execute(admin -> {
-            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName())
-                    .addConfiguration(namespaceDesc.getNamespaceProps()).build();
+            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName()).build();
+            final Map<String, String> namespaceProps = namespaceDesc.getNamespaceProps();
+            if (namespaceProps != null && !namespaceProps.isEmpty()) {
+                namespaceProps.forEach(namespaceDescriptor::setConfiguration);
+            }
             admin.createNamespace(namespaceDescriptor);
             return true;
         });
@@ -403,7 +427,7 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
     }
 
     @Override
-    public List<NamespaceDesc> listNamespaceDescriptors() {
+    public List<NamespaceDesc> listNamespaceDesc() {
         return this.execute(admin -> Arrays.stream(admin.listNamespaceDescriptors()).map(namespaceDescriptor -> {
             NamespaceDesc namespaceDesc = new NamespaceDesc();
             namespaceDesc.setNamespaceName(namespaceDescriptor.getName());
@@ -414,16 +438,8 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
 
     @Override
     public List<String> listNamespaces() {
-        return listNamespaceDescriptors().stream().map(NamespaceDesc::getNamespaceName).collect(Collectors.toList());
+        return listNamespaceDesc().stream().map(NamespaceDesc::getNamespaceName).collect(Collectors.toList());
 
-    }
-
-    @Override
-    public List<TableDesc> listTableDescriptorsByNamespace(String namespaceName) {
-        return this.execute(admin -> {
-            final List<TableDescriptor> tableDescriptors = admin.listTableDescriptorsByNamespace(Bytes.toBytes(namespaceName));
-            return parseHTableDescriptorsToTableDescList(tableDescriptors);
-        });
     }
 
     @Override
@@ -518,6 +534,16 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
         return tableDescriptors.stream().map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
     }
 
+    private List<FamilyDesc> parseFamilyDescriptorToFamilyDescList(ColumnFamilyDescriptor[] families) {
+        return Arrays.stream(families).map(family -> new FamilyDesc.Builder()
+                .familyName(family.getNameAsString())
+                .maxVersions(family.getMaxVersions())
+                .timeToLive(family.getTimeToLive())
+                .compressionType(family.getCompressionType().getName())
+                .replicationScope(family.getScope())
+                .build()).collect(Collectors.toList());
+    }
+
     private TableDesc parseHTableDescriptorToTableDesc(TableDescriptor tableDescriptor) {
         TableDesc tableDesc = new TableDesc();
         String tableName = tableDescriptor.getTableName().getNameAsString();
@@ -531,6 +557,7 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             values.forEach((k, v) -> configs.put(k.toString(), v.toString()));
         }
         tableDesc.setTableProps(configs);
+        tableDesc.setFamilyDescList(parseFamilyDescriptorToFamilyDescList(tableDescriptor.getColumnFamilies()));
         return tableDesc;
     }
 

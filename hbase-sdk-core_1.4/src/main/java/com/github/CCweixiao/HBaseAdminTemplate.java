@@ -12,6 +12,7 @@ import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     public HBaseAdminTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -42,17 +43,27 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
     }
 
     @Override
-    public List<TableDesc> listTables() {
-        return listTables("", false);
+    public List<TableDesc> listTableDesc() {
+        return listTableDesc("", false);
     }
 
     @Override
-    public List<TableDesc> listTables(boolean includeSysTables) {
-        return listTables("", includeSysTables);
+    public List<FamilyDesc> listFamilyDesc(String tableName) {
+        tableIsNotExistsError(tableName);
+        return this.execute(admin -> {
+            HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            final Collection<HColumnDescriptor> families = tableDescriptor.getFamilies();
+            return parseFamilyDescriptorToFamilyDescList(families);
+        });
     }
 
     @Override
-    public List<TableDesc> listTables(String regex, boolean includeSysTables) {
+    public List<TableDesc> listTableDesc(boolean includeSysTables) {
+        return listTableDesc("", includeSysTables);
+    }
+
+    @Override
+    public List<TableDesc> listTableDesc(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
             HTableDescriptor[] tableDescriptors;
             if (StrUtil.isBlank(regex)) {
@@ -139,7 +150,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
         return this.execute(admin -> {
             HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(desc.getTableName()));
             if (desc.getTableProps() != null && !desc.getTableProps().isEmpty()) {
-                desc.getTableProps().forEach(tableDescriptor::setConfiguration);
+                desc.getTableProps().forEach(tableDescriptor::setValue);
             }
             for (FamilyDesc familyDesc : familyDescList) {
                 HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
@@ -205,8 +216,19 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
 
 
     @Override
-    public boolean modifyTable(String tableName, TableDesc desc) {
-        throw new HBaseOperationsException("暂不支持修改表！");
+    public boolean modifyTableProps(TableDesc desc) {
+        final String tableName = desc.getTableName();
+        tableIsNotExistsError(tableName);
+        return this.execute(admin -> {
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            final Map<String, String> tableProps = desc.getTableProps();
+            if (tableProps != null && !tableProps.isEmpty()) {
+                tableProps.forEach(tableDescriptor::setValue);
+                admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+                return true;
+            }
+            return true;
+        });
     }
 
     @Override
@@ -363,8 +385,11 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
         }
 
         return this.execute(admin -> {
-            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName())
-                    .addConfiguration(namespaceDesc.getNamespaceProps()).build();
+            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName()).build();
+            final Map<String, String> namespaceProps = namespaceDesc.getNamespaceProps();
+            if (namespaceProps != null && !namespaceProps.isEmpty()) {
+                namespaceProps.forEach(namespaceDescriptor::setConfiguration);
+            }
             admin.createNamespace(namespaceDescriptor);
             return true;
         });
@@ -403,7 +428,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
     }
 
     @Override
-    public List<NamespaceDesc> listNamespaceDescriptors() {
+    public List<NamespaceDesc> listNamespaceDesc() {
         return this.execute(admin -> Arrays.stream(admin.listNamespaceDescriptors()).map(namespaceDescriptor -> {
             NamespaceDesc namespaceDesc = new NamespaceDesc();
             namespaceDesc.setNamespaceName(namespaceDescriptor.getName());
@@ -414,20 +439,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
 
     @Override
     public List<String> listNamespaces() {
-        return listNamespaceDescriptors().stream().map(NamespaceDesc::getNamespaceName).collect(Collectors.toList());
+        return listNamespaceDesc().stream().map(NamespaceDesc::getNamespaceName).collect(Collectors.toList());
 
-    }
-
-    @Override
-    public List<TableDesc> listTableDescriptorsByNamespace(String namespaceName) {
-        return this.execute(admin -> {
-            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
-            if (tableDescriptors == null || tableDescriptors.length == 0) {
-                return new ArrayList<>();
-            } else {
-                return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
-            }
-        });
     }
 
     @Override
@@ -512,9 +525,23 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate  {
         tableDesc.setTableName(tableName);
         tableDesc.setDisabled(isTableDisabled(tableName));
         tableDesc.setMetaTable(tableDescriptor.isMetaTable());
-        tableDesc.setTableProps(tableDescriptor.getConfiguration());
+        final Map<ImmutableBytesWritable, ImmutableBytesWritable> values = tableDescriptor.getValues();
+        if (values != null && !values.isEmpty()) {
+            values.forEach((key, value) -> tableDesc.addProp(key.toString(), value.toString()));
+        }
         tableDesc.setTableDesc(tableDescriptor.toString());
+        tableDesc.setFamilyDescList(parseFamilyDescriptorToFamilyDescList(tableDescriptor.getFamilies()));
         return tableDesc;
+    }
+
+    public List<FamilyDesc> parseFamilyDescriptorToFamilyDescList(Collection<HColumnDescriptor> families) {
+        return families.stream().map(family -> new FamilyDesc.Builder()
+                .familyName(family.getNameAsString())
+                .maxVersions(family.getMaxVersions())
+                .timeToLive(family.getTimeToLive())
+                .compressionType(family.getCompressionType().getName())
+                .replicationScope(family.getScope())
+                .build()).collect(Collectors.toList());
     }
 
     /**
