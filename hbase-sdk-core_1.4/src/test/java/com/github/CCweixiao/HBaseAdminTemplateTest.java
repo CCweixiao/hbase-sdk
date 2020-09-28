@@ -92,10 +92,10 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void getTableDesc() {
-        String tableName = "LEO_NS2:USER";
+        String tableName = "TEST:LEO_USER";
         final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
-        System.out.println(tableDesc.getProp("createUser"));
-        System.out.println(tableDesc.getProp("tag"));
+        System.out.println(tableDesc.getProp("lastUpdateBy"));
+        System.out.println(tableDesc.getProp("remark"));
         System.out.println(tableDesc.getTableDesc());
     }
 

@@ -527,7 +527,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
         tableDesc.setMetaTable(tableDescriptor.isMetaTable());
         final Map<ImmutableBytesWritable, ImmutableBytesWritable> values = tableDescriptor.getValues();
         if (values != null && !values.isEmpty()) {
-            values.forEach((key, value) -> tableDesc.addProp(key.toString(), value.toString()));
+            values.forEach((key, value) -> tableDesc.addProp(Bytes.toString(key.get()), Bytes.toString(value.get())));
         }
         tableDesc.setTableDesc(tableDescriptor.toString());
         tableDesc.setFamilyDescList(parseFamilyDescriptorToFamilyDescList(tableDescriptor.getFamilies()));

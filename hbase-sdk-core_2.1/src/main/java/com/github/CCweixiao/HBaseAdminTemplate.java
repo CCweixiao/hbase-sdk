@@ -554,7 +554,7 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
         Map<String, String> configs = new HashMap<>(4);
         final Map<Bytes, Bytes> values = tableDescriptor.getValues();
         if (values != null && !values.isEmpty()) {
-            values.forEach((k, v) -> configs.put(k.toString(), v.toString()));
+            values.forEach((key, value) -> configs.put(Bytes.toString(key.get()), Bytes.toString(value.get())));
         }
         tableDesc.setTableProps(configs);
         tableDesc.setFamilyDescList(parseFamilyDescriptorToFamilyDescList(tableDescriptor.getColumnFamilies()));
