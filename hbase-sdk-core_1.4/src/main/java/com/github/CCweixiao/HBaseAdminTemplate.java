@@ -132,8 +132,9 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
 
     @Override
     public boolean createTable(TableDesc desc, boolean isAsync) {
-        String tableName = desc.getTableName();
+        String tableName = HMHBaseConstant.getFullTableName(desc.getNamespaceName(), desc.getTableName());
         tableIsExistsError(tableName);
+        desc.setTableName(tableName);
 
         final List<FamilyDesc> familyDescList = desc.getFamilyDescList();
         if (familyDescList == null || familyDescList.isEmpty()) {
@@ -272,6 +273,9 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     @Override
     public boolean enableTable(String tableName, boolean isAsync) {
         return this.execute(admin -> {
+            if (admin.isTableEnabled(TableName.valueOf(tableName))) {
+                return true;
+            }
             if (isAsync) {
                 admin.enableTableAsync(TableName.valueOf(tableName));
             } else {
@@ -285,6 +289,9 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     @Override
     public boolean disableTable(String tableName, boolean isAsync) {
         return this.execute(admin -> {
+            if (admin.isTableDisabled(TableName.valueOf(tableName))) {
+                return true;
+            }
             if (isAsync) {
                 admin.disableTableAsync(TableName.valueOf(tableName));
             } else {
