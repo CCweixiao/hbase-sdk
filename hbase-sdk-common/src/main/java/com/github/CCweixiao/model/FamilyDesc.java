@@ -74,4 +74,15 @@ public class FamilyDesc {
     public Integer getReplicationScope() {
         return replicationScope;
     }
+
+    @Override
+    public String toString() {
+        return "FamilyDesc{" +
+                "familyName='" + getFamilyName() + '\'' +
+                ", maxVersions=" + getMaxVersions() +
+                ", timeToLive=" + getTimeToLive() +
+                ", compressionType='" + getCompressionType() + '\'' +
+                ", replicationScope=" + getReplicationScope() +
+                '}';
+    }
 }

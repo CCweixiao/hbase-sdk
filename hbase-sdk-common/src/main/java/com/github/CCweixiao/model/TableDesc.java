@@ -23,23 +23,6 @@ public class TableDesc {
     private List<FamilyDesc> familyDescList;
 
     /**
-     * 预分区开始的key
-     */
-    private String startKey;
-    /**
-     * 预分区结束的key
-     */
-    private String endKey;
-    /**
-     * 分区数
-     */
-    private Integer preSplitRegions;
-    /**
-     * 以指定分区key的方式分区
-     */
-    private String preSplitKeys;
-
-    /**
      * 表描述信息
      */
     private String tableDesc;
@@ -92,38 +75,6 @@ public class TableDesc {
         this.metaTable = metaTable;
     }
 
-    public String getStartKey() {
-        return startKey;
-    }
-
-    public void setStartKey(String startKey) {
-        this.startKey = startKey;
-    }
-
-    public String getEndKey() {
-        return endKey;
-    }
-
-    public void setEndKey(String endKey) {
-        this.endKey = endKey;
-    }
-
-    public Integer getPreSplitRegions() {
-        return preSplitRegions;
-    }
-
-    public void setPreSplitRegions(Integer preSplitRegions) {
-        this.preSplitRegions = preSplitRegions;
-    }
-
-    public String getPreSplitKeys() {
-        return preSplitKeys;
-    }
-
-    public void setPreSplitKeys(String preSplitKeys) {
-        this.preSplitKeys = preSplitKeys;
-    }
-
     public String getTableDesc() {
         return tableDesc;
     }
@@ -171,4 +122,16 @@ public class TableDesc {
         return familyNames.contains(familyName);
     }
 
+    @Override
+    public String toString() {
+        return "TableDesc{" +
+                "tableName='" + getTableName() + '\'' +
+                ", namespaceName='" + getNamespaceName() + '\'' +
+                ", disabled=" + isDisabled() +
+                ", metaTable=" + isMetaTable() +
+                ", tableProps=" + getTableProps() +
+                ", familyDescList=" + getFamilyDescList() +
+                ", tableDesc='" + getTableDesc() + '\'' +
+                '}';
+    }
 }

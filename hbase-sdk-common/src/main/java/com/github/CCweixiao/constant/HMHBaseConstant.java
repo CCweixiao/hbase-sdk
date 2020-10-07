@@ -13,6 +13,9 @@ public class HMHBaseConstant {
     public static final Integer DEFAULT_TTL = 2147483647;
 
     public static String getFullTableName(String tableName) {
+        if (StrUtil.isBlank(tableName)) {
+            throw new HBaseOperationsException("表名不能为空");
+        }
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;
         } else {

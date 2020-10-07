@@ -6,6 +6,7 @@ import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.SnapshotDesc;
 import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -16,6 +17,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.RegionSplitter;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -131,87 +133,116 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     }
 
     @Override
-    public boolean createTable(TableDesc desc, boolean isAsync) {
-        String tableName = HMHBaseConstant.getFullTableName(desc.getNamespaceName(), desc.getTableName());
+    public boolean createTable(TableDesc tableDesc) {
+        String tableName = HMHBaseConstant.getFullTableName(tableDesc.getNamespaceName(), tableDesc.getTableName());
         tableIsExistsError(tableName);
-        desc.setTableName(tableName);
-
-        final List<FamilyDesc> familyDescList = desc.getFamilyDescList();
-        if (familyDescList == null || familyDescList.isEmpty()) {
-            throw new HBaseOperationsException("请为表" + tableName + "指定一个或多个列簇！");
-        }
-
-        final Map<String, Long> familyCountMap = familyDescList.stream().collect(Collectors.groupingBy(FamilyDesc::getFamilyName, Collectors.counting()));
-        familyCountMap.forEach((familyName, count) -> {
-            if (count > 1) {
-                throw new HBaseOperationsException("同一张表中的列簇名" + familyName + "应该是唯一的！");
-            }
-        });
+        tableDesc.setTableName(tableName);
 
         return this.execute(admin -> {
-            HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(desc.getTableName()));
-            if (desc.getTableProps() != null && !desc.getTableProps().isEmpty()) {
-                desc.getTableProps().forEach(tableDescriptor::setValue);
-            }
-            for (FamilyDesc familyDesc : familyDescList) {
-                HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
-                tableDescriptor.addFamily(columnDescriptor);
-            }
-            String startKey = desc.getStartKey();
-            String endKey = desc.getEndKey();
-            Integer numRegions = desc.getPreSplitRegions();
+            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            admin.createTable(tableDescriptor);
+            return true;
+        });
+    }
 
-            boolean preSplit1 = StrUtil.isNotBlank(desc.getPreSplitKeys());
-            boolean preSplit2 = (StrUtil.isNotBlank(startKey) && StrUtil.isNotBlank(endKey) && numRegions > 0);
+    @Override
+    public boolean createTable(TableDesc tableDesc, String startKey, String endKey, int numRegions, boolean isAsync) {
+        String tableName = HMHBaseConstant.getFullTableName(tableDesc.getNamespaceName(), tableDesc.getTableName());
+        tableIsExistsError(tableName);
+        tableDesc.setTableName(tableName);
 
-            if (preSplit1) {
-                if (preSplit2) {
-                    throw new HBaseOperationsException("只能同时指定一种预分区的方式！");
-                } else {
-                    String[] splitKeys = desc.getPreSplitKeys().split(",");
+        return this.execute(admin -> {
+            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            boolean preSplit = (StrUtil.isNotBlank(startKey) && StrUtil.isNotBlank(endKey) && numRegions > 0);
+
+            if (preSplit) {
+                final byte[] startKeyBytes = Bytes.toBytes(startKey);
+                final byte[] endKeyBytes = Bytes.toBytes(endKey);
+
+                if (numRegions < 3) {
+                    throw new HBaseOperationsException("请至少指定3个分区！");
+                }
+
+                if (Bytes.compareTo(startKeyBytes, endKeyBytes) >= 0) {
+                    throw new HBaseOperationsException("预分区开始的key必须要小于预分区结束的key！");
+                }
+
+                if (numRegions == 3) {
                     if (isAsync) {
-                        admin.createTableAsync(tableDescriptor, getSplitKeyBytes(splitKeys));
+                        admin.createTableAsync(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
                     } else {
-                        admin.createTable(tableDescriptor, getSplitKeyBytes(splitKeys));
+                        admin.createTable(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
                     }
                     return true;
                 }
-            } else {
-                if (preSplit2) {
-                    final byte[] startKeyBytes = Bytes.toBytes(startKey);
-                    final byte[] endKeyBytes = Bytes.toBytes(endKey);
+                byte[][] splitKeys = Bytes.split(startKeyBytes, endKeyBytes, numRegions - 3);
 
-                    if (numRegions < 3) {
-                        throw new HBaseOperationsException("请至少指定3个分区！");
-                    }
-
-                    if (Bytes.compareTo(startKeyBytes, endKeyBytes) >= 0) {
-                        throw new HBaseOperationsException("预分区开始的key必须要小于预分区结束的key！");
-                    }
-
-                    if (numRegions == 3) {
-                        if (isAsync) {
-                            admin.createTableAsync(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
-                        } else {
-                            admin.createTable(tableDescriptor, new byte[][]{startKeyBytes, endKeyBytes});
-                        }
-                        return true;
-                    }
-                    byte[][] splitKeys = Bytes.split(startKeyBytes, endKeyBytes, numRegions - 3);
-
-                    if (splitKeys == null || splitKeys.length != numRegions - 1) {
-                        throw new HBaseOperationsException("无法将预分区的起止键范围分割成足够的region！");
-                    }
-                    if (isAsync) {
-                        admin.createTableAsync(tableDescriptor, splitKeys);
-                    } else {
-                        admin.createTable(tableDescriptor, splitKeys);
-                    }
-                } else {
-                    admin.createTable(tableDescriptor);
+                if (splitKeys == null || splitKeys.length != numRegions - 1) {
+                    throw new HBaseOperationsException("无法将预分区的起止键范围分割成足够的region！");
                 }
-                return true;
+
+                if (isAsync) {
+                    admin.createTableAsync(tableDescriptor, splitKeys);
+                } else {
+                    admin.createTable(tableDescriptor, splitKeys);
+                }
+            } else {
+                admin.createTable(tableDescriptor);
             }
+            return true;
+        });
+    }
+
+    @Override
+    public boolean createTable(TableDesc tableDesc, String[] splitKeys, boolean isAsync) {
+        String tableName = HMHBaseConstant.getFullTableName(tableDesc.getNamespaceName(), tableDesc.getTableName());
+        tableIsExistsError(tableName);
+        tableDesc.setTableName(tableName);
+
+        return this.execute(admin -> {
+            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            boolean preSplit = splitKeys != null && splitKeys.length > 0;
+
+            if (preSplit) {
+                if (isAsync) {
+                    admin.createTableAsync(tableDescriptor, getSplitKeyBytes(splitKeys));
+                } else {
+                    admin.createTable(tableDescriptor, getSplitKeyBytes(splitKeys));
+                }
+            } else {
+                admin.createTable(tableDescriptor);
+            }
+            return true;
+        });
+    }
+
+    @Override
+    public boolean createTable(TableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync) {
+        String tableName = HMHBaseConstant.getFullTableName(tableDesc.getNamespaceName(), tableDesc.getTableName());
+        tableIsExistsError(tableName);
+        tableDesc.setTableName(tableName);
+
+        return this.execute(admin -> {
+            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            boolean preSplit = splitGoEnum != null && numRegions > 0;
+            if (preSplit) {
+                byte[][] splits;
+                if (splitGoEnum == SplitGoEnum.HEX_STRING_SPLIT) {
+                    splits = new RegionSplitter.DecimalStringSplit().split(numRegions);
+                } else if (splitGoEnum == SplitGoEnum.DECIMAL_STRING_SPLIT) {
+                    splits = new RegionSplitter.HexStringSplit().split(numRegions);
+                } else {
+                    throw new HBaseOperationsException("暂不支持的一种预分区策略");
+                }
+                if (isAsync) {
+                    admin.createTableAsync(tableDescriptor, splits);
+                } else {
+                    admin.createTable(tableDescriptor, splits);
+                }
+            } else {
+                admin.createTable(tableDescriptor);
+            }
+            return true;
         });
     }
 
@@ -319,11 +350,10 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     @Override
     public boolean addFamily(String tableName, FamilyDesc familyDesc) {
         return this.execute(admin -> {
-            admin.getTableDescriptor(TableName.valueOf(tableName)).getFamilies().forEach(hColumnDescriptor -> {
-                if (hColumnDescriptor.getNameAsString().equals(familyDesc.getFamilyName())) {
-                    throw new HBaseOperationsException("列簇" + familyDesc.getFamilyName() + "在表" + tableName + "中已经存在！");
-                }
-            });
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (tableDescriptor.hasFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
+                throw new HBaseOperationsException("列簇" + familyDesc.getFamilyName() + "在表" + tableName + "中已经存在！");
+            }
             HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
             admin.addColumn(TableName.valueOf(tableName), columnDescriptor);
             return true;
@@ -341,8 +371,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
     @Override
     public boolean modifyFamily(String tableName, FamilyDesc familyDesc) {
         return this.execute(admin -> {
-            final List<String> families = admin.getTableDescriptor(TableName.valueOf(tableName)).getFamilies().stream().map(HColumnDescriptor::getNameAsString).collect(Collectors.toList());
-            if (!families.contains(familyDesc.getFamilyName())) {
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (!tableDescriptor.hasFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
                 throw new HBaseOperationsException("待修改列簇" + familyDesc.getFamilyName() + "不存在！");
             }
             HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
@@ -521,10 +551,54 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
         });
     }
 
+    /**
+     * 转换TableDesc得到HTableDescriptor
+     *
+     * @param tableDesc TableDesc
+     * @return HTableDescriptor
+     */
+    private HTableDescriptor parseTableDescToHTableDescriptor(final TableDesc tableDesc) {
+        HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableDesc.getTableName()));
+
+        final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
+
+        if (familyDescList == null || familyDescList.isEmpty()) {
+            throw new HBaseOperationsException("请为表" + tableDesc.getTableName() + "指定一个或多个列簇！");
+        }
+
+        final Map<String, Long> familyCountMap = familyDescList.stream().collect(Collectors.groupingBy(FamilyDesc::getFamilyName, Collectors.counting()));
+        familyCountMap.forEach((familyName, count) -> {
+            if (count > 1) {
+                throw new HBaseOperationsException("同一张表中的列簇名" + familyName + "应该是唯一的！");
+            }
+        });
+
+        if (tableDesc.getTableProps() != null && !tableDesc.getTableProps().isEmpty()) {
+            tableDesc.getTableProps().forEach(tableDescriptor::setValue);
+        }
+        for (FamilyDesc familyDesc : familyDescList) {
+            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+            tableDescriptor.addFamily(columnDescriptor);
+        }
+        return tableDescriptor;
+    }
+
+    /**
+     * HTableDescriptor批量转换为TableDesc
+     *
+     * @param tableDescriptors HTableDescriptor
+     * @return TableDesc
+     */
     private List<TableDesc> parseHTableDescriptorsToTableDescList(HTableDescriptor[] tableDescriptors) {
         return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
     }
 
+    /**
+     * HTableDescriptor 转换为TableDesc
+     *
+     * @param tableDescriptor 表定义
+     * @return TableDesc
+     */
     private TableDesc parseHTableDescriptorToTableDesc(HTableDescriptor tableDescriptor) {
         TableDesc tableDesc = new TableDesc();
         String tableName = tableDescriptor.getNameAsString();
@@ -541,6 +615,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
         return tableDesc;
     }
 
+    /**
+     * HColumnDescriptor列表转换为FamilyDesc列表
+     *
+     * @param families HColumnDescriptor 列表
+     * @return FamilyDesc列表
+     */
     public List<FamilyDesc> parseFamilyDescriptorToFamilyDescList(Collection<HColumnDescriptor> families) {
         return families.stream().map(family -> new FamilyDesc.Builder()
                 .familyName(family.getNameAsString())
@@ -565,23 +645,17 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
         return columnDescriptor;
     }
 
-    private void checkTableNameIsNotEmpty(String tableName) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("表名不能为空！");
-        }
-    }
 
     private void tableIsNotExistsError(String tableName) {
-        checkTableNameIsNotEmpty(tableName);
-
-        if (!tableExists(tableName)) {
+        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
+        if (!tableExists(fullTableName)) {
             throw new HBaseOperationsException("表" + tableName + "不存在！");
         }
     }
 
     private void tableIsExistsError(String tableName) {
-        checkTableNameIsNotEmpty(tableName);
-        if (tableExists(tableName)) {
+        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
+        if (tableExists(fullTableName)) {
             throw new HBaseOperationsException("表" + tableName + "已经存在！");
         }
     }
@@ -624,4 +698,5 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
             return true;
         });
     }
+
 }
