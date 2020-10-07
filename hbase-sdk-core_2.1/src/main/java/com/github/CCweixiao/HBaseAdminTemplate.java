@@ -220,9 +220,9 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             if (preSplit) {
                 byte[][] splits;
                 if (splitGoEnum == SplitGoEnum.HEX_STRING_SPLIT) {
-                    splits = new RegionSplitter.DecimalStringSplit().split(numRegions);
-                } else if (splitGoEnum == SplitGoEnum.DECIMAL_STRING_SPLIT) {
                     splits = new RegionSplitter.HexStringSplit().split(numRegions);
+                } else if (splitGoEnum == SplitGoEnum.DECIMAL_STRING_SPLIT) {
+                    splits = new RegionSplitter.DecimalStringSplit().split(numRegions);
                 } else {
                     throw new HBaseOperationsException("暂不支持的一种预分区策略");
                 }
