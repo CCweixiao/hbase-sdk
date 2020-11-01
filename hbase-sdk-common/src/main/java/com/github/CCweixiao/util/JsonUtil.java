@@ -19,4 +19,10 @@ public class JsonUtil {
         return gson.fromJson(val, clazz);
     }
 
+    public static void main(String[] args) {
+        Object v = fromJson("233",Object.class);
+
+        System.out.println(v);
+    }
+
 }

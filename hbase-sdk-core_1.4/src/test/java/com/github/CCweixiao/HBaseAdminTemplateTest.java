@@ -83,11 +83,8 @@ public class HBaseAdminTemplateTest {
         tableDesc = tableDesc.addFamilyDesc(familyDesc1)
                 .addFamilyDesc(familyDesc2);
 
-        tableDesc.setStartKey("1");
-        tableDesc.setEndKey("100");
-        tableDesc.setPreSplitRegions(10);
 
-        hBaseTemplate.createTable(tableDesc, false);
+        //hBaseTemplate.createTable(tableDesc, false);
     }
 
     @Test
