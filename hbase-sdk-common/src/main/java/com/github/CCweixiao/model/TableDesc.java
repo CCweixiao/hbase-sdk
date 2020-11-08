@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
  * @author leojie 2020/9/9 10:44 下午
  */
 public class TableDesc {
-    private String tableName = null;
     private String namespaceName;
+    private String tableName = null;
 
     private boolean disabled;
     private boolean metaTable;
@@ -83,13 +83,17 @@ public class TableDesc {
         this.tableDesc = tableDesc;
     }
 
-    public TableDesc addProp(final String key, final String value) {
+    public TableDesc addProp(final String key, String value) {
         if (tableProps == null) {
-            tableProps = new HashMap<>();
+            this.tableProps = new HashMap<>();
         }
-        if (!tableProps.containsKey(key)) {
-            this.tableProps.put(key, value);
+        if (StrUtil.isBlank(key)) {
+            return this;
         }
+        if (value == null) {
+            value = "";
+        }
+        this.tableProps.put(key, value);
         return this;
     }
 
@@ -105,9 +109,9 @@ public class TableDesc {
             throw new HBaseOperationsException("列簇名不能为空");
         }
         if (hasFamily(familyDesc.getFamilyName())) {
-            throw new HBaseOperationsException("列簇" + familyDesc.getFamilyName() + "已经存在不能被添加");
+            throw new HBaseOperationsException("列簇[" + familyDesc.getFamilyName() + "]已经存在不能被添加");
         }
-        if(this.familyDescList==null){
+        if (this.familyDescList == null) {
             this.familyDescList = new ArrayList<>();
         }
         this.familyDescList.add(familyDesc);

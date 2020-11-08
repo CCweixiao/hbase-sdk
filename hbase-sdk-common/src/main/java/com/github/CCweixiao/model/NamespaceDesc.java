@@ -28,16 +28,17 @@ public class NamespaceDesc {
         this.namespaceProps = namespaceProps;
     }
 
-    public NamespaceDesc addNamespaceProp(final String key, final String value) {
+    public NamespaceDesc addNamespaceProp(final String key, String value) {
         if (this.namespaceProps == null) {
             this.namespaceProps = new HashMap<>();
         }
         if (StrUtil.isBlank(key)) {
             return this;
         }
-        if (!this.namespaceProps.containsKey(key)) {
-            this.namespaceProps.put(key, value);
+        if(value == null){
+            value = "";
         }
+        this.namespaceProps.put(key, value);
         return this;
     }
 
