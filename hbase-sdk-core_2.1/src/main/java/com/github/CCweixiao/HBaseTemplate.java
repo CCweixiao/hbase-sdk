@@ -6,6 +6,7 @@ import com.github.CCweixiao.util.HBytesUtil;
 import com.github.CCweixiao.util.ReflectUtil;
 import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -459,4 +460,5 @@ public class HBaseTemplate extends AbstractHBaseTemplate implements HBaseTableOp
         }
         return delete;
     }
+
 }

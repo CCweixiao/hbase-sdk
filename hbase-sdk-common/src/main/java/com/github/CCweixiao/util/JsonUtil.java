@@ -1,6 +1,7 @@
 package com.github.CCweixiao.util;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 /**
@@ -9,18 +10,34 @@ import com.google.gson.Gson;
  * @author leo.jie (leojie1314@gmail.com)
  */
 public class JsonUtil {
+    private static ObjectMapper objectMapper;
+
     public static String toJson(Object data) {
-        Gson gson = new Gson();
-        return gson.toJson(data);
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper();
+        }
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     public static <T> T fromJson(String val, Class<T> clazz) {
-        Gson gson = new Gson();
-        return gson.fromJson(val, clazz);
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper();
+        }
+        try {
+            return objectMapper.readValue(val, clazz);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static void main(String[] args) {
-        Object v = fromJson("233",Object.class);
+        Object v = fromJson("233", Object.class);
 
         System.out.println(v);
     }

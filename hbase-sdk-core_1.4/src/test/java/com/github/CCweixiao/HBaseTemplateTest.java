@@ -21,7 +21,7 @@ public class HBaseTemplateTest {
 
     @Before
     public void initHBaseTemplate() {
-        hBaseTemplate = new HBaseTemplate("node1", "2181");
+        hBaseTemplate = new HBaseTemplate("localhost", "2181");
     }
 
     @Test
@@ -77,7 +77,7 @@ public class HBaseTemplateTest {
             contactInfo.put("phone", "18739577988");
             contactInfo.put("address", "浦东新区");
             data.put("INFO:contact_info", contactInfo);
-            hBaseTemplate.save("LEO_NS2:USER", "100000" + i, data);
+            hBaseTemplate.save("TEST:USER", "100000" + i, data);
             System.out.println("用户数据保存成功！");
         }
 
@@ -148,8 +148,14 @@ public class HBaseTemplateTest {
     }
 
     @Test
+    public void testGetToOneMap() {
+        final Map<String, Object> map = hBaseTemplate.getToMap("LEO_USER", "11004&weqe=1213", "g", "name");
+        System.out.println(map);
+    }
+
+    @Test
     public void testFindToListMap() {
-        final List<List<Map<String, Object>>> mapList = hBaseTemplate.findToListMap("LEO_NS2:USER", 1);
+        final List<List<Map<String, Object>>> mapList = hBaseTemplate.findToListMap("TEST:USER", 10);
         System.out.println(mapList);
     }
 
@@ -174,7 +180,7 @@ public class HBaseTemplateTest {
         String schemaStr = "{\"type\":\"record\",\"name\":\"CLOUD_BEHAVIOR\",\"namespace\":\"com.intsig.new.schema\",\"fields\":[{\"name\":\"operation\",\"type\":[\"string\",\"null\"]},{\"name\":\"operation_channel\",\"type\":[\"string\",\"null\"]},{\"name\":\"time\",\"type\":[\"string\",\"null\"]},{\"name\":\"ip\",\"type\":[\"string\",\"null\"]},{\"name\":\"lat\",\"type\":[\"string\",\"null\"]},{\"name\":\"lng\",\"type\":[\"string\",\"null\"]},{\"name\":\"user_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"device_id\",\"type\":[\"string\",\"null\"]},{\"name\":\"imei\",\"type\":[\"string\",\"null\"]},{\"name\":\"targets\",\"type\":[{\"type\":\"array\",\"items\":{\"type\":\"record\",\"name\":\"target\",\"fields\":[{\"name\":\"type\",\"type\":[\"string\",\"null\"]},{\"name\":\"value\",\"type\":[\"string\",\"null\"]}]}},\"null\"]},{\"name\":\"product_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"product_version\",\"type\":[\"string\",\"null\"]},{\"name\":\"product_vendor\",\"type\":[\"string\",\"null\"]},{\"name\":\"platform\",\"type\":[\"string\",\"null\"]},{\"name\":\"platform_version\",\"type\":[\"string\",\"null\"]},{\"name\":\"language\",\"type\":[\"string\",\"null\"]},{\"name\":\"locale\",\"type\":[\"string\",\"null\"]},{\"name\":\"other_para\",\"type\":[{\"type\":\"map\",\"values\":[\"string\",\"null\"]},\"null\"]},{\"name\":\"product\",\"type\":[\"string\",\"null\"]},{\"name\":\"batch\",\"type\":[\"string\",\"null\"]}]}";
 
         data.put("INFO:schema", schemaStr);
-        hBaseTemplate.save("LEO_NS2:USER", "100000", data);
+        hBaseTemplate.save("TEST:USER", "100000", data);
 
         System.out.println("用户数据保存成功！");
 

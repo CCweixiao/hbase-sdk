@@ -375,7 +375,19 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
             if (!tableDescriptor.hasFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
                 throw new HBaseOperationsException("待修改列簇" + familyDesc.getFamilyName() + "不存在！");
             }
-            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+            HColumnDescriptor columnDescriptor = tableDescriptor.getFamily(Bytes.toBytes(familyDesc.getFamilyName()));
+            if (columnDescriptor.getMaxVersions() != familyDesc.getMaxVersions()) {
+                columnDescriptor.setMaxVersions(familyDesc.getMaxVersions());
+            }
+            if (columnDescriptor.getTimeToLive() != familyDesc.getTimeToLive()) {
+                columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
+            }
+            if (!columnDescriptor.getCompressionType().getName().toLowerCase().equals(familyDesc.getCompressionType())) {
+                columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+            }
+            if (columnDescriptor.getScope() != familyDesc.getReplicationScope()) {
+                columnDescriptor.setScope(familyDesc.getReplicationScope());
+            }
             admin.modifyColumn(TableName.valueOf(tableName), columnDescriptor);
             return true;
         });

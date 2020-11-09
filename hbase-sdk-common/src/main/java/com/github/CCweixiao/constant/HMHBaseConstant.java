@@ -11,6 +11,9 @@ public class HMHBaseConstant {
     public static final String TABLE_NAME_SPLIT_CHAR = ":";
     public static final String DEFAULT_NAMESPACE_NAME = "default";
     public static final Integer DEFAULT_TTL = 2147483647;
+    public static final String DEFAULT_COMPRESSION_TYPE = "NONE";
+    public static final Integer DEFAULT_MAX_VERSIONS = 1;
+    public static final Integer DEFAULT_REPLICATION_SCOPE = 0;
 
     public static String getFullTableName(String tableName) {
         if (StrUtil.isBlank(tableName)) {

@@ -335,6 +335,15 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
+    public Map<String, Object> getToMap(String tableName, String rowKey, String familyName, String qualifier) {
+        Get get = get(rowKey, familyName, Collections.singletonList(qualifier));
+        return this.execute(tableName, table -> {
+            Result result = table.get(get);
+            return getOneToResultMap(result);
+        });
+    }
+
+    @Override
     public List<Map<String, Object>> getToListMap(String tableName, String rowKey) {
         return getToListMap(tableName, rowKey, null, null);
     }
@@ -551,12 +560,19 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
 
     private Map<String, Object> resultToMap(Result result, Cell cell) {
         Map<String, Object> resultMap = new HashMap<>(4);
+        if (cell == null) {
+            resultMap.put("rowKey", Bytes.toString(result.getRow()));
+            resultMap.put("familyName", "");
+            resultMap.put("timestamp", -1);
+            resultMap.put("value", "");
+            return resultMap;
+        }
         String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
         byte[] value = CellUtil.cloneValue(cell);
         resultMap.put("rowKey", Bytes.toString(result.getRow()));
         resultMap.put("familyName", fieldName);
         resultMap.put("timestamp", cell.getTimestamp());
-        resultMap.put("value", HBytesUtil.toObject(value, Object.class));
+        resultMap.put("value", Bytes.toString(value));
         return resultMap;
     }
 
@@ -569,4 +585,13 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
         }
         return dataMaps;
     }
+
+    private Map<String, Object> getOneToResultMap(Result result) {
+        List<Cell> cells = result.listCells();
+        if (cells == null || cells.isEmpty()) {
+            return resultToMap(result, null);
+        }
+        return resultToMap(result, cells.get(0));
+    }
+
 }

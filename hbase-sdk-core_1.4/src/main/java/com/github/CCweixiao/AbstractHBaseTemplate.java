@@ -341,6 +341,16 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      */
     public abstract <T> List<T> findByPrefix(String tableName, String prefix, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
 
+    /**
+     * 查询数据
+     *
+     * @param tableName  表名
+     * @param rowKey     row key
+     * @param familyName 列簇名
+     * @param qualifier  字段名
+     * @return 获取查询结果
+     */
+    public abstract Map<String, Object> getToMap(String tableName, String rowKey, String familyName, String qualifier);
 
     /**
      * 查询数据

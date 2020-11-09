@@ -9,6 +9,7 @@ import com.github.CCweixiao.model.TableDesc;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
@@ -366,8 +367,22 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
             if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
                 throw new HBaseOperationsException("待修改列簇" + familyDesc.getFamilyName() + "不存在！");
             }
-            ColumnFamilyDescriptor columnDescriptor = parseFamilyDescToColumnFamilyDescriptor(familyDesc);
-            admin.modifyColumnFamily(TableName.valueOf(tableName), columnDescriptor);
+            ColumnFamilyDescriptor columnDescriptor = tableDescriptor.getColumnFamily(Bytes.toBytes(familyDesc.getFamilyName()));
+            ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(columnDescriptor);
+
+            if (columnDescriptor.getMaxVersions() != familyDesc.getMaxVersions()) {
+                columnFamilyDescriptorBuilder.setMaxVersions(familyDesc.getMaxVersions());
+            }
+            if (columnDescriptor.getTimeToLive() != familyDesc.getTimeToLive()) {
+                columnFamilyDescriptorBuilder.setTimeToLive(familyDesc.getTimeToLive());
+            }
+            if (!columnDescriptor.getCompressionType().getName().toLowerCase().equals(familyDesc.getCompressionType())) {
+                columnFamilyDescriptorBuilder.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+            }
+            if (columnDescriptor.getScope() != familyDesc.getReplicationScope()) {
+                columnFamilyDescriptorBuilder.setScope(familyDesc.getReplicationScope());
+            }
+            admin.modifyColumnFamily(TableName.valueOf(tableName), columnFamilyDescriptorBuilder.build());
             return true;
         });
     }
