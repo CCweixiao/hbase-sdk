@@ -15,6 +15,10 @@ public class HMHBaseConstant {
     public static final Integer DEFAULT_MAX_VERSIONS = 1;
     public static final Integer DEFAULT_REPLICATION_SCOPE = 0;
 
+    public static final Integer DISABLE_REPLICATION_SCOPE = 0;
+    public static final Integer ENABLE_REPLICATION_SCOPE = 1;
+
+
     public static String getFullTableName(String tableName) {
         if (StrUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("表名不能为空");

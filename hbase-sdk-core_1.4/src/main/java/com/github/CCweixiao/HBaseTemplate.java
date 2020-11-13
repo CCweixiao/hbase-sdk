@@ -2,15 +2,12 @@ package com.github.CCweixiao;
 
 import com.github.CCweixiao.annotation.HBaseRowKey;
 import com.github.CCweixiao.exception.HBaseOperationsException;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.client.*;
-import org.apache.hadoop.hbase.util.Bytes;
-
 import com.github.CCweixiao.util.HBytesUtil;
 import com.github.CCweixiao.util.ReflectUtil;
 import com.github.CCweixiao.util.StrUtil;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -61,7 +58,11 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
             return;
         }
         List<Mutation> puts = new ArrayList<>(data.size());
-        data.forEach((row, d) -> puts.add(put(row, d)));
+        data.forEach((row, d) -> {
+            if(d != null && !d.isEmpty()){
+                puts.add(put(row, d));
+            }
+        });
         this.saveBatch(tableName, puts);
     }
 
@@ -173,63 +174,59 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
-    public <T> T getByRowKey(String rowName, Class<T> clazz) {
-        return this.getByRowKeyWithFamilyAndQualifiers(rowName, null, null, clazz);
+    public <T> T getByRowKey(String rowKey, Class<T> clazz) {
+        return this.getByRowKeyWithFamilyAndQualifiers(rowKey, null, null, clazz);
     }
 
 
     @Override
-    public <T> T getByRowKeyWithFamily(String rowName, String familyName, Class<T> clazz) {
-        return this.getByRowKeyWithFamilyAndQualifiers(rowName, familyName, null, clazz);
+    public <T> T getByRowKeyWithFamily(String rowKey, String familyName, Class<T> clazz) {
+        return this.getByRowKeyWithFamilyAndQualifiers(rowKey, familyName, null, clazz);
     }
 
     @Override
-    public <T> T getByRowKeyWithFamilyAndQualifiers(String rowName, String familyName, List<String> qualifiers, Class<T> clazz) {
+    public <T> T getByRowKeyWithFamilyAndQualifiers(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectUtil.getHBaseTableName(clazz);
         return this.execute(tableName, table -> {
-            Get get = get(rowName, familyName, qualifiers);
+            Get get = get(rowKey, familyName, qualifiers);
             Result result = table.get(get);
             return mapperRowToT(result, clazz);
         });
     }
 
     @Override
-    public Map<String, Object> getByRowKey(String tableName, String rowName) {
+    public Map<String, Object> getByRowKey(String tableName, String rowKey) {
+        return this.getByRowKeyWithFamilyAndQualifiers(tableName, rowKey, "", null);
+    }
+
+    @Override
+    public Map<String, Object> getByRowKeyWithFamily(String tableName, String rowKey, String familyName) {
+        return this.getByRowKeyWithFamilyAndQualifiers(tableName, rowKey, familyName, null);
+    }
+
+    @Override
+    public Map<String, Object> getByRowKeyWithFamilyAndQualifiers(String tableName, String rowKey, String familyName, List<String> qualifiers) {
         return this.execute(tableName, table -> {
-            Get get = new Get(Bytes.toBytes(rowName));
+            Get get = get(rowKey, familyName, qualifiers);
             Result result = table.get(get);
             return mapperRowToMap(result);
         });
     }
 
     @Override
-    public Map<String, Object> getByRowKeyWithFamily(String tableName, String rowName, String familyName) {
-        return this.getByRowKeyWithFamilyAndQualifiers(tableName, rowName, familyName, null);
+    public <T> T get(String tableName, String rowKey, RowMapper<T> rowMapper) {
+        return this.get(tableName, rowKey, null, null, rowMapper);
     }
 
     @Override
-    public Map<String, Object> getByRowKeyWithFamilyAndQualifiers(String tableName, String rowName, String familyName, List<String> qualifiers) {
+    public <T> T get(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
+        return this.get(tableName, rowKey, familyName, null, rowMapper);
+    }
+
+    @Override
+    public <T> T get(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            Get get = get(rowName, familyName, qualifiers);
-            Result result = table.get(get);
-            return mapperRowToMap(result);
-        });
-    }
-
-    @Override
-    public <T> T get(String tableName, String rowName, RowMapper<T> rowMapper) {
-        return this.get(tableName, rowName, null, null, rowMapper);
-    }
-
-    @Override
-    public <T> T get(String tableName, String rowName, String familyName, RowMapper<T> rowMapper) {
-        return this.get(tableName, rowName, familyName, null, rowMapper);
-    }
-
-    @Override
-    public <T> T get(String tableName, String rowName, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return this.execute(tableName, table -> {
-            Get get = get(rowName, familyName, qualifiers);
+            Get get = get(rowKey, familyName, qualifiers);
             Result result = table.get(get);
             return rowMapper.mapRow(result, 0);
         });
@@ -237,18 +234,18 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
 
     @Override
     public <T> List<T> findAll(int limit, Class<T> clazz) {
-        return findByFamilyAndQualifiers(null, null, limit, clazz);
+        return this.findByFamilyAndQualifiers(null, null, limit, clazz);
     }
 
     @Override
-    public <T> List<T> findByFamily(String family, int limit, Class<T> clazz) {
-        return findByFamilyAndQualifiers(family, null, limit, clazz);
+    public <T> List<T> findByFamily(String familyName, int limit, Class<T> clazz) {
+        return this.findByFamilyAndQualifiers(familyName, null, limit, clazz);
     }
 
     @Override
-    public <T> List<T> findByFamilyAndQualifiers(String family, List<String> qualifiers, int limit, Class<T> clazz) {
+    public <T> List<T> findByFamilyAndQualifiers(String familyName, List<String> qualifiers, int limit, Class<T> clazz) {
         String tableName = ReflectUtil.getHBaseTableName(clazz);
-        return find(tableName, scan(family, qualifiers), limit, clazz);
+        return this.find(tableName, scan(familyName, qualifiers), limit, clazz);
     }
 
     @Override
@@ -266,17 +263,17 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
 
     @Override
     public <T> List<T> findAll(String tableName, int limit, RowMapper<T> rowMapper) {
-        return findByFamilyAndQualifiers(tableName, null, null, limit, rowMapper);
+        return this.findByFamilyAndQualifiers(tableName, null, null, limit, rowMapper);
     }
 
     @Override
-    public <T> List<T> findByFamily(String tableName, String family, int limit, RowMapper<T> rowMapper) {
-        return findByFamilyAndQualifiers(tableName, family, null, limit, rowMapper);
+    public <T> List<T> findByFamily(String tableName, String familyName, int limit, RowMapper<T> rowMapper) {
+        return this.findByFamilyAndQualifiers(tableName, familyName, null, limit, rowMapper);
     }
 
     @Override
-    public <T> List<T> findByFamilyAndQualifiers(String tableName, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper) {
-        return this.find(tableName, scan(family, qualifiers), limit, rowMapper);
+    public <T> List<T> findByFamilyAndQualifiers(String tableName, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper) {
+        return this.find(tableName, scan(familyName, qualifiers), limit, rowMapper);
     }
 
     @Override
@@ -299,19 +296,19 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
-    public <T> List<T> findByPrefix(String prefix, String family, int limit, Class<T> clazz) {
-        return this.findByPrefix(prefix, family, null, limit, clazz);
+    public <T> List<T> findByPrefix(String prefix, String familyName, int limit, Class<T> clazz) {
+        return this.findByPrefix(prefix, familyName, null, limit, clazz);
     }
 
     @Override
-    public <T> List<T> findByPrefix(String prefix, String family, List<String> qualifiers, int limit, Class<T> clazz) {
+    public <T> List<T> findByPrefix(String prefix, String familyName, List<String> qualifiers, int limit, Class<T> clazz) {
         if (StrUtil.isBlank(prefix)) {
-            throw new HBaseOperationsException("the prefix scan is not empty.");
+            throw new HBaseOperationsException("the query prefix of scan is not empty.");
         }
-        Scan scan = scan(family, qualifiers);
+        Scan scan = scan(familyName, qualifiers);
         scan.setRowPrefixFilter(Bytes.toBytes(prefix));
         String tableName = ReflectUtil.getHBaseTableName(clazz);
-        return find(tableName, scan, limit, clazz);
+        return this.find(tableName, scan, limit, clazz);
     }
 
     @Override
@@ -320,16 +317,16 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
-    public <T> List<T> findByPrefix(String tableName, String prefix, String family, int limit, RowMapper<T> rowMapper) {
-        return this.findByPrefix(tableName, prefix, family, null, limit, rowMapper);
+    public <T> List<T> findByPrefix(String tableName, String prefix, String familyName, int limit, RowMapper<T> rowMapper) {
+        return this.findByPrefix(tableName, prefix, familyName, null, limit, rowMapper);
     }
 
     @Override
-    public <T> List<T> findByPrefix(String tableName, String prefix, String family, List<String> qualifiers, int limit, RowMapper<T> rowMapper) {
+    public <T> List<T> findByPrefix(String tableName, String prefix, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper) {
         if (StrUtil.isBlank(prefix)) {
             throw new HBaseOperationsException("the prefix scan is not empty.");
         }
-        Scan scan = scan(family, qualifiers);
+        Scan scan = scan(familyName, qualifiers);
         scan.setRowPrefixFilter(Bytes.toBytes(prefix));
         return find(tableName, scan, limit, rowMapper);
     }
@@ -345,12 +342,12 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
 
     @Override
     public List<Map<String, Object>> getToListMap(String tableName, String rowKey) {
-        return getToListMap(tableName, rowKey, null, null);
+        return this.getToListMap(tableName, rowKey, null, null);
     }
 
     @Override
     public List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName) {
-        return getToListMap(tableName, rowKey, familyName, null);
+        return this.getToListMap(tableName, rowKey, familyName, null);
     }
 
     @Override
@@ -364,27 +361,27 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
 
     @Override
     public List<List<Map<String, Object>>> findToListMap(String tableName, Integer limit) {
-        return findToListMap(tableName, null, null, null, null, limit);
+        return this.findToListMap(tableName, null, null, null, null, limit);
     }
 
     @Override
     public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, Integer limit) {
-        return findToListMap(tableName, familyName, null, null, null, limit);
+        return this.findToListMap(tableName, familyName, null, null, null, limit);
     }
 
     @Override
     public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, Integer limit) {
-        return findToListMap(tableName, familyName, qualifiers, null, null, limit);
+        return this.findToListMap(tableName, familyName, qualifiers, null, null, limit);
     }
 
     @Override
     public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, String startKey, Integer limit) {
-        return findToListMap(tableName, familyName, null, startKey, null, limit);
+        return this.findToListMap(tableName, familyName, null, startKey, null, limit);
     }
 
     @Override
     public List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, Integer limit) {
-        return findToListMap(tableName, familyName, qualifiers, startKey, null, limit);
+        return this.findToListMap(tableName, familyName, qualifiers, startKey, null, limit);
     }
 
     @Override
@@ -396,61 +393,61 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
         if (StrUtil.isNotBlank(endKey)) {
             scan.withStopRow(Bytes.toBytes(endKey));
         }
-        return find(tableName, scan, limit, (result, rowNum) -> getToResultMap(result));
+        return this.find(tableName, scan, limit, (result, rowNum) -> getToResultMap(result));
     }
 
     @Override
     public void delete(String tableName, String rowKey) {
-        delete(tableName, rowKey, null, new ArrayList<>());
+        this.delete(tableName, rowKey, null, new ArrayList<>());
     }
 
     @Override
-    public void delete(String tableName, String rowKey, String family) {
-        delete(tableName, rowKey, family, new ArrayList<>());
+    public void delete(String tableName, String rowKey, String familyName) {
+        this.delete(tableName, rowKey, familyName, new ArrayList<>());
     }
 
     @Override
-    public void delete(String tableName, String rowKey, String family, List<String> qualifiers) {
+    public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
         if (StrUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("the table name is not empty.");
         }
         if (StrUtil.isBlank(rowKey)) {
             throw new HBaseOperationsException("the row key of the table will be deleted is not empty.");
         }
-        Delete delete = delete(rowKey, family, qualifiers);
+        Delete delete = delete(rowKey, familyName, qualifiers);
         this.execute(tableName, table -> {
             table.mutate(delete);
         });
     }
 
     @Override
-    public void delete(String tableName, String rowKey, String family, String... qualifiers) {
+    public void delete(String tableName, String rowKey, String familyName, String... qualifiers) {
         if (qualifiers == null || qualifiers.length == 0) {
-            delete(tableName, rowKey, family);
+            this.delete(tableName, rowKey, familyName);
         } else {
-            delete(tableName, rowKey, family, Arrays.asList(qualifiers));
+            this.delete(tableName, rowKey, familyName, Arrays.asList(qualifiers));
         }
     }
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys) {
-        deleteBatch(tableName, rowKeys, null, new ArrayList<>());
+        this.deleteBatch(tableName, rowKeys, null, new ArrayList<>());
     }
 
     @Override
-    public void deleteBatch(String tableName, List<String> rowKeys, String family) {
-        deleteBatch(tableName, rowKeys, family, new ArrayList<>());
+    public void deleteBatch(String tableName, List<String> rowKeys, String familyName) {
+        this.deleteBatch(tableName, rowKeys, familyName, new ArrayList<>());
     }
 
     @Override
-    public void deleteBatch(String tableName, List<String> rowKeys, String family, List<String> qualifiers) {
+    public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
         if (StrUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("the table name is not empty.");
         }
         if (rowKeys == null || rowKeys.isEmpty()) {
             throw new HBaseOperationsException("the row keys of the table will be deleted is not empty.");
         }
-        List<Mutation> mutations = rowKeys.stream().map(rowKey -> delete(rowKey, family, qualifiers)).collect(Collectors.toList());
+        List<Mutation> mutations = rowKeys.stream().map(rowKey -> delete(rowKey, familyName, qualifiers)).collect(Collectors.toList());
 
         this.execute(tableName, mutator -> {
             mutator.mutate(mutations);
@@ -459,139 +456,12 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
-    public void deleteBatch(String tableName, List<String> rowKeys, String family, String... qualifiers) {
+    public void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers) {
         if (qualifiers == null || qualifiers.length == 0) {
-            deleteBatch(tableName, rowKeys, family);
+            this.deleteBatch(tableName, rowKeys, familyName);
         } else {
-            deleteBatch(tableName, rowKeys, family, Arrays.asList(qualifiers));
+            this.deleteBatch(tableName, rowKeys, familyName, Arrays.asList(qualifiers));
         }
-    }
-
-    /**
-     * 构造get
-     *
-     * @param rowName    row key
-     * @param familyName 列簇名
-     * @param qualifiers 筛选字段
-     * @return get
-     */
-    private Get get(String rowName, String familyName, List<String> qualifiers) {
-        Get get = new Get(Bytes.toBytes(rowName));
-        if (StrUtil.isNotBlank(familyName)) {
-            byte[] family = Bytes.toBytes(familyName);
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                qualifiers.forEach(qualifier -> get.addColumn(family, Bytes.toBytes(qualifier)));
-            } else {
-                get.addFamily(family);
-            }
-        }
-        return get;
-    }
-
-    /**
-     * 构造scan
-     *
-     * @param family     列簇名
-     * @param qualifiers 字段名筛选列表
-     * @return scan
-     */
-    private Scan scan(String family, List<String> qualifiers) {
-        Scan scan = new Scan();
-        if (StrUtil.isNotBlank(family)) {
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                qualifiers.forEach(qualifier -> scan.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier)));
-            } else {
-                scan.addFamily(Bytes.toBytes(family));
-            }
-        }
-        return scan;
-    }
-
-    private Scan scan(Scan scan, int limit) {
-        int caching = scan.getCaching();
-        // 如果caching未设置(默认是1)，将默认配置成5000
-        if (caching == 1) {
-            scan.setCaching(5000);
-        }
-        if (limit > 0) {
-            scan.setLimit(limit);
-        }
-        return scan;
-    }
-
-    /**
-     * 构造put的对象
-     *
-     * @param rowKey rowKey
-     * @param data   map类型的数据
-     * @return put
-     */
-    private Put put(String rowKey, Map<String, Object> data) {
-        Put put = new Put(HBytesUtil.toBytes(rowKey));
-        data.forEach((fieldName, fieldValue) -> put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(":"))),
-                Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(":") + 1)), HBytesUtil.toBytes(fieldValue)));
-        return put;
-    }
-
-    /**
-     * 构造delete
-     *
-     * @param rowKey     row key
-     * @param family     列簇名
-     * @param qualifiers 字段名筛选
-     * @return delete
-     */
-    private Delete delete(String rowKey, String family, List<String> qualifiers) {
-        Delete delete = new Delete(Bytes.toBytes(rowKey));
-        if (qualifiers != null && qualifiers.size() > 0) {
-            if (StrUtil.isBlank(family)) {
-                throw new HBaseOperationsException("the family is not empty, when qualifiers not empty.");
-            }
-            for (String qualifier : qualifiers) {
-                delete.addColumn(Bytes.toBytes(family), Bytes.toBytes(qualifier));
-            }
-        } else {
-            if (StrUtil.isNotBlank(family)) {
-                delete.addFamily(Bytes.toBytes(family));
-            }
-        }
-        return delete;
-    }
-
-    private Map<String, Object> resultToMap(Result result, Cell cell) {
-        Map<String, Object> resultMap = new HashMap<>(4);
-        if (cell == null) {
-            resultMap.put("rowKey", Bytes.toString(result.getRow()));
-            resultMap.put("familyName", "");
-            resultMap.put("timestamp", -1);
-            resultMap.put("value", "");
-            return resultMap;
-        }
-        String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
-        byte[] value = CellUtil.cloneValue(cell);
-        resultMap.put("rowKey", Bytes.toString(result.getRow()));
-        resultMap.put("familyName", fieldName);
-        resultMap.put("timestamp", cell.getTimestamp());
-        resultMap.put("value", Bytes.toString(value));
-        return resultMap;
-    }
-
-    private List<Map<String, Object>> getToResultMap(Result result) {
-        List<Cell> cs = result.listCells();
-        List<Map<String, Object>> dataMaps = new ArrayList<>(cs.size());
-        for (Cell cell : cs) {
-            Map<String, Object> resultMap = resultToMap(result, cell);
-            dataMaps.add(resultMap);
-        }
-        return dataMaps;
-    }
-
-    private Map<String, Object> getOneToResultMap(Result result) {
-        List<Cell> cells = result.listCells();
-        if (cells == null || cells.isEmpty()) {
-            return resultToMap(result, null);
-        }
-        return resultToMap(result, cells.get(0));
     }
 
 }

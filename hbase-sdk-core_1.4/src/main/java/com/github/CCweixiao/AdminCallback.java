@@ -3,16 +3,16 @@ package com.github.CCweixiao;
 import org.apache.hadoop.hbase.client.Admin;
 
 /**
- * <p>用于处理管理员级别的操作.</p>
+ * <p>管理员类型的操作回调.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
 public interface AdminCallback<T> {
     /**
-     * admin operation call back
+     * 管理员类型的操作回调
      *
-     * @param admin HBase Admin Object
-     * @return 返回结果
+     * @param admin Admin的对象
+     * @return 操作结果
      * @throws Throwable 异常抛出
      */
     T doInAdmin(Admin admin) throws Throwable;

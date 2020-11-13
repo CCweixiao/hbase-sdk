@@ -10,250 +10,249 @@ import java.util.Map;
  */
 public interface HBaseTableOperations {
     /**
-     * save Map data to HBase
+     * 保存Map类型结构的数据
      *
-     * @param tableName the name of table.
-     * @param rowKey    row key
-     * @param data      the data of saving. example. {"INFO:NAME":"leo"}
+     * @param tableName 表名
+     * @param rowKey    rowKey
+     * @param data      需要保存的数据. 例如： {"INFO:NAME":"leo"}
      */
     void save(String tableName, String rowKey, Map<String, Object> data);
 
     /**
-     * save batch data to HBase,
+     * 批量保存Map类型结构的数据
      *
      * @param tableName 表名
-     * @param data      the data of saving. example. {"row1": {"INFO:NAME": "leo"}, "row2": {"INFO:NAME": "leo2"}}
+     * @param data      需要保存的数据. 例如： {"row1": {"INFO:NAME": "leo1"}, "row2": {"INFO:NAME": "leo2"}}
      */
     void saveBatch(String tableName, Map<String, Map<String, Object>> data);
 
     /**
-     * save a pojo java bean to HBase.
+     * 保存被java bean定义的数据.
      *
-     * @param t   java bean
-     * @param <T> java bean type
-     * @return mapping java bean
-     * @throws Exception exception
+     * @param t   泛型数据
+     * @param <T> 泛型类型
+     * @return 保存成功的对象数据
+     * @throws Exception 抛出异常
      */
     <T> T save(T t) throws Exception;
 
     /**
-     * save batch pojo java bean to HBase.
+     * 批量保存被java bean定义的数据.
      *
-     * @param lst java bean list.
-     * @param <T> java bean type.
-     * @return mapping java bean.
-     * @throws Exception exception
+     * @param lst 泛型数据集合.
+     * @param <T> 泛型数据类型.
+     * @return 保存成功的数据类型
+     * @throws Exception 抛出异常
      */
     <T> T saveBatch(List<T> lst) throws Exception;
 
     /**
-     * get by row key.
+     * 根据rowKey查询数据，查询结果映射为一个Java Bean.
      *
-     * @param rowName row key
-     * @param clazz   mapping java bean class
-     * @param <T>     class type
-     * @return mapping java bean
+     * @param rowKey rowKey
+     * @param clazz  Java Bean
+     * @param <T>    泛型类型
+     * @return 结果数据
      */
-    <T> T getByRowKey(String rowName, Class<T> clazz);
+    <T> T getByRowKey(String rowKey, Class<T> clazz);
 
     /**
-     * get by row key family.
+     * 根据rowKey查询某一个所属列簇的数据，查询结果映射为一个Java Bean.
      *
-     * @param rowName    row key
-     * @param familyName family name
-     * @param clazz      mapping java bean class
-     * @param <T>        class type
-     * @return mapping java bean
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param clazz      Java Bean
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> T getByRowKeyWithFamily(String rowName, String familyName, Class<T> clazz);
+    <T> T getByRowKeyWithFamily(String rowKey, String familyName, Class<T> clazz);
 
     /**
-     * get by row key family qualifier.
+     * 根据rowKey查询某一个所属列簇以及某些字段的数据，查询结果映射为一个Java Bean.
      *
-     * @param rowName    row key
-     * @param familyName family name
-     * @param qualifiers qualifier list
-     * @param clazz      mapping java bean class
-     * @param <T>        class type
-     * @return mapping java bean
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 字段名列表
+     * @param clazz      Java Bean
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> T getByRowKeyWithFamilyAndQualifiers(String rowName, String familyName, List<String> qualifiers, Class<T> clazz);
+    <T> T getByRowKeyWithFamilyAndQualifiers(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz);
 
     /**
-     * get by row key, return Map
+     * 根据RowKey查询数据，返回Map结构的数据
      *
-     * @param tableName table name
-     * @param rowName   rowKey Name
-     * @return map result
+     * @param tableName 表名
+     * @param rowKey    rowKey
+     * @return 结果数据
      */
-    Map<String, Object> getByRowKey(String tableName, String rowName);
+    Map<String, Object> getByRowKey(String tableName, String rowKey);
 
     /**
-     * get by row key with family, return Map
+     * 根据RowKey和列簇查询数据，返回Map结构的数据
      *
-     * @param tableName  table name
-     * @param rowName    rowKey Name
-     * @param familyName family name
-     * @return map result
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @return 结果数据
      */
-    Map<String, Object> getByRowKeyWithFamily(String tableName, String rowName, String familyName);
+    Map<String, Object> getByRowKeyWithFamily(String tableName, String rowKey, String familyName);
 
     /**
-     * get by row key with family name and qualifier names, return
+     * 根据RowKey和列簇以及字段名查询数据，返回Map结构的数据
      *
-     * @param tableName  table name
-     * @param rowName    rowKey Name
-     * @param familyName family name
-     * @param qualifiers qualifier
-     * @return map result
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 字段名列表
+     * @return 结果数据
      */
-    Map<String, Object> getByRowKeyWithFamilyAndQualifiers(String tableName, String rowName, String familyName, List<String> qualifiers);
+    Map<String, Object> getByRowKeyWithFamilyAndQualifiers(String tableName, String rowKey, String familyName, List<String> qualifiers);
 
 
     /**
-     * scan all data
+     * scan 所有数据，查询结果集映射为JavaBean
      *
-     * @param limit limit
-     * @param clazz mapping class obj
-     * @param <T>   mapping class type
-     * @return result
+     * @param limit 查询结果集返回数量限制
+     * @param clazz 结果集映射的JavaBean类型
+     * @param <T>   泛型类型
+     * @return 结果数据
      */
     <T> List<T> findAll(int limit, Class<T> clazz);
 
     /**
-     * scan HBase by family
+     * scan 所有数据，可以指定列簇，查询结果集映射为JavaBean
      *
-     * @param family familyName
-     * @param limit  limit
-     * @param clazz  mapping class obj
-     * @param <T>    mapping class type
-     * @return result
+     * @param familyName 列簇名
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> List<T> findByFamily(String family, int limit, Class<T> clazz);
+    <T> List<T> findByFamily(String familyName, int limit, Class<T> clazz);
 
     /**
-     * scan HBase by family and qualifiers
+     * scan 所有数据，可以指定列簇和多个字段名，查询结果集映射为JavaBean
      *
-     * @param family     familyName
-     * @param qualifiers qualifiers
-     * @param limit      limit
-     * @param clazz      mapping class obj
-     * @param <T>        mapping class type
-     * @return result
+     * @param familyName 列簇名
+     * @param qualifiers 字段名列表
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> List<T> findByFamilyAndQualifiers(String family, List<String> qualifiers, int limit, Class<T> clazz);
+    <T> List<T> findByFamilyAndQualifiers(String familyName, List<String> qualifiers, int limit, Class<T> clazz);
 
     /**
-     * findByPrefix
+     * 根据前缀scan数据，查询结果集映射为JavaBean
      *
-     * @param prefix prefix of scan
-     * @param limit  limit
-     * @param clazz  mapping class type
-     * @param <T>    class type
-     * @return scan result
+     * @param prefix scan的前缀
+     * @param limit  查询结果集返回数量限制
+     * @param clazz  结果集映射的JavaBean类型
+     * @param <T>    泛型类型
+     * @return 结果数据
      */
     <T> List<T> findByPrefix(String prefix, int limit, Class<T> clazz);
 
     /**
-     * findByPrefix with family and qualifiers
+     * 根据前缀scan数据，可以指定列簇，查询结果集映射为JavaBean
      *
-     * @param prefix prefix of scan
-     * @param family family name
-     * @param limit  limit
-     * @param clazz  mapping class type
-     * @param <T>    class type
-     * @return scan result
+     * @param prefix     scan的前缀
+     * @param familyName 列簇
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> List<T> findByPrefix(String prefix, String family, int limit, Class<T> clazz);
+    <T> List<T> findByPrefix(String prefix, String familyName, int limit, Class<T> clazz);
 
     /**
-     * findByPrefix with family and qualifiers
+     * 根据前缀scan数据，可以指定列簇和多个字段名，查询结果集映射为JavaBean
      *
-     * @param prefix     prefix of scan
-     * @param family     family name
-     * @param qualifiers qualifier list
-     * @param limit      limit
-     * @param clazz      mapping class type
-     * @param <T>        class type
-     * @return scan result
+     * @param prefix     scan的前缀
+     * @param familyName 列簇
+     * @param qualifiers 多个字段名
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
      */
-    <T> List<T> findByPrefix(String prefix, String family, List<String> qualifiers, int limit, Class<T> clazz);
+    <T> List<T> findByPrefix(String prefix, String familyName, List<String> qualifiers, int limit, Class<T> clazz);
 
 
     /**
-     * delete data
+     * 根据RowKey删除数据
      *
-     * @param tableName table name
+     * @param tableName 表名
      * @param rowKey    rowKey
      */
     void delete(String tableName, String rowKey);
 
     /**
-     * delete data of family
+     * 根据RowKey删除某一列簇下的数据
      *
-     * @param tableName table name
-     * @param rowKey    row key
-     * @param family    family
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
      */
-    void delete(String tableName, String rowKey, String family);
+    void delete(String tableName, String rowKey, String familyName);
 
     /**
-     * delete data of family and column
+     * 根据RowKey删除某一列簇下的数据，同时可以指定字段名
      *
-     * @param tableName  table name
-     * @param rowKey     row key
-     * @param family     family
-     * @param qualifiers columns.
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 多个字段名
      */
-    void delete(String tableName, String rowKey, String family, List<String> qualifiers);
+    void delete(String tableName, String rowKey, String familyName, List<String> qualifiers);
 
     /**
-     * delete data of family and column
+     * 根据RowKey删除某一列簇下的数据，同时可以指定字段名
      *
-     * @param tableName  table name
-     * @param rowKey     row key
-     * @param family     family
-     * @param qualifiers columns.
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 多个字段名
      */
-    void delete(String tableName, String rowKey, String family, String... qualifiers);
+    void delete(String tableName, String rowKey, String familyName, String... qualifiers);
 
 
     /**
-     * delete batch data
+     * 根据RowKey 批量删除数据
      *
-     * @param tableName table name
-     * @param rowKeys   rowKey
+     * @param tableName 表名
+     * @param rowKeys   rowKey列表
      */
     void deleteBatch(String tableName, List<String> rowKeys);
 
     /**
-     * delete batch data of family
+     * 根据RowKey批量删除某一列簇下的数据
      *
-     * @param tableName table name
-     * @param rowKeys   row key
-     * @param family    family
+     * @param tableName  表名
+     * @param rowKeys    rowKey列表
+     * @param familyName 列簇名
      */
-    void deleteBatch(String tableName, List<String> rowKeys, String family);
+    void deleteBatch(String tableName, List<String> rowKeys, String familyName);
 
     /**
-     * delete batch data of family and column
+     * 根据RowKey批量删除某一列簇以及指定字段下的数据
      *
-     * @param tableName  table name
-     * @param rowKeys    row key
-     * @param family     family
-     * @param qualifiers columns.
+     * @param tableName  表名
+     * @param rowKeys    rowKey列表
+     * @param familyName 列簇名
+     * @param qualifiers 多个字段名
      */
-    void deleteBatch(String tableName, List<String> rowKeys, String family, List<String> qualifiers);
+    void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers);
 
     /**
-     * delete batch data of family and column
+     * 根据RowKey批量删除某一列簇以及指定字段下的数据
      *
-     * @param tableName  table name
-     * @param rowKeys    row key
-     * @param family     family
-     * @param qualifiers columns.
+     * @param tableName  表名
+     * @param rowKeys    rowKey列表
+     * @param familyName 列簇名
+     * @param qualifiers 多个字段名
      */
-    void deleteBatch(String tableName, List<String> rowKeys, String family, String... qualifiers);
-
+    void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers);
 
 }

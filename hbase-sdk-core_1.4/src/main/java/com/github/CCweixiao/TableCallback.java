@@ -11,7 +11,7 @@ public interface TableCallback<T> {
     /**
      * <p>表级别操作的回调</p>
      *
-     * @param table HBase table object
+     * @param table HTable的对象
      * @return 返回结果
      * @throws Throwable 异常抛出
      */

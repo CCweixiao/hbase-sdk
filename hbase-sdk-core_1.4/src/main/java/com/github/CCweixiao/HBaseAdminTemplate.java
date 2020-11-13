@@ -23,6 +23,9 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.github.CCweixiao.constant.HMHBaseConstant.DISABLE_REPLICATION_SCOPE;
+import static com.github.CCweixiao.constant.HMHBaseConstant.ENABLE_REPLICATION_SCOPE;
+
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
@@ -395,12 +398,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
 
     @Override
     public boolean enableReplicationScope(String tableName, List<String> families) {
-        return modifyTableReplicationScope(tableName, REPLICATION_SCOPE_1, families);
+        return modifyTableReplicationScope(tableName, ENABLE_REPLICATION_SCOPE, families);
     }
 
     @Override
     public boolean disableReplicationScope(String tableName, List<String> families) {
-        return modifyTableReplicationScope(tableName, REPLICATION_SCOPE_0, families);
+        return modifyTableReplicationScope(tableName, DISABLE_REPLICATION_SCOPE, families);
     }
 
     @Override

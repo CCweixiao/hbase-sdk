@@ -9,15 +9,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * <p>the interface is used to init some job，被{@link HBaseTemplate}实现。</p>
+ * <p>此接口做一些默认初始化的工作，被{@link AbstractHBaseTemplate} 和 {@link AbstractHBaseAdminTemplate}实现。</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
 public interface HBaseOperations {
     Logger LOGGER = LoggerFactory.getLogger(HBaseOperations.class);
-
-    int REPLICATION_SCOPE_0 = 0;
-    int REPLICATION_SCOPE_1 = 1;
 
     /**
      * 获取HBase的连接对象
@@ -27,11 +24,11 @@ public interface HBaseOperations {
     Connection getConnection();
 
     /**
-     * handle with admin operation.
+     * 处理管理员类型的操作
      *
-     * @param action admin action
-     * @param <T>    return type class
-     * @return return result
+     * @param action 管理员类型的操作
+     * @param <T>    泛型类型
+     * @return 结果
      */
     default <T> T execute(AdminCallback<T> action) {
         Admin admin = null;
@@ -53,12 +50,12 @@ public interface HBaseOperations {
     }
 
     /**
-     * handle with table operation.
+     * 处理数据读写类型的操作
      *
-     * @param tableName the name of table.
-     * @param action    table action callback
-     * @param <T>       return type class
-     * @return return result
+     * @param tableName 表名
+     * @param action    表级别的读写操作回调
+     * @param <T>       泛型类型
+     * @return 结果
      */
     default <T> T execute(String tableName, TableCallback<T> action) {
         Table table = null;
@@ -80,16 +77,16 @@ public interface HBaseOperations {
     }
 
     /**
-     * handle with mutator operation.
+     * 处理数据批量读写类型的操作
      *
-     * @param tableName the name of table.
-     * @param action    mutator operation.
+     * @param tableName 表名
+     * @param action    批量读写类型操作的回调
      */
     default void execute(String tableName, MutatorCallback action) {
         BufferedMutator mutator = null;
         try {
             BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-            mutator = this.getConnection().getBufferedMutator(mutatorParams.writeBufferSize(3 * 1024 * 1024));
+            mutator = this.getConnection().getBufferedMutator(mutatorParams.writeBufferSize(4 * 1024 * 1024));
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
