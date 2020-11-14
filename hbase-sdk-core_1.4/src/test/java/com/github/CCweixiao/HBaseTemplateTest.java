@@ -1,6 +1,8 @@
 package com.github.CCweixiao;
 
 import com.github.CCweixiao.entity.UserEntity;
+import com.github.CCweixiao.util.JsonUtil;
+import org.apache.hadoop.hbase.client.Scan;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,7 +37,7 @@ public class HBaseTemplateTest {
         userEntity.setCreateBy("admin");
         userEntity.setCreateTime(System.currentTimeMillis());
 
-        Map<String, Object> contactInfo = new HashMap<>(2);
+        Map<String, Object> contactInfo = new HashMap<>(3);
         contactInfo.put("email", "2326130720@qq.com");
         contactInfo.put("phone", "18739577988");
         contactInfo.put("address", "浦东新区");
@@ -54,7 +56,6 @@ public class HBaseTemplateTest {
     @Test
     public void testGet() {
         UserEntity userEntity = hBaseTemplate.getByRowKey("10001", UserEntity.class);
-        final UserEntity userEntity1 = hBaseTemplate.getByRowKey("10002", UserEntity.class);
         System.out.println("用户数据获取成功！");
         System.out.println(userEntity);
     }
@@ -107,8 +108,11 @@ public class HBaseTemplateTest {
 
     @Test
     public void testGetToMap() {
-        Map<String, Object> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
-        System.out.println(Boolean.valueOf(userInfo.get("INFO2:IS_VIP").toString()));
+        Map<String, String> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
+        String info = userInfo.get("info1:contact_info");
+        System.out.println(JsonUtil.fromJsonToMap(info));
+        System.out.println(JsonUtil.toJson(info));
+        System.out.println(userInfo.get("info1:contact_info"));
         System.out.println(userInfo);
     }
 
@@ -121,7 +125,7 @@ public class HBaseTemplateTest {
 
     @Test
     public void testFindByPrefix() {
-        final List<UserEntity> userEntities = hBaseTemplate.findByPrefix("11", 10, UserEntity.class);
+        final List<UserEntity> userEntities = hBaseTemplate.findAllByPrefix("11", 10, UserEntity.class);
         System.out.println("用户数据批量查询");
     }
 
@@ -149,8 +153,8 @@ public class HBaseTemplateTest {
 
     @Test
     public void testGetToOneMap() {
-        final Map<String, Object> map = hBaseTemplate.getToMap("LEO_USER", "11004&weqe=1213", "g", "name");
-        System.out.println(map);
+       /* final Map<String, String> map = hBaseTemplate.getToMap("LEO_USER", "11004&weqe=1213", "g", "name");
+        System.out.println(map);*/
     }
 
     @Test
@@ -184,5 +188,12 @@ public class HBaseTemplateTest {
 
         System.out.println("用户数据保存成功！");
 
+    }
+
+    @Test
+    public void testScan() {
+        Scan scan = new Scan();
+        final List<Map<String, String>> dataList = hBaseTemplate.find("TEST:USER", scan, 100);
+        System.out.println(dataList);
     }
 }

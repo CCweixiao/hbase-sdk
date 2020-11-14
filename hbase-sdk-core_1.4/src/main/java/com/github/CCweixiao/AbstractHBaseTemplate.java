@@ -8,48 +8,30 @@ import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * <p>the abstract class of HBaseTemplate,</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
-public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTableOperations {
-    private Configuration configuration;
-
-    private volatile Connection connection;
+public abstract class AbstractHBaseTemplate extends AbstractHBaseConfig implements HBaseTableOperations {
 
     public AbstractHBaseTemplate(Configuration configuration) {
-        if (configuration == null) {
-            throw new HBaseOperationsException("a valid configuration is provided.");
-        }
-        this.setConfiguration(configuration);
+        super(configuration);
     }
 
     public AbstractHBaseTemplate(String zkHost, String zkPort) {
-        Configuration configuration = getConfiguration(zkHost, zkPort);
-        if (configuration == null) {
-            throw new HBaseOperationsException("a valid configuration is provided.");
-        }
-        this.setConfiguration(configuration);
+        super(zkHost, zkPort);
     }
 
     public AbstractHBaseTemplate(Properties properties) {
-        Configuration configuration = getConfiguration(properties);
-        if (configuration == null) {
-            throw new HBaseOperationsException("a valid configuration is provided.");
-        }
-        this.setConfiguration(configuration);
+        super(properties);
     }
 
     /**
@@ -58,21 +40,21 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param result Result对象
      * @return Map结果的数据
      */
-    protected Map<String, Object> mapperRowToMap(Result result) {
+    protected Map<String, String> mapperRowToMap(Result result) {
         final String rowKey = Bytes.toString(result.getRow());
         if (rowKey == null) {
             return new HashMap<>();
         }
         List<Cell> cs = result.listCells();
-        Map<String, Object> resultMap = new HashMap<>(cs.size());
+        Map<String, String> resultMap = new HashMap<>(cs.size());
         StringBuilder fieldNameSb = new StringBuilder();
         for (Cell cell : cs) {
             fieldNameSb.delete(0, fieldNameSb.length());
             fieldNameSb.append(Bytes.toString(CellUtil.cloneFamily(cell)));
             fieldNameSb.append(":");
             fieldNameSb.append(Bytes.toString(CellUtil.cloneQualifier(cell)));
-            byte[] value = CellUtil.cloneValue(cell);
-            resultMap.put(fieldNameSb.toString(), HBytesUtil.toObject(value, Object.class));
+            String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
+            resultMap.put(fieldNameSb.toString(), value);
         }
         return resultMap;
     }
@@ -153,51 +135,6 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
         return "row_key_" + uuid;
     }
 
-    @Override
-    public Connection getConnection() {
-        if (null == this.connection) {
-            synchronized (this) {
-                if (null == this.connection) {
-                    try {
-                        this.connection = ConnectionFactory.createConnection(configuration);
-                        LOGGER.info("the connection pool of HBase is created successfully.>>>>>>>>>>>>>>>>>>");
-                    } catch (IOException e) {
-                        LOGGER.error("the connection pool of HBase is created failed.>>>>>>>>>>>>>>>>>");
-                        LOGGER.error(e.getMessage());
-                    }
-                }
-            }
-        }
-        return this.connection;
-    }
-
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(Configuration configuration) {
-        this.configuration = configuration;
-    }
-
-
-    public Configuration getConfiguration(String zkHost, String zkPort) {
-        this.configuration = HBaseConfiguration.create();
-        configuration.set(HConstants.ZOOKEEPER_QUORUM, zkHost);
-        configuration.set(HConstants.ZOOKEEPER_CLIENT_PORT, zkPort);
-        return configuration;
-    }
-
-    public Configuration getConfiguration(Properties properties) {
-        this.configuration = HBaseConfiguration.create();
-        final List<String> keys = properties.keySet().stream().map(Object::toString).collect(Collectors.toList());
-        keys.forEach(key -> configuration.set(key, properties.getProperty(key)));
-        return configuration;
-    }
-
     /**
      * 批量保存数据
      *
@@ -265,6 +202,29 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
     public abstract <T> List<T> find(String tableName, Scan scan, int limit, Class<T> clazz);
 
     /**
+     * scan 数据
+     *
+     * @param tableName 表名
+     * @param scan      scan条件对象
+     * @param limit     限制返回的结果集条数
+     * @param rowMapper 自定义的RowMapper
+     * @param <T>       泛型类型
+     * @return 查询结果集
+     */
+    public abstract <T> List<T> find(String tableName, Scan scan, int limit, RowMapper<T> rowMapper);
+
+    /**
+     * scan 数据，返回List结构
+     *
+     * @param tableName 表名
+     * @param scan      scan条件对象
+     * @param limit     限制返回的结果集条数
+     * @return 查询结果集
+     */
+    public abstract List<Map<String, String>> find(String tableName, Scan scan, int limit);
+
+
+    /**
      * scan 所有数据
      *
      * @param tableName 表名
@@ -285,7 +245,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param <T>        泛型类型
      * @return 查询结果集
      */
-    public abstract <T> List<T> findByFamily(String tableName, String familyName, int limit, RowMapper<T> rowMapper);
+    public abstract <T> List<T> findAllByFamily(String tableName, String familyName, int limit, RowMapper<T> rowMapper);
 
     /**
      * scan 某一列簇下的数据，可以指定需要筛选的字段
@@ -298,19 +258,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param <T>        泛型类型
      * @return 查询结果集
      */
-    public abstract <T> List<T> findByFamilyAndQualifiers(String tableName, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
-
-    /**
-     * scan 数据
-     *
-     * @param tableName 表名
-     * @param scan      scan条件对象
-     * @param limit     限制返回的结果集条数
-     * @param rowMapper 自定义的RowMapper
-     * @param <T>       泛型类型
-     * @return 查询结果集
-     */
-    public abstract <T> List<T> find(String tableName, Scan scan, int limit, RowMapper<T> rowMapper);
+    public abstract <T> List<T> findAllByFamilyAndQualifiers(String tableName, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
 
 
     /**
@@ -323,7 +271,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param <T>       泛型类型
      * @return 查询结果集
      */
-    public abstract <T> List<T> findByPrefix(String tableName, String prefix, int limit, RowMapper<T> rowMapper);
+    public abstract <T> List<T> findAllByPrefix(String tableName, String prefix, int limit, RowMapper<T> rowMapper);
 
     /**
      * 根据前缀scan数据，指定列簇
@@ -336,7 +284,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param <T>        泛型类型
      * @return 查询结果集
      */
-    public abstract <T> List<T> findByPrefix(String tableName, String prefix, String familyName, int limit, RowMapper<T> rowMapper);
+    public abstract <T> List<T> findAllByPrefixWithFamily(String tableName, String prefix, String familyName, int limit, RowMapper<T> rowMapper);
 
     /**
      * 根据前缀scan数据，指定列簇名和需要筛选的字段
@@ -350,117 +298,7 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @param <T>        泛型类型
      * @return 查询结果集
      */
-    public abstract <T> List<T> findByPrefix(String tableName, String prefix, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
-
-    /**
-     * get查询数据，返回Map数据类型
-     *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifier  字段名
-     * @return 获取查询结果
-     */
-    public abstract Map<String, Object> getToMap(String tableName, String rowKey, String familyName, String qualifier);
-
-    /**
-     * get查询数据，返回Map列表结构
-     *
-     * @param tableName 表名
-     * @param rowKey    rowKey
-     * @return 查询结果
-     */
-    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey);
-
-    /**
-     * get查询数据，可以指定列簇，返回Map列表结构
-     *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @return 查询结果
-     */
-    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName);
-
-    /**
-     * get查询数据，可以指定列簇以及需要筛选的字段名，返回Map列表结构
-     *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名
-     * @return 查询结果
-     */
-    public abstract List<Map<String, Object>> getToListMap(String tableName, String rowKey, String familyName, List<String> qualifiers);
-
-    /**
-     * scan查询数据，返回Map列表类型
-     *
-     * @param tableName 表名
-     * @param limit     限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, Integer limit);
-
-
-    /**
-     * scan查询数据，可以指定列簇名称，返回Map列表类型
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称以及需要筛选的字段列表，返回Map列表类型
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称以及开始的RowKey，返回Map列表类型
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param startKey   起始RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, String startKey, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称和需要筛选的字段名以及开始的RowKey，返回Map列表类型
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param startKey   起始RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, Integer limit);
-
-
-    /**
-     * scan查询数据，可以指定列簇名称和需要筛选的字段名以及开始的RowKey和结束的RowKey，返回Map列表类型
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param startKey   起始RowKey
-     * @param endKey     结束RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    public abstract List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, String endKey, Integer limit);
-
+    public abstract <T> List<T> findAllByPrefixWithFamilyAndQualifiers(String tableName, String prefix, String familyName, List<String> qualifiers, int limit, RowMapper<T> rowMapper);
 
     /**
      * 构造get的查询条件
@@ -475,17 +313,16 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
             throw new HBaseOperationsException("RowKey must not be empty.");
         }
         Get get = new Get(Bytes.toBytes(rowKey));
-        if (StrUtil.isNotBlank(familyName)) {
-            byte[] familyByteArr = Bytes.toBytes(familyName);
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                qualifiers.forEach(qualifier -> {
-                    if (StrUtil.isNotBlank(qualifier)) {
-                        get.addColumn(familyByteArr, Bytes.toBytes(qualifier));
-                    }
-                });
-            } else {
-                get.addFamily(familyByteArr);
-            }
+
+        if (familySatisfied(familyName, qualifiers)) {
+            get.addFamily(Bytes.toBytes(familyName));
+        }
+        if (familyAndQualifierSatisfied(familyName, qualifiers)) {
+            qualifiers.forEach(qualifier -> {
+                if (StrUtil.isNotBlank(qualifier)) {
+                    get.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
+                }
+            });
         }
         return get;
     }
@@ -498,17 +335,17 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
      * @return scan的查询对象
      */
     protected Scan scan(String familyName, List<String> qualifiers) {
-        Scan scan = new Scan();
-        if (StrUtil.isNotBlank(familyName)) {
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                qualifiers.forEach(qualifier -> {
-                    if (StrUtil.isNotBlank(qualifier)) {
-                        scan.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
-                    }
-                });
-            } else {
-                scan.addFamily(Bytes.toBytes(familyName));
-            }
+        Scan scan = scan(new Scan(), 0);
+
+        if (familySatisfied(familyName, qualifiers)) {
+            scan.addFamily(Bytes.toBytes(familyName));
+        }
+        if (familyAndQualifierSatisfied(familyName, qualifiers)) {
+            qualifiers.forEach(qualifier -> {
+                if (StrUtil.isNotBlank(qualifier)) {
+                    scan.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
+                }
+            });
         }
         return scan;
     }
@@ -521,6 +358,9 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
         }
         if (limit > 0) {
             scan.setLimit(limit);
+        }
+        if (scan.getLimit() <= 0 && limit <= 0) {
+            scan.setLimit(1000);
         }
         return scan;
     }
@@ -555,18 +395,39 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
             throw new HBaseOperationsException("RowKey must not be empty.");
         }
         Delete delete = new Delete(Bytes.toBytes(rowKey));
-        if (StrUtil.isNotBlank(familyName)) {
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                qualifiers.forEach(qualifier -> {
-                    if (StrUtil.isNotBlank(qualifier)) {
-                        delete.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
-                    }
-                });
-            } else {
-                delete.addFamily(Bytes.toBytes(familyName));
-            }
+        if (familySatisfied(familyName, qualifiers)) {
+            delete.addFamily(Bytes.toBytes(familyName));
+        }
+        if (familyAndQualifierSatisfied(familyName, qualifiers)) {
+            qualifiers.forEach(qualifier -> {
+                if (StrUtil.isNotBlank(qualifier)) {
+                    delete.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
+                }
+            });
         }
         return delete;
+    }
+
+    /**
+     * 判断列簇名和需要筛选的字段列表同时成立
+     *
+     * @param familyName 列簇名
+     * @param qualifiers 需要筛选的字段列表
+     * @return 最终数据
+     */
+    private boolean familyAndQualifierSatisfied(String familyName, List<String> qualifiers) {
+        return StrUtil.isNotBlank(familyName) && (qualifiers != null && !qualifiers.isEmpty());
+    }
+
+    /**
+     * 判断列簇名满足条件，需要筛选的字段列表未指定
+     *
+     * @param familyName 列簇名
+     * @param qualifiers 需要筛选的字段列表
+     * @return 最终数据
+     */
+    private boolean familySatisfied(String familyName, List<String> qualifiers) {
+        return StrUtil.isNotBlank(familyName) && (qualifiers == null || qualifiers.isEmpty());
     }
 
     protected Map<String, Object> resultToMap(Result result, Cell cell) {
@@ -579,11 +440,11 @@ public abstract class AbstractHBaseTemplate implements HBaseOperations, HBaseTab
             return resultMap;
         }
         String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
-        byte[] value = CellUtil.cloneValue(cell);
+        String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
         resultMap.put("rowKey", Bytes.toString(result.getRow()));
         resultMap.put("familyName", fieldName);
         resultMap.put("timestamp", cell.getTimestamp());
-        resultMap.put("value", Bytes.toString(value));
+        resultMap.put("value", value);
         return resultMap;
     }
 

@@ -27,7 +27,7 @@ public class UserService {
         return hBaseTemplate.getByRowKey(rowName, UserPojo.class);
     }
 
-    public Map<String, Object> findUserMap(String tableName, String rowKey) {
+    public Map<String, String> findUserMap(String tableName, String rowKey) {
         return hBaseTemplate.getByRowKey(tableName, rowKey);
     }
 

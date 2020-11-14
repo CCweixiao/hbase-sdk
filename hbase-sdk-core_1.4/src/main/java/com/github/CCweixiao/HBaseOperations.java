@@ -3,8 +3,6 @@ package com.github.CCweixiao;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -14,7 +12,6 @@ import java.io.IOException;
  * @author leo.jie (leojie1314@gmail.com)
  */
 public interface HBaseOperations {
-    Logger LOGGER = LoggerFactory.getLogger(HBaseOperations.class);
 
     /**
      * 获取HBase的连接对象
@@ -42,8 +39,7 @@ public interface HBaseOperations {
                 try {
                     admin.close();
                 } catch (IOException e) {
-                    LOGGER.error("the resource of admin released failed.");
-                    LOGGER.error(e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
@@ -69,8 +65,7 @@ public interface HBaseOperations {
                 try {
                     table.close();
                 } catch (IOException e) {
-                    LOGGER.error("the resource of table released failed.");
-                    LOGGER.error(e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
@@ -96,8 +91,7 @@ public interface HBaseOperations {
                     mutator.flush();
                     mutator.close();
                 } catch (IOException e) {
-                    LOGGER.error("the resource of mutator released failed.");
-                    LOGGER.error(e.getMessage());
+                    e.printStackTrace();
                 }
             }
         }
