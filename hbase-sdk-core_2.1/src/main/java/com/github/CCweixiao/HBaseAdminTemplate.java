@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAdminOperations {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate{
     public HBaseAdminTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -389,12 +389,12 @@ public class HBaseAdminTemplate extends AbstractHBaseTemplate implements HBaseAd
 
     @Override
     public boolean enableReplicationScope(String tableName, List<String> families) {
-        return modifyTableReplicationScope(tableName, REPLICATION_SCOPE_1, families);
+        return modifyTableReplicationScope(tableName, HMHBaseConstant.ENABLE_REPLICATION_SCOPE, families);
     }
 
     @Override
     public boolean disableReplicationScope(String tableName, List<String> families) {
-        return modifyTableReplicationScope(tableName, REPLICATION_SCOPE_0, families);
+        return modifyTableReplicationScope(tableName, HMHBaseConstant.DISABLE_REPLICATION_SCOPE, families);
     }
 
     @Override

@@ -80,8 +80,8 @@ public class HBaseTemplateTest {
 
     @Test
     public void testGetToMap() {
-        Map<String, Object> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
-        System.out.println(Boolean.valueOf(userInfo.get("INFO2:IS_VIP").toString()));
+        Map<String, String> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
+        System.out.println(userInfo.get("INFO2:IS_VIP"));
         System.out.println(userInfo);
     }
 }

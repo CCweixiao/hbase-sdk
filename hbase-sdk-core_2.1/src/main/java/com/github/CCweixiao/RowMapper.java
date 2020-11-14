@@ -11,7 +11,7 @@ public interface RowMapper<T> {
     /**
      * Result 结果映射实体字段
      *
-     * @param result Result object
+     * @param result 查询结果的Result对象
      * @param rowNum 行数
      * @return 实体对象
      * @throws Exception 异常抛出

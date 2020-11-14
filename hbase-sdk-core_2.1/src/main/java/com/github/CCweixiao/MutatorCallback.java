@@ -9,7 +9,7 @@ import org.apache.hadoop.hbase.client.BufferedMutator;
  */
 public interface MutatorCallback {
     /**
-     * use mutator api to update put and delete
+     * 批量操作类型的处理回调
      *
      * @param mutator 写入缓冲区对象
      * @throws Throwable 异常抛出
