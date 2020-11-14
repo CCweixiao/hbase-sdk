@@ -19,7 +19,7 @@
 
 ## hbase-sdk
 
-`hbase-sdk` 是一款轻量级的ORM框架，封装了对HBase的数据读写和对集群的运维管理等操作。
+`hbase-sdk` 是一款轻量级的ORM框架，封装了对HBase的数据读写和对集群的运维管理等操作。API文档地址: [https://weixiaotome.gitee.io/hbase-sdk/](https://weixiaotome.gitee.io/hbase-sdk/)
 如果觉得这个项目不错可以 [star](https://github.com/CCweixiao/hbase-sdk/stargazers) 支持或者 [捐赠](https://www.jielongping.com) 它 :blush:
 
 ## 功能特性
