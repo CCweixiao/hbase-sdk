@@ -262,7 +262,7 @@
                 <configuration>
                     <aggregate>true</aggregate>
                     <reportOutputDirectory>${project.basedir}/doc</reportOutputDirectory>
-                    <destDir>docs</destDir>
+                    <destDir>hbase-sdk</destDir>
                 </configuration>
             </plugin>
         </plugins>
