@@ -15,7 +15,7 @@ import java.util.List;
  */
 public interface HBaseAdminOperations {
     /**
-     * HBase表是否存在
+     * 判断HBase表是否存在
      *
      * @param tableName HBase表名
      * @return HBase表是否存在
