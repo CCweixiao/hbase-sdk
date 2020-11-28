@@ -57,7 +57,7 @@ public class UserServiceTest {
 
     @Test
     public void testGetUserMap() {
-        Map<String, Object> userMap = userService.findUserMap("test:user", "10001");
+        Map<String, String> userMap = userService.findUserMap("test:user", "10001");
         List<String> addressList = HBytesUtil.toList(userMap.get("info:address"), String.class);
         System.out.println(addressList);
         System.out.println(userMap);

@@ -1,6 +1,9 @@
 package com.github.CCweixiao.util;
 
+import com.github.CCweixiao.exception.HBaseOperationsException;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -9,6 +12,7 @@ import java.util.Map;
  * @author leo.jie (weixiao.me@aliyun.com)
  */
 public class StrUtil {
+
     public static boolean isBlank(CharSequence str) {
         int length;
         if ((str == null) || ((length = str.length()) == 0)) {
@@ -45,6 +49,7 @@ public class StrUtil {
         }
         return property;
     }
+
 
     public static void main(String[] args) {
         System.out.println(isBlank("a dbc"));

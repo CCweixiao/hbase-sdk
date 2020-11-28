@@ -9,6 +9,7 @@ import com.github.CCweixiao.util.StrUtil;
 public class HMHBaseConstant {
     public static final String DEFAULT_SYS_TABLE_NAMESPACE = "hbase";
     public static final String TABLE_NAME_SPLIT_CHAR = ":";
+    public static final String FAMILY_QUALIFIER_SEPARATOR = ":";
     public static final String DEFAULT_NAMESPACE_NAME = "default";
     public static final Integer DEFAULT_TTL = 2147483647;
     public static final String DEFAULT_COMPRESSION_TYPE = "NONE";
@@ -50,5 +51,9 @@ public class HMHBaseConstant {
             }
             return namespaceName + TABLE_NAME_SPLIT_CHAR + tableName;
         }
+    }
+
+    private HMHBaseConstant() {
+
     }
 }

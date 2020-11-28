@@ -15,7 +15,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-common</artifactId>
+            <artifactId>hbase-sdk-dsl</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
