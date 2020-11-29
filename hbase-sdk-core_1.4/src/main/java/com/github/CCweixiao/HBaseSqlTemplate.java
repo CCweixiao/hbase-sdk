@@ -23,6 +23,7 @@ import java.util.*;
  * @author leojie 2020/11/28 8:36 下午
  */
 public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
+
     public HBaseSqlTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -34,6 +35,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     public HBaseSqlTemplate(Properties properties) {
         super(properties);
     }
+
 
     @Override
     public List<List<HBaseCellResult>> select(String hql) {
