@@ -2,7 +2,7 @@
 
 <p align="center">基于HBase Client的相关API开发而来的一款轻量级的HBase ORM框架。提供SQL查询功能，以类SQL的方式——HQL读写HBase数据。 😋</p>
 
-<p align="center">针对HBase 1.x和2.xAPI的不同之处，在最上层做了统一的封装。</p>
+<p align="center">针对HBase 1.x和2.xAPI的不同之处，在其上做了一层统一的封装。</p>
 
 <p align="center">hbase-sdk分为spring-boot-starter-hbase和hbase-sdk-core两部分。</p>
 
@@ -23,7 +23,7 @@
 
 `hbase-sdk` 是一款轻量级的ORM框架，封装了对HBase数据表的读写操作和对集群的运维管理，并针对HBase1.x的API和2.xAPI的差异，做了统一的定义，
 提供更加方便的调用API。同时，HQL的功能也已上线，提供了类SQL读写数据的能力，这将大大降低HBase Client API的使用门槛。
-。API文档地址: [https://weixiaotome.gitee.io/hbase-sdk/](https://weixiaotome.gitee.io/hbase-sdk/)
+API文档地址: [https://weixiaotome.gitee.io/hbase-sdk/](https://weixiaotome.gitee.io/hbase-sdk/)
 如果觉得这个项目不错可以 [star](https://github.com/CCweixiao/hbase-sdk/stargazers) 支持或者 [捐赠](https://www.jielongping.com) 它 :blush:
 
 ## 功能特性
@@ -33,6 +33,7 @@
 * [x] HQL，以类SQL的形式读写HBase的表中数据
 * [x] 利用spring-boot-starter-hbase无缝与SpringBoot集成
 * [x] HBatis，类似于myBatis，提供配置文件管理HQL的功能（规划中）
+* [x] 熔断能力，提供API级别的主备集群切换，保障服务的高可用（规划中）
 * [x] JDK8+
 
 
@@ -539,7 +540,7 @@ family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否�
 
 ## HQL
 
-`hbase-sdk` 从2.0.6版本开始，开始通过HQL，一种以类SQL的方式读写集群数据，降低API的使用难度。HQL的操作依赖`HBaseSqlTemplate`来完成，
+`hbase-sdk` 从2.0.6版本开始，开始提供HQL功能，一种以类SQL的方式读写HBase集群的数据，降低API的使用复杂度。HQL的操作依赖`HBaseSqlTemplate`来完成，
 因此使用之前，必须构造好`HBaseSqlTemplate`的对象实例。
 
 ![hql](https://leo-jie-pic.oss-cn-beijing.aliyuncs.com/leo_blog/2020-11-29-121658.jpg)
@@ -662,7 +663,7 @@ select ( g:id , g:name , g:age , g:address ) from LEO_USER where startKey is str
 select * from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10002' ) ( ( name equal 'leo1' and age less '20' ) or ( id greater '10000' ) )  maxversion is 2  startTS is '1604160000000' , endTS is '1604160000001' limit 10
 ```
 
-```sql
+```java
     @Test
     public void testSelectSql() {
         String sql = "select ( g:id , g:name , g:age , g:address ) from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10002' ) ( ( name equal 'leo' and age less '12' ) or ( id greater '10000' ) )  maxversion is 2  startTS is '1604160000000' , endTS is '1604160000001' limit 10 ";
