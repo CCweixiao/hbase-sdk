@@ -151,7 +151,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
             }
             familyStr = "";
             qualifierStr = "";
-            byte[] row = cells[0].getRowArray();
+            byte[] row = result.getRow();
             rowKeyHandler = hBaseTableConfig.gethBaseTableSchema().getRowKeyHandler();
 
             RowKey rowKey = rowKeyHandler.convert(row);
