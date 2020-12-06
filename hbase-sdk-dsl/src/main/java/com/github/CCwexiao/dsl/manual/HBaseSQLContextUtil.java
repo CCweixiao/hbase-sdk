@@ -5,6 +5,7 @@ import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser.*;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.dsl.client.RowKey;
+import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.dsl.config.HBaseTableConfig;
@@ -210,12 +211,25 @@ public class HBaseSQLContextUtil {
     public static RowKey parseRowKey(RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
         Util.checkNull(rowKeyExpContext);
         Util.checkNull(hBaseSQLRuntimeSetting);
-
-        RowKeyVisitor visitor = new RowKeyVisitor(hBaseSQLRuntimeSetting);
+        RowKeyConstantVisitor visitor = new RowKeyConstantVisitor(hBaseSQLRuntimeSetting);
         RowKey rowKey = rowKeyExpContext.accept(visitor);
         Util.checkNull(rowKey);
-
         return rowKey;
+    }
+
+    /**
+     * 从SQL中解析row key的自定义函数
+     * @param rowKeyExpContext row key表达式上下文
+     * @param hBaseSQLRuntimeSetting HBase SQL 运行时配置
+     * @return RowKeyTextFunc
+     */
+    public static RowKeyTextFunc parseRowKeyFunction(RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
+        Util.checkNull(rowKeyExpContext);
+        Util.checkNull(hBaseSQLRuntimeSetting);
+        RowKeyFunctionVisitor visitor = new RowKeyFunctionVisitor(hBaseSQLRuntimeSetting);
+        final RowKeyTextFunc rowKeyTextFunc = rowKeyExpContext.accept(visitor);
+        Util.checkNull(rowKeyTextFunc);
+        return rowKeyTextFunc;
     }
 
     /**

@@ -5,7 +5,7 @@ import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.client.HBaseCellResult;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.dsl.client.RowKey;
-import com.github.CCwexiao.dsl.client.rowkey.handler.RowKeyHandler;
+import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.dsl.config.HBaseTableConfig;
@@ -116,14 +116,13 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
      */
     public abstract List<List<HBaseCellResult>> select(String hsql);
 
-    protected List<HBaseCellResult> convertToHBaseCellResultList(Result result) {
+    protected List<HBaseCellResult> convertToHBaseCellResultList(Result result, RowKeyTextFunc rowKeyTextFunc) {
         final Cell[] cells = result.rawCells();
         if (cells == null || cells.length == 0) {
             return new ArrayList<>();
         }
         String familyStr = null;
         String qualifierStr = null;
-        RowKeyHandler rowKeyHandler = null;
 
         try {
 
@@ -142,31 +141,23 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
                 Date tsDate = new Date(ts);
 
                 HBaseCellResult cellResult = new HBaseCellResult();
+                RowKey rowKey = rowKeyTextFunc.convert(result.getRow());
+                cellResult.setRowKey(rowKey);
                 cellResult.setFamilyStr(familyStr);
                 cellResult.setQualifierStr(qualifierStr);
-                cellResult.setValueObject(valueObject);
+                cellResult.setValue(valueObject);
                 cellResult.setTsDate(tsDate);
+                cellResult.setRowKeyValue(rowKeyTextFunc.reverse(rowKey));
 
                 resultList.add(cellResult);
             }
-            familyStr = "";
-            qualifierStr = "";
-            byte[] row = result.getRow();
-            rowKeyHandler = hBaseTableConfig.gethBaseTableSchema().getRowKeyHandler();
-
-            RowKey rowKey = rowKeyHandler.convert(row);
-
-            for (HBaseCellResult cell : resultList) {
-                cell.setRowKey(rowKey);
-            }
-
             return resultList;
 
         } catch (Exception e) {
             throw new HBaseOperationsException(
                     "convert result exception. familyStr=" + familyStr
                             + " qualifierStr=" + qualifierStr
-                            + " rowKeyHandler=" + rowKeyHandler + " result="
+                            + " rowKeyTextFunc=" + rowKeyTextFunc.funcName() + " result="
                             + result, e);
         }
     }

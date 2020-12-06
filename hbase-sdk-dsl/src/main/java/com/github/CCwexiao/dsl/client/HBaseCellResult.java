@@ -11,10 +11,19 @@ import java.util.Date;
  */
 public class HBaseCellResult {
     private RowKey rowKey;
+    private Object rowKeyValue;
     private String familyStr;
     private String qualifierStr;
-    private Object valueObject;
+    private Object value;
     private Date tsDate;
+
+    public Object getRowKeyValue() {
+        return rowKeyValue;
+    }
+
+    public void setRowKeyValue(Object rowKeyValue) {
+        this.rowKeyValue = rowKeyValue;
+    }
 
     public RowKey getRowKey() {
         return rowKey;
@@ -32,8 +41,8 @@ public class HBaseCellResult {
         this.qualifierStr = qualifierStr;
     }
 
-    public void setValueObject(Object valueObject) {
-        this.valueObject = valueObject;
+    public void setValue(Object value) {
+        this.value = value;
     }
 
     public void setTsDate(Date tsDate) {
@@ -48,8 +57,8 @@ public class HBaseCellResult {
         return qualifierStr;
     }
 
-    public Object getValueObject() {
-        return valueObject;
+    public Object getValue() {
+        return value;
     }
 
     public Date getTsDate() {

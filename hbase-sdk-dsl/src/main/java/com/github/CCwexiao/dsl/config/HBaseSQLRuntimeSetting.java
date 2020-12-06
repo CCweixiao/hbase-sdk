@@ -70,6 +70,11 @@ public abstract class HBaseSQLRuntimeSetting {
    protected abstract List<RowKeyTextFunc> buildAllRowKeyTextFuncList();
 
 
+    /**
+     * 输入row key转换的函数名，如：intkey, stringkey, longkey, hexkey等
+     * @param funcName 函数名
+     * @return 返回rowKey处理的函数
+     */
     public RowKeyTextFunc findRowKeyTextFunc(String funcName) {
         if (buildInRowKeyTextFuncCache.containsKey(funcName)) {
             return buildInRowKeyTextFuncCache.get(funcName);

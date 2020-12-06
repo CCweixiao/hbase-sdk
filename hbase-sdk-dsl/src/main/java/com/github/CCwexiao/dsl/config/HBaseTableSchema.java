@@ -2,9 +2,6 @@ package com.github.CCwexiao.dsl.config;
 
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.util.StrUtil;
-import com.github.CCwexiao.dsl.client.rowkey.handler.BytesRowKeyHandler;
-import com.github.CCwexiao.dsl.client.rowkey.handler.RowKeyHandler;
-import com.github.CCwexiao.dsl.client.rowkey.handler.RowKeyHandlerHolder;
 import com.github.CCwexiao.dsl.type.TypeHandlers;
 import com.github.CCwexiao.dsl.util.Util;
 
@@ -25,28 +22,13 @@ public class HBaseTableSchema {
     private String defaultFamily;
 
     /**
-     * rowKeyHandlerName可以为空
-     */
-    private String rowKeyHandlerName;
-
-    /**
      * qualifier -> family -> HBaseColumnSchema
      */
     private final Map<String, Map<String, HBaseColumnSchema>> columnSchemas = new TreeMap<>();
 
-    /**
-     * row key的数组转换规则
-     */
-    private RowKeyHandler rowKeyHandler;
 
     public void init(List<HBaseColumnSchema> hBaseColumnSchemas, TypeHandlers typeHandlers) {
         Util.checkEmptyString(tableName);
-
-        if (StrUtil.isBlank(rowKeyHandlerName)) {
-            rowKeyHandlerName = BytesRowKeyHandler.class.getCanonicalName();
-        }
-
-        rowKeyHandler = RowKeyHandlerHolder.findRowKeyHandler(rowKeyHandlerName);
 
         if (hBaseColumnSchemas.isEmpty()) {
             throw new HBaseOperationsException("no HBaseColumnSchema.");
@@ -148,25 +130,12 @@ public class HBaseTableSchema {
         this.defaultFamily = defaultFamily;
     }
 
-    public String getRowKeyHandlerName() {
-        return rowKeyHandlerName;
-    }
-
-    public void setRowKeyHandlerName(String rowKeyHandlerName) {
-        this.rowKeyHandlerName = rowKeyHandlerName;
-    }
-
-    public RowKeyHandler getRowKeyHandler() {
-        return rowKeyHandler;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("---------------table--------------------------\n");
         Util.append(sb, "tableName", tableName);
         Util.append(sb, "defaultFamily", defaultFamily);
-        Util.append(sb, "rowKeyHandlerName", rowKeyHandlerName);
         for (Map<String, HBaseColumnSchema> tem : columnSchemas.values()) {
             for (HBaseColumnSchema columnSchema : tem.values()) {
                 Util.append(sb, "columnSchema", columnSchema);

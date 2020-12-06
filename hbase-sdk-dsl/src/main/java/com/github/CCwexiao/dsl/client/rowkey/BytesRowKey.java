@@ -12,7 +12,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class BytesRowKey implements RowKey {
     private final byte[] key;
 
-    public BytesRowKey(byte[] key){
+    public BytesRowKey(byte[] key) {
         Util.checkNull(key);
 
         this.key = key;

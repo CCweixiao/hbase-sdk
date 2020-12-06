@@ -1,4 +1,4 @@
-grammar HBaseSQL;
+grammar HBaseSQLV2;
 
 @header {
 package com.github.CCwexiao.dsl.auto;
@@ -84,8 +84,7 @@ selectCidList : cidList   # cidList_CidList
 cidList :  cid (',' cid)* ;
 cid : TEXT ;
 
-funcname: TEXT    # rowKey_FunctionName
-;
+funcname: TEXT ;
 
 constantList  : LB constant ( ',' constant)* RB ;
 insertValueList : LB insertValue ( ',' insertValue)* RB ;

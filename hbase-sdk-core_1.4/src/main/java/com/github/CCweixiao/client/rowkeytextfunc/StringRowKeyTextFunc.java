@@ -3,6 +3,7 @@ package com.github.CCweixiao.client.rowkeytextfunc;
 import com.github.CCweixiao.client.rowkey.StringRowKey;
 import com.github.CCwexiao.dsl.client.RowKey;
 import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
+import org.apache.hadoop.hbase.util.Bytes;
 
 /**
  * @author leojie 2020/11/28 12:47 下午
@@ -14,12 +15,23 @@ public class StringRowKeyTextFunc implements RowKeyTextFunc {
     }
 
     @Override
+    public RowKey convert(byte[] row) {
+        return new StringRowKey(Bytes.toString(row));
+    }
+
+    @Override
+    public Object reverse(RowKey rowKey) {
+        byte[] bytes = rowKey.toBytes();
+        return Bytes.toString(bytes);    }
+
+    @Override
     public String funcName() {
-        return "stringkey";
+        return RowKeyFunctionNameEnum.STRING_KEY.getFunctionName();
     }
 
     @Override
     public String desc() {
         return "use string as rowKey.";
     }
+
 }

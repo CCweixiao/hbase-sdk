@@ -26,7 +26,6 @@ public class TestSelectHql {
         HBaseTableSchema hBaseTableSchema = new HBaseTableSchema();
         hBaseTableSchema.setTableName("LEO_USER");
         hBaseTableSchema.setDefaultFamily("g");
-        //hBaseTableSchema.setRowKeyHandlerName("string");
 
         HBaseTableConfig hBaseTableConfig = new DefaultHBaseTableConfig(hBaseTableSchema, hBaseColumnSchemas);
 
@@ -42,9 +41,10 @@ public class TestSelectHql {
 
         listList.forEach(dataList -> {
             dataList.forEach(data -> {
-                System.out.println(data.getRowKey());
+                System.out.println(data.getRowKeyValue());
                 System.out.println(data.getFamilyStr());
                 System.out.println(data.getQualifierStr());
+                System.out.println(data.getValue());
                 System.out.println(data.getTsDate());
                 System.out.println("########################################");
 

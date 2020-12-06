@@ -9,10 +9,24 @@ public interface RowKeyTextFunc {
     /**
      * 转换文本到rowKey
      *
-     * @param text sql文本
+     * @param text sql 中传入的数据值
      * @return one row key
      */
     RowKey func(String text);
+
+    /**
+     * 转换HBase的RowKey
+     *
+     * @param row row
+     * @return RowKey
+     */
+    RowKey convert(byte[] row);
+
+    /**
+     * @param rowKey rowKey
+     * @return 从byte数组中获取值
+     */
+    Object reverse(RowKey rowKey);
 
     /**
      * row key转换的函数名
@@ -27,4 +41,6 @@ public interface RowKeyTextFunc {
      * @return 描述信息
      */
     String desc();
+
+
 }

@@ -6,6 +6,7 @@ import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.client.HBaseCellResult;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.dsl.client.RowKey;
+import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.dsl.manual.HBaseSQLContextUtil;
 import com.github.CCwexiao.dsl.manual.RowKeyRange;
@@ -59,6 +60,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         RowKeyRange rowKeyRange = HBaseSQLContextUtil.parseRowKeyRange(context.rowKeyRange(), runtimeSetting);
         RowKey startRowKey = rowKeyRange.getStart();
         RowKey endRowKey = rowKeyRange.getEnd();
+        final RowKeyTextFunc rowKeyFunc = rowKeyRange.getRowKeyFunc();
 
         Util.checkRowKey(startRowKey);
         Util.checkRowKey(endRowKey);
@@ -67,7 +69,6 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         //scan
         Scan scan = constructScan(startRowKey, endRowKey, filter, queryExtInfo);
-
 
         if (queryExtInfo.isMaxVersionSet()) {
             scan.setMaxVersions(queryExtInfo.getMaxVersions());
@@ -104,7 +105,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                         if (ignoreCounter-- > 0) {
                             continue;
                         }
-                        List<HBaseCellResult> temp = convertToHBaseCellResultList(result);
+                        List<HBaseCellResult> temp = convertToHBaseCellResultList(result, rowKeyFunc);
                         if (!temp.isEmpty()) {
                             resultList.add(temp);
                             if (++resultCounter >= length) {
@@ -142,7 +143,6 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         final HBaseSQLParser.RowKeyExpContext rowKeyExpContext = context.rowKeyExp();
         RowKey rowKey = HBaseSQLContextUtil.parseRowKey(rowKeyExpContext, runtimeSetting);
-
         Util.checkRowKey(rowKey);
 
         Date ts = null;

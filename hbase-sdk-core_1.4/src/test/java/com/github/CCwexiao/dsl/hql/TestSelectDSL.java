@@ -17,7 +17,7 @@ public class TestSelectDSL {
 
     @Test
     public void testParseHBaseRowKeyRange(){
-        String sql = "select ( info:id , g:name , f:age , info:address ) from test:user where startKey is intkey ( '123' ) , endKey is intkey ( '1234' ) ( id less '12' and name equal 'leo' or age less '12' )  maxversion is 2  startTS is '123' , endTS is '321' limit 10 ";
+        String sql = "select info:id , g:name , f:age , info:address from test:user where startKey is intkey ( '123' ) , endKey is intkey ( '1234' ) ( id less '12' and name equal 'leo' or age less '12' )  maxversion is 2  startTS is '123' , endTS is '321' limit 10 ";
 
         final HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(sql);
         HBaseSQLParser.SelecthqlcContext context = HBaseSQLContextUtil.parseSelecthqlcContext(progContext);

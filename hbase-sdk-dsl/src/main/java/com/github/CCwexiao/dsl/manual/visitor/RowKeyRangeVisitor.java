@@ -24,6 +24,7 @@ public class RowKeyRangeVisitor extends HBaseSQLBaseVisitor<RowKeyRange> {
 
         rowKeyRange.setStart(HBaseSQLContextUtil.parseRowKey(startContext.rowKeyExp(), runtimeSetting));
         rowKeyRange.setEnd(RowKeyUtil.END_ROW);
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(startContext.rowKeyExp(), runtimeSetting));
 
         return rowKeyRange;
     }
@@ -34,6 +35,7 @@ public class RowKeyRangeVisitor extends HBaseSQLBaseVisitor<RowKeyRange> {
 
         rowKeyRange.setStart(RowKeyUtil.START_ROW);
         rowKeyRange.setEnd(HBaseSQLContextUtil.parseRowKey(endContext.rowKeyExp(), runtimeSetting));
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(endContext.rowKeyExp(), runtimeSetting));
 
         return rowKeyRange;
     }
@@ -44,6 +46,7 @@ public class RowKeyRangeVisitor extends HBaseSQLBaseVisitor<RowKeyRange> {
 
         rowKeyRange.setStart(HBaseSQLContextUtil.parseRowKey(startAndEndContext.rowKeyExp(0), runtimeSetting));
         rowKeyRange.setEnd(HBaseSQLContextUtil.parseRowKey(startAndEndContext.rowKeyExp(1), runtimeSetting));
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(startAndEndContext.rowKeyExp(0), runtimeSetting));
 
         return rowKeyRange;
     }
@@ -54,6 +57,10 @@ public class RowKeyRangeVisitor extends HBaseSQLBaseVisitor<RowKeyRange> {
         RowKey rowKey = HBaseSQLContextUtil.parseRowKey(ctx.rowKeyExp(), runtimeSetting);
         rowKeyRange.setStart(rowKey);
         rowKeyRange.setEnd(rowKey);
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(ctx.rowKeyExp(), runtimeSetting));
+
         return rowKeyRange;
     }
+
+
 }

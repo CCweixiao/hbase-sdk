@@ -303,6 +303,13 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRowkeyrange_onerowkey(HBaseSQLParser.Rowkeyrange_onerowkeyContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_insomekeys}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_insomekeys(HBaseSQLParser.Rowkeyrange_insomekeysContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code rowkey_Wrapper}
 	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
 	 * @param ctx the parse tree
@@ -316,6 +323,13 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkey_inRangeKey}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkey_inRangeKey(HBaseSQLParser.Rowkey_inRangeKeyContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code rowkey_hbasestart}
 	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
@@ -391,11 +405,12 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCid(HBaseSQLParser.CidContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#funcname}.
+	 * Visit a parse tree produced by the {@code rowKey_FunctionName}
+	 * labeled alternative in {@link HBaseSQLParser#funcname}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFuncname(HBaseSQLParser.FuncnameContext ctx);
+	T visitRowKey_FunctionName(HBaseSQLParser.RowKey_FunctionNameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#constantList}.
 	 * @param ctx the parse tree
