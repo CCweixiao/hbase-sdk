@@ -40,4 +40,5 @@ public class RowKeyConstantVisitor extends HBaseSQLBaseVisitor<RowKey> {
     public RowKey visitRowkey_Wrapper(HBaseSQLParser.Rowkey_WrapperContext ctx) {
         return ctx.rowKeyExp().accept(this);
     }
+
 }

@@ -8,6 +8,9 @@ import com.github.CCwexiao.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.dsl.manual.HBaseSQLContextUtil;
 import com.github.CCwexiao.dsl.manual.RowKeyRange;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author leojie 2020/11/28 11:00 上午
  */
@@ -52,15 +55,24 @@ public class RowKeyRangeVisitor extends HBaseSQLBaseVisitor<RowKeyRange> {
     }
 
     @Override
-    public RowKeyRange visitRowkeyrange_onerowkey(HBaseSQLParser.Rowkeyrange_onerowkeyContext ctx) {
+    public RowKeyRange visitRowkeyrange_onerowkey(HBaseSQLParser.Rowkeyrange_onerowkeyContext onerowkeyContext) {
         RowKeyRange rowKeyRange = new RowKeyRange();
-        RowKey rowKey = HBaseSQLContextUtil.parseRowKey(ctx.rowKeyExp(), runtimeSetting);
+        RowKey rowKey = HBaseSQLContextUtil.parseRowKey(onerowkeyContext.rowKeyExp(), runtimeSetting);
         rowKeyRange.setStart(rowKey);
         rowKeyRange.setEnd(rowKey);
-        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(ctx.rowKeyExp(), runtimeSetting));
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(onerowkeyContext.rowKeyExp(), runtimeSetting));
 
         return rowKeyRange;
     }
 
-
+    @Override
+    public RowKeyRange visitRowkeyrange_insomekeys(HBaseSQLParser.Rowkeyrange_insomekeysContext insomekeysContext) {
+        RowKeyRange rowKeyRange = new RowKeyRange();
+        final List<RowKey> rowKeys = HBaseSQLContextUtil.parseRowKeyList(insomekeysContext.rowKeyExp(), runtimeSetting);
+        rowKeyRange.setRowKeyFunc(HBaseSQLContextUtil.parseRowKeyFunction(insomekeysContext.rowKeyExp(), runtimeSetting));
+        rowKeyRange.setContainsSomeKeys(rowKeys);
+        rowKeyRange.setStart(null);
+        rowKeyRange.setEnd(null);
+        return rowKeyRange;
+    }
 }

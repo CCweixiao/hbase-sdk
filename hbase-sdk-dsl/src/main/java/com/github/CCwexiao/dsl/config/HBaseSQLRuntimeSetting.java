@@ -1,6 +1,7 @@
 package com.github.CCwexiao.dsl.config;
 
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.util.StrUtil;
 import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.dsl.literal.LiteralInterpreter;
 import com.github.CCwexiao.dsl.literal.interpreter.*;
@@ -76,6 +77,10 @@ public abstract class HBaseSQLRuntimeSetting {
      * @return 返回rowKey处理的函数
      */
     public RowKeyTextFunc findRowKeyTextFunc(String funcName) {
+        if(StrUtil.isBlank(funcName)){
+            throw new HBaseOperationsException("please input a function name.");
+        }
+
         if (buildInRowKeyTextFuncCache.containsKey(funcName)) {
             return buildInRowKeyTextFuncCache.get(funcName);
         }

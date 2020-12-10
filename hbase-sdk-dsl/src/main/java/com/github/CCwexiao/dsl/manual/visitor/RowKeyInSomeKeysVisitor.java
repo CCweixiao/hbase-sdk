@@ -1,0 +1,38 @@
+package com.github.CCwexiao.dsl.manual.visitor;
+
+import com.github.CCwexiao.dsl.auto.HBaseSQLBaseVisitor;
+import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
+import com.github.CCwexiao.dsl.client.RowKey;
+import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
+import com.github.CCwexiao.dsl.config.HBaseSQLRuntimeSetting;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author leojie 2020/12/10 10:23 下午
+ */
+public class RowKeyInSomeKeysVisitor extends HBaseSQLBaseVisitor<List<RowKey>> {
+    private final HBaseSQLRuntimeSetting runtimeSetting;
+
+    public RowKeyInSomeKeysVisitor(HBaseSQLRuntimeSetting runtimeSetting) {
+        this.runtimeSetting = runtimeSetting;
+    }
+
+    @Override
+    public List<RowKey> visitRowkey_inRangeKey(HBaseSQLParser.Rowkey_inRangeKeyContext inRangeKeyContext) {
+        final List<HBaseSQLParser.ConstantContext> constantContextList = inRangeKeyContext.constant();
+        List<RowKey> rowKeys = new ArrayList<>();
+
+        if (constantContextList == null || constantContextList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        final String rowKeyFunctionName = inRangeKeyContext.funcname().getText();
+        final RowKeyTextFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(rowKeyFunctionName);
+
+        for (HBaseSQLParser.ConstantContext constantContext : constantContextList) {
+            rowKeys.add(rowKeyTextFunc.func(constantContext.TEXT().getText()));
+        }
+        return rowKeys;
+    }
+}

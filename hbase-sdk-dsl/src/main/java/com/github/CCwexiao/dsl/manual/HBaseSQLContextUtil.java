@@ -218,6 +218,23 @@ public class HBaseSQLContextUtil {
     }
 
     /**
+     * 解析IN语法中的rowKey列表
+     * @param rowKeyExpContext row key exp
+     * @param hBaseSQLRuntimeSetting HBase SQL运行时配置
+     * @return rowKey列表
+     */
+    public static List<RowKey> parseRowKeyList(RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
+        Util.checkNull(rowKeyExpContext);
+        Util.checkNull(hBaseSQLRuntimeSetting);
+        RowKeyInSomeKeysVisitor visitor = new RowKeyInSomeKeysVisitor(hBaseSQLRuntimeSetting);
+        final List<RowKey> rowKeyList = rowKeyExpContext.accept(visitor);
+        if(rowKeyList == null|| rowKeyList.isEmpty()){
+            throw new HBaseOperationsException("please enter one or more row key.");
+        }
+        return rowKeyList;
+    }
+
+    /**
      * 从SQL中解析row key的自定义函数
      * @param rowKeyExpContext row key表达式上下文
      * @param hBaseSQLRuntimeSetting HBase SQL 运行时配置

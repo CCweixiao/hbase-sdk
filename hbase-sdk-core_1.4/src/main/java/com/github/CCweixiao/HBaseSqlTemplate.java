@@ -60,14 +60,36 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         RowKeyRange rowKeyRange = HBaseSQLContextUtil.parseRowKeyRange(context.rowKeyRange(), runtimeSetting);
         RowKey startRowKey = rowKeyRange.getStart();
         RowKey endRowKey = rowKeyRange.getEnd();
+        List<RowKey> queryInRows = rowKeyRange.getContainsSomeKeys();
         final RowKeyTextFunc rowKeyFunc = rowKeyRange.getRowKeyFunc();
+        QueryExtInfo queryExtInfo = HBaseSQLContextUtil.parseQueryExtInfo(context);
+
+        // in 查询
+        if (!queryInRows.isEmpty()) {
+            if (queryExtInfo.isLimitSet()) {
+                throw new HBaseOperationsException("select in query should not with limit.");
+            }
+            List<Get> queryGetList = new ArrayList<>();
+            queryInRows.forEach(rowKey -> queryGetList.add(constructGet(rowKey, filter, queryExtInfo, queryHBaseColumnSchemaList)));
+
+            return this.execute(tableName, table -> {
+                List<List<HBaseCellResult>> resultList = new ArrayList<>();
+                final Result[] results = table.get(queryGetList);
+                if (results != null && results.length > 0) {
+                    for (Result result : results) {
+                        List<HBaseCellResult> temp = convertToHBaseCellResultList(result, rowKeyFunc);
+                        if (!temp.isEmpty()) {
+                            resultList.add(temp);
+                        }
+                    }
+                }
+                return resultList;
+            });
+        }
 
         Util.checkRowKey(startRowKey);
         Util.checkRowKey(endRowKey);
-
-        QueryExtInfo queryExtInfo = HBaseSQLContextUtil.parseQueryExtInfo(context);
-
-        //scan
+        //scan 查询
         Scan scan = constructScan(startRowKey, endRowKey, filter, queryExtInfo);
 
         if (queryExtInfo.isMaxVersionSet()) {
@@ -76,8 +98,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         if (queryExtInfo.isTimeRangeSet()) {
             try {
-                scan.setTimeRange(queryExtInfo.getMinStamp(),
-                        queryExtInfo.getMaxStamp());
+                scan.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
             } catch (IOException e) {
                 // should never happen.
                 throw new HBaseOperationsException("should never happen.", e);
@@ -190,35 +211,58 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         HBaseSQLParser.SelectCidListContext selectCidListContext = context.selectCidList();
         List<HBaseColumnSchema> deleteHbaseColumnSchemaList = HBaseSQLContextUtil
                 .parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
+
         Util.check(!deleteHbaseColumnSchemaList.isEmpty());
 
         //filter
-        Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(),
-                hBaseTableConfig, runtimeSetting);
+        Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(), hBaseTableConfig, runtimeSetting);
 
         //row keys.
         RowKeyRange rowKeyRange = HBaseSQLContextUtil.parseRowKeyRange(context.rowKeyRange(), runtimeSetting);
-
         RowKey startRowKey = rowKeyRange.getStart();
         RowKey endRowKey = rowKeyRange.getEnd();
-
-        Util.checkRowKey(startRowKey);
-        Util.checkRowKey(endRowKey);
+        List<RowKey> inRowKeyList = rowKeyRange.getContainsSomeKeys();
 
         Date ts = null;
         HBaseSQLParser.TsexpContext tsexpContext = context.tsexp();
         if (tsexpContext != null) {
             ts = HBaseSQLContextUtil.parseTimeStampDate(tsexpContext, runtimeSetting);
         }
+        // delete in rowKeys
+        if (inRowKeyList != null && !inRowKeyList.isEmpty()) {
+            deleteInRowKeys(tableName, inRowKeyList, filter, deleteHbaseColumnSchemaList, ts);
 
-        deleteInternalWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteHbaseColumnSchemaList, ts);
+        }else{
+            Util.checkRowKey(startRowKey);
+            Util.checkRowKey(endRowKey);
+            deleteInternalWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteHbaseColumnSchemaList, ts);
+        }
 
     }
 
-    private void deleteInternalWithScanFirst(String tableName, RowKey startRowKey, RowKey endRowKey,
-                                             Filter filter, List<HBaseColumnSchema> hbaseColumnSchemaList, Date ts) {
-        Util.check((hbaseColumnSchemaList != null && !hbaseColumnSchemaList.isEmpty()));
+    private void deleteInRowKeys(String tableName, List<RowKey> rowKeys, Filter filter,
+                                 List<HBaseColumnSchema> deleteHBaseColumnSchemaList, Date ts) {
+        if (rowKeys == null || rowKeys.isEmpty()) {
+            return;
+        }
+        List<Get> getList = new ArrayList<>();
+        rowKeys.forEach(rowKey -> getList.add(constructGet(rowKey, filter)));
+        List<Delete> deletes = new LinkedList<>();
+        this.execute(tableName, table -> {
+            Result[] results = table.get(getList);
+            for (Result result : results) {
+                deletes.add(constructDelete(result, deleteHBaseColumnSchemaList, ts));
+            }
+            return null;
+        });
 
+        this.execute(tableName, table -> {
+            table.mutate(deletes);
+        });
+    }
+
+    private void deleteInternalWithScanFirst(String tableName, RowKey startRowKey, RowKey endRowKey,
+                                             Filter filter, List<HBaseColumnSchema> deleteHBaseColumnSchemaList, Date ts) {
         final int deleteBatch = getDeleteBatch();
 
         while (true) {
@@ -231,20 +275,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                     try (ResultScanner scanner = table.getScanner(tempScan)) {
                         Result result;
                         while ((result = scanner.next()) != null) {
-                            Delete delete = new Delete(result.getRow());
-
-                            for (HBaseColumnSchema hBaseColumnSchema : hbaseColumnSchemaList) {
-                                byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
-                                byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getQualifier());
-                                if (ts == null) {
-                                    //delete all versions.
-                                    delete.addColumn(familyBytes, qualifierBytes);
-                                } else {
-                                    delete.addColumn(familyBytes, qualifierBytes, ts.getTime());
-                                }
-                            }
-
-                            deletes.add(delete);
+                            deletes.add(constructDelete(result, deleteHBaseColumnSchemaList, ts));
                             if (deletes.size() >= deleteBatch) {
                                 break;
                             }
@@ -280,4 +311,6 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         }
     }
+
+
 }

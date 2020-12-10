@@ -14,12 +14,14 @@ import com.github.CCwexiao.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +63,32 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
         return runtimeSetting.getDeleteBatchSize();
     }
 
+    protected Get constructGet(RowKey rowKey, Filter filter, QueryExtInfo queryExtInfo, List<HBaseColumnSchema> hbaseColumnSchemaList) {
+        Get get = constructGet(rowKey, filter);
+        if (queryExtInfo != null) {
+            if (queryExtInfo.isMaxVersionSet()) {
+                try {
+                    get.setMaxVersions(queryExtInfo.getMaxVersions());
+                } catch (IOException e) {
+                    throw new HBaseOperationsException("should never happen.", e);
+                }
+            }
+            if (queryExtInfo.isTimeRangeSet()) {
+                try {
+                    get.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
+                } catch (IOException e) {
+                    throw new HBaseOperationsException("should never happen.", e);
+                }
+            }
+        }
+        if (hbaseColumnSchemaList != null && !hbaseColumnSchemaList.isEmpty()) {
+            hbaseColumnSchemaList.forEach(hBaseColumnSchema -> {
+                get.addColumn(Bytes.toBytes(hBaseColumnSchema.getFamily()), Bytes.toBytes(hBaseColumnSchema.getQualifier()));
+            });
+        }
+        return get;
+    }
+
     protected Scan constructScan(RowKey startRowKey, RowKey endRowKey,
                                  Filter filter, QueryExtInfo queryExtInfo) {
         Util.checkRowKey(startRowKey);
@@ -85,26 +113,37 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
         }
 
         scan.setCaching(cachingSize);
+        if (filter != null) {
+            scan.setFilter(filter);
+        }
 
-        scan.setFilter(filter);
-
-        return postConstructScan(scan);
-    }
-
-    protected Scan postConstructScan(Scan scan) {
         return scan;
     }
+
 
     protected Get constructGet(RowKey rowkey, Filter filter) {
         Util.checkRowKey(rowkey);
 
         Get get = new Get(rowkey.toBytes());
-        get.setFilter(filter);
-        return postConstructGet(get);
+        if (filter != null) {
+            get.setFilter(filter);
+        }
+        return get;
     }
 
-    protected Get postConstructGet(Get get) {
-        return get;
+
+    protected Delete constructDelete(Result result, List<HBaseColumnSchema> hbaseColumnSchemaList, Date ts) {
+        Delete delete = new Delete(result.getRow());
+        for (HBaseColumnSchema hBaseColumnSchema : hbaseColumnSchemaList) {
+            byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
+            byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getQualifier());
+            if (ts == null) {
+                delete.addColumn(familyBytes, qualifierBytes);
+            } else {
+                delete.addColumn(familyBytes, qualifierBytes, ts.getTime());
+            }
+        }
+        return delete;
     }
 
 
@@ -164,10 +203,11 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
 
     /**
      * 筛选我们需要的字段列表
+     *
      * @param hbaseColumnSchemaList 字段列表
-     * @param scan scan
+     * @param scan                  scan
      */
-    protected  void applyRequestFamilyAndQualifier(List<HBaseColumnSchema> hbaseColumnSchemaList, Scan scan) {
+    protected void applyRequestFamilyAndQualifier(List<HBaseColumnSchema> hbaseColumnSchemaList, Scan scan) {
         for (HBaseColumnSchema hbaseColumnSchema : hbaseColumnSchemaList) {
             scan.addColumn(Bytes.toBytes(hbaseColumnSchema.getFamily()),
                     Bytes.toBytes(hbaseColumnSchema.getQualifier()));

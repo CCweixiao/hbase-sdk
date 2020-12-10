@@ -85,6 +85,7 @@ public class Util {
         }
     }
 
+
     public static void checkRowKey(RowKey rowKey) {
         checkNull(rowKey);
 
