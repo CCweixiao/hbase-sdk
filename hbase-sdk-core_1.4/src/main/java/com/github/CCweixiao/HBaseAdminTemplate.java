@@ -30,12 +30,12 @@ import static com.github.CCweixiao.constant.HMHBaseConstant.ENABLE_REPLICATION_S
  * @author leojie 2020/9/25 11:11 下午
  */
 public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
-    public HBaseAdminTemplate(Configuration configuration) {
-        super(configuration);
-    }
-
     public HBaseAdminTemplate(String zkHost, String zkPort) {
         super(zkHost, zkPort);
+    }
+
+    public HBaseAdminTemplate(Configuration configuration) {
+        super(configuration);
     }
 
     public HBaseAdminTemplate(Properties properties) {

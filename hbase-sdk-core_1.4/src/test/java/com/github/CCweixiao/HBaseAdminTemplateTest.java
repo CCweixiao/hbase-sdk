@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * HBase admin template test
@@ -18,7 +19,14 @@ public class HBaseAdminTemplateTest {
 
     @Before
     public void initHBaseTemplate() {
-        hBaseTemplate = new HBaseAdminTemplate("node1", "2181");
+        Properties properties = new Properties();
+        properties.setProperty("java.security.krb5.conf", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/krb5.conf");
+        properties.setProperty("hadoop.security.authentication", "Kerberos");
+        properties.setProperty("keytab.file", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/hadoop.keytab");
+        properties.setProperty("kerberos.principal", "hadoop@LEO.COM");
+        properties.setProperty("hbase.zookeeper.quorum", "node1");
+        properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
+        hBaseTemplate = new HBaseAdminTemplate(properties);
     }
 
     @Test

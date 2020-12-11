@@ -25,12 +25,12 @@ import java.util.*;
  */
 public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
-    public HBaseSqlTemplate(Configuration configuration) {
-        super(configuration);
-    }
-
     public HBaseSqlTemplate(String zkHost, String zkPort) {
         super(zkHost, zkPort);
+    }
+
+    public HBaseSqlTemplate(Configuration configuration) {
+        super(configuration);
     }
 
     public HBaseSqlTemplate(Properties properties) {
@@ -232,7 +232,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         if (inRowKeyList != null && !inRowKeyList.isEmpty()) {
             deleteInRowKeys(tableName, inRowKeyList, filter, deleteHbaseColumnSchemaList, ts);
 
-        }else{
+        } else {
             Util.checkRowKey(startRowKey);
             Util.checkRowKey(endRowKey);
             deleteInternalWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteHbaseColumnSchemaList, ts);

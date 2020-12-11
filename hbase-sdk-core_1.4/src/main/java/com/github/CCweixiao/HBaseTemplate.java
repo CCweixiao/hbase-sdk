@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
  * @author leo.jie (weixiao.me@aliyun.com)
  */
 public class HBaseTemplate extends AbstractHBaseTemplate {
-    public HBaseTemplate(Configuration configuration) {
-        super(configuration);
-    }
 
     public HBaseTemplate(String zkHost, String zkPort) {
         super(zkHost, zkPort);
+    }
+
+    public HBaseTemplate(Configuration configuration) {
+        super(configuration);
     }
 
     public HBaseTemplate(Properties properties) {

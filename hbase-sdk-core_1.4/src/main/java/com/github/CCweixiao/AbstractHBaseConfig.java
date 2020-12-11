@@ -18,17 +18,10 @@ import java.util.stream.Collectors;
  * @author leojie 2020/11/13 11:52 下午
  */
 public abstract class AbstractHBaseConfig implements HBaseOperations {
-   private static final Logger LOGGER = LoggerFactory.getLogger(HBaseOperations.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HBaseOperations.class);
     private Configuration configuration;
 
     private volatile Connection connection;
-
-    public AbstractHBaseConfig(Configuration configuration) {
-        if (configuration == null) {
-            throw new HBaseOperationsException("a valid configuration is provided.");
-        }
-        this.configuration = configuration;
-    }
 
     public AbstractHBaseConfig(String zkHost, String zkPort) {
         Configuration configuration = getConfiguration(zkHost, zkPort);
@@ -38,8 +31,35 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
         this.configuration = configuration;
     }
 
+    public AbstractHBaseConfig(Configuration configuration) {
+        String auth = configuration.get("hadoop.security.authentication", null);
+
+        if (auth == null) {
+            this.configuration = configuration;
+        }else{
+            if (auth.toLowerCase().equals("kerberos")) {
+                this.configuration = KerberosAuthorization.INSTANCE.getInstance(configuration);
+            } else {
+                throw new HBaseOperationsException("This type of authentication " + auth + " is not supported for the time being.");
+            }
+        }
+        if (this.configuration == null) {
+            throw new HBaseOperationsException("a valid configuration is provided.");
+        }
+    }
+
     public AbstractHBaseConfig(Properties properties) {
-        Configuration configuration = getConfiguration(properties);
+        String auth = properties.getProperty("hadoop.security.authentication", null);
+        Configuration configuration;
+        if (auth == null) {
+            configuration = getConfiguration(properties);
+        } else {
+            if (auth.toLowerCase().equals("kerberos")) {
+                configuration = KerberosAuthorization.INSTANCE.getInstance(properties);
+            } else {
+                throw new HBaseOperationsException("This type of authentication " + auth + " is not supported for the time being.");
+            }
+        }
         if (configuration == null) {
             throw new HBaseOperationsException("a valid configuration is provided.");
         }

@@ -34,12 +34,12 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
     protected HBaseTableConfig hBaseTableConfig;
     protected HBaseSQLRuntimeSetting runtimeSetting = new DefaultHBaseSQLRuntimeSetting();
 
-    public AbstractHBaseSqlTemplate(Configuration configuration) {
-        super(configuration);
+    public AbstractHBaseSqlTemplate(String zkHost, String port) {
+        super(zkHost, port);
     }
 
-    public AbstractHBaseSqlTemplate(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
+    public AbstractHBaseSqlTemplate(Configuration configuration) {
+        super(configuration);
     }
 
     public AbstractHBaseSqlTemplate(Properties properties) {

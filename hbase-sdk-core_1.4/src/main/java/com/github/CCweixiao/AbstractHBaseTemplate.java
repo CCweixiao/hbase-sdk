@@ -21,13 +21,12 @@ import java.util.*;
  * @author leo.jie (leojie1314@gmail.com)
  */
 public abstract class AbstractHBaseTemplate extends AbstractHBaseConfig implements HBaseTableOperations {
+    public AbstractHBaseTemplate(String zkHost, String zkPort) {
+        super(zkHost, zkPort);
+    }
 
     public AbstractHBaseTemplate(Configuration configuration) {
         super(configuration);
-    }
-
-    public AbstractHBaseTemplate(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
     }
 
     public AbstractHBaseTemplate(Properties properties) {
