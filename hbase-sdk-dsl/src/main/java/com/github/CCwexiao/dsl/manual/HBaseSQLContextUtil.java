@@ -226,7 +226,8 @@ public class HBaseSQLContextUtil {
     public static List<RowKey> parseRowKeyList(RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
         Util.checkNull(rowKeyExpContext);
         Util.checkNull(hBaseSQLRuntimeSetting);
-        RowKeyInSomeKeysVisitor visitor = new RowKeyInSomeKeysVisitor(hBaseSQLRuntimeSetting);
+        //RowKeyInSomeKeysVisitor visitor = new RowKeyInSomeKeysVisitor(hBaseSQLRuntimeSetting);
+        RowKeyListConstantVisitor visitor = new RowKeyListConstantVisitor(hBaseSQLRuntimeSetting);
         final List<RowKey> rowKeyList = rowKeyExpContext.accept(visitor);
         if(rowKeyList == null|| rowKeyList.isEmpty()){
             throw new HBaseOperationsException("please enter one or more row key.");
@@ -267,6 +268,18 @@ public class HBaseSQLContextUtil {
 
         return rowKeyRange;
 
+    }
+
+    public static RowKeyRange parseRowKeyRange2(RowKeyRangeContext rowKeyRangeContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
+        Util.checkNull(rowKeyRangeContext);
+        Util.checkNull(hBaseSQLRuntimeSetting);
+
+        RowKeyRangeVisitor visitor = new RowKeyRangeVisitor(hBaseSQLRuntimeSetting);
+        RowKeyRange rowKeyRange = rowKeyRangeContext.accept(visitor);
+
+        Util.checkNull(rowKeyRange);
+
+        return rowKeyRange;
     }
 
     public static Object parseInsertConstantValue(HBaseColumnSchema hbaseColumnSchema,

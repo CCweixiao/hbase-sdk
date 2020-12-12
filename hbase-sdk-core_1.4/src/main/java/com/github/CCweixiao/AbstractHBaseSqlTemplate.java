@@ -164,8 +164,6 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
         String qualifierStr = null;
 
         try {
-
-
             List<HBaseCellResult> resultList = new ArrayList<>();
 
             for (Cell cell : cells) {
@@ -181,12 +179,12 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseConfig imple
 
                 HBaseCellResult cellResult = new HBaseCellResult();
                 RowKey rowKey = rowKeyTextFunc.convert(result.getRow());
-                cellResult.setRowKey(rowKey);
                 cellResult.setFamilyStr(familyStr);
                 cellResult.setQualifierStr(qualifierStr);
+                cellResult.setColumnName(familyStr + ":" + qualifierStr);
                 cellResult.setValue(valueObject);
                 cellResult.setTsDate(tsDate);
-                cellResult.setRowKeyValue(rowKeyTextFunc.reverse(rowKey));
+                cellResult.setRowKey(rowKeyTextFunc.reverse(rowKey));
 
                 resultList.add(cellResult);
             }

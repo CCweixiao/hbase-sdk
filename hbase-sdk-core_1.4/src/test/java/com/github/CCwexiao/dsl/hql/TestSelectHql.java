@@ -33,6 +33,24 @@ public class TestSelectHql {
     }
 
     @Test
+    public void testSelectInSql(){
+        String hql = "select * from LEO_USER where rowKey is stringkey in  ( '1001' , '1002' ) limit 10";
+        final List<List<HBaseCellResult>> listList = hBaseSqlTemplate.select(hql);
+
+        listList.forEach(dataList -> {
+            dataList.forEach(data -> {
+                System.out.println(data.getRowKey());
+                System.out.println(data.getFamilyStr());
+                System.out.println(data.getQualifierStr());
+                System.out.println(data.getValue());
+                System.out.println(data.getTsDate());
+                System.out.println("########################################");
+
+            });
+        });
+    }
+
+    @Test
     public void testSelectSql() {
         String sql = "select ( g:id , g:name , g:age , g:address ) from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10002' ) ( ( name equal 'leo' and age less '12' ) or ( id greater '10000' ) )  maxversion is 2  startTS is '1604160000000' , endTS is '1604160000001' limit 10 ";
         sql = "select * from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10002' ) ( ( name equal 'leo' and age less '12' ) or ( id greater '10000' ) )  maxversion is 2  startTS is '1604160000000' , endTS is '1604160000001' limit 10 ";
@@ -41,7 +59,7 @@ public class TestSelectHql {
 
         listList.forEach(dataList -> {
             dataList.forEach(data -> {
-                System.out.println(data.getRowKeyValue());
+                System.out.println(data.getRowKey());
                 System.out.println(data.getFamilyStr());
                 System.out.println(data.getQualifierStr());
                 System.out.println(data.getValue());

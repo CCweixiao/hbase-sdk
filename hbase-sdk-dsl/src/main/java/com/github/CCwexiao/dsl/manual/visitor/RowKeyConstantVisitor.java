@@ -31,6 +31,7 @@ public class RowKeyConstantVisitor extends HBaseSQLBaseVisitor<RowKey> {
         return RowKeyUtil.START_ROW;
     }
 
+
     @Override
     public RowKey visitRowkey_hbaseend(HBaseSQLParser.Rowkey_hbaseendContext ctx) {
         return RowKeyUtil.END_ROW;

@@ -65,7 +65,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         QueryExtInfo queryExtInfo = HBaseSQLContextUtil.parseQueryExtInfo(context);
 
         // in 查询
-        if (!queryInRows.isEmpty()) {
+        if (queryInRows != null && !queryInRows.isEmpty()) {
             if (queryExtInfo.isLimitSet()) {
                 throw new HBaseOperationsException("select in query should not with limit.");
             }

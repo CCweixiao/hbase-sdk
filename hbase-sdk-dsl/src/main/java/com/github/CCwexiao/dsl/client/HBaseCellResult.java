@@ -10,26 +10,18 @@ import java.util.Date;
  * @author leojie 2020/11/28 8:22 下午
  */
 public class HBaseCellResult {
-    private RowKey rowKey;
-    private Object rowKeyValue;
+    private Object rowKey;
     private String familyStr;
     private String qualifierStr;
+    private String columnName;
     private Object value;
     private Date tsDate;
 
-    public Object getRowKeyValue() {
-        return rowKeyValue;
-    }
-
-    public void setRowKeyValue(Object rowKeyValue) {
-        this.rowKeyValue = rowKeyValue;
-    }
-
-    public RowKey getRowKey() {
+    public Object getRowKey() {
         return rowKey;
     }
 
-    public void setRowKey(RowKey rowKey) {
+    public void setRowKey(Object rowKey) {
         this.rowKey = rowKey;
     }
 
@@ -55,6 +47,15 @@ public class HBaseCellResult {
 
     public String getQualifierStr() {
         return qualifierStr;
+    }
+
+
+    public String getColumnName() {
+        return columnName;
+    }
+
+    public void setColumnName(String columnName) {
+        this.columnName = columnName;
     }
 
     public Object getValue() {

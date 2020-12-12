@@ -1,6 +1,7 @@
 package com.github.CCweixiao;
 
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
@@ -32,15 +33,15 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
     }
 
     public AbstractHBaseConfig(Configuration configuration) {
-        String auth = configuration.get("hadoop.security.authentication", null);
+        String auth = configuration.get("hbase.security.authentication", null);
 
-        if (auth == null) {
+        if (StrUtil.isBlank(auth)) {
             this.configuration = configuration;
         }else{
             if (auth.toLowerCase().equals("kerberos")) {
                 this.configuration = KerberosAuthorization.INSTANCE.getInstance(configuration);
             } else {
-                throw new HBaseOperationsException("This type of authentication " + auth + " is not supported for the time being.");
+                throw new HBaseOperationsException("this type of authentication " + auth + " is not supported for the time being.");
             }
         }
         if (this.configuration == null) {
@@ -49,15 +50,15 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
     }
 
     public AbstractHBaseConfig(Properties properties) {
-        String auth = properties.getProperty("hadoop.security.authentication", null);
+        String auth = properties.getProperty("hbase.security.authentication", null);
         Configuration configuration;
-        if (auth == null) {
+        if (StrUtil.isBlank(auth)) {
             configuration = getConfiguration(properties);
         } else {
             if (auth.toLowerCase().equals("kerberos")) {
                 configuration = KerberosAuthorization.INSTANCE.getInstance(properties);
             } else {
-                throw new HBaseOperationsException("This type of authentication " + auth + " is not supported for the time being.");
+                throw new HBaseOperationsException("this type of authentication " + auth + " is not supported for the time being.");
             }
         }
         if (configuration == null) {

@@ -4,6 +4,7 @@ import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.model.HQLType;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser.*;
+import com.github.CCwexiao.dsl.manual.HBaseSQLContextUtil;
 import com.github.CCwexiao.dsl.manual.HBaseSQLErrorStrategy;
 import com.github.CCwexiao.dsl.manual.HBaseSQLStatementsLexer;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -35,6 +36,12 @@ public class TreeUtil {
         }
     }
 
+    public static String parseTableName(String hql) {
+        Util.checkEmptyString(hql);
+        HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(hql);
+        return parseTableName(progContext);
+    }
+
     public static String parseTableName(ProgContext progContext) {
         Util.checkNull(progContext);
 
@@ -51,6 +58,12 @@ public class TreeUtil {
                     .deletehqlc().tableName().TEXT().getText();
         }
         throw new HBaseOperationsException("can't parse the name of hbase table.");
+    }
+
+    public static HQLType parseHQLType(String hql) {
+        Util.checkEmptyString(hql);
+        HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(hql);
+        return parseHQLType(progContext);
     }
 
     public static HQLType parseHQLType(ProgContext progContext) {

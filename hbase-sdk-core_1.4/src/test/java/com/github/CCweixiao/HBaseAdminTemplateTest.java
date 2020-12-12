@@ -21,11 +21,18 @@ public class HBaseAdminTemplateTest {
     public void initHBaseTemplate() {
         Properties properties = new Properties();
         properties.setProperty("java.security.krb5.conf", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/krb5.conf");
-        properties.setProperty("hadoop.security.authentication", "Kerberos");
+        properties.setProperty("hadoop.security.authentication", "kerberos");
+        properties.setProperty("hbase.security.authentication", "kerberos");
+
         properties.setProperty("keytab.file", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/hadoop.keytab");
         properties.setProperty("kerberos.principal", "hadoop@LEO.COM");
-        properties.setProperty("hbase.zookeeper.quorum", "node1");
+
+        properties.setProperty("hbase.master.kerberos.principal","hbase/_HOST@LEO.COM");
+        properties.setProperty("hbase.regionserver.kerberos.principal","hbase/_HOST@LEO.COM");
+
+        properties.setProperty("hbase.zookeeper.quorum", "node2.bigdata.leo.com,node1.bigdata.leo.com,node3.bigdata.leo.com");
         properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
+
         hBaseTemplate = new HBaseAdminTemplate(properties);
     }
 
