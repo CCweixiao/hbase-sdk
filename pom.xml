@@ -52,6 +52,7 @@
         <module>spring-boot-starter-hbase_2.1</module>
         <module>spring-boot-starter-hbase-example_1.4</module>
         <module>spring-boot-starter-hbase-example_2.1</module>
+        <module>hbase-sdk-thrift-core_1.x</module>
     </modules>
 
     <properties>
@@ -129,6 +130,11 @@
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
                 <artifactId>hbase-sdk-core_1.4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CCweixiao</groupId>
+                <artifactId>hbase-sdk-thrift-core_1.x</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

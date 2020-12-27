@@ -1,9 +1,6 @@
 package com.github.CCweixiao.util;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
-
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
