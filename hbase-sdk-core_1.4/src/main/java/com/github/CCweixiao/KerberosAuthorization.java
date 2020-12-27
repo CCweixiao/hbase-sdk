@@ -30,8 +30,9 @@ public enum KerberosAuthorization {
         UserGroupInformation.setConfiguration(instance);
 
         try {
-            UserGroupInformation.loginUserFromKeytab(properties.getProperty("kerberos.principal"),
+            UserGroupInformation ugi = UserGroupInformation.loginUserFromKeytabAndReturnUGI(properties.getProperty("kerberos.principal"),
                     properties.getProperty("keytab.file"));
+            UserGroupInformation.setLoginUser(ugi);
         } catch (IOException e) {
             throw new HBaseOperationsException(e);
         }
