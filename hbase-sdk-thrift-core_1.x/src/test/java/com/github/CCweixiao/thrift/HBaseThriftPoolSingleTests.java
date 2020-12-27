@@ -8,16 +8,14 @@ import java.util.*;
 /**
  * @author leojie 2020/12/27 2:59 下午
  */
-public class HBaseThriftPoolTests {
+public class HBaseThriftPoolSingleTests {
 
     private HBaseThriftPool hBaseThriftPool;
-    private HBaseThriftService hBaseThriftService;
 
     @Before
     public void init() {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         hBaseThriftPool = new HBaseThriftPool(config, "localhost", 9090);
-        hBaseThriftService = HBaseThriftService.getInstance("localhost", 9090);
     }
 
     @Test
@@ -52,14 +50,11 @@ public class HBaseThriftPoolTests {
         Map<String, Map<String, String>> data = new HashMap<>(2);
         data.put("a10001", data1);
         data.put("a10002", data2);
-        hBaseThriftService.saveBatch("LEO_USER",data);
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
+        final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
 
+        hBaseThrift.saveBatch("LEO_USER", data);
+        hBaseThrift.close();
     }
 
     @Test
