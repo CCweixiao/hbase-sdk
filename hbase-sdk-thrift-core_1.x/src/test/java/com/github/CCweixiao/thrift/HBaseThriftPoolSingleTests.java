@@ -23,6 +23,8 @@ public class HBaseThriftPoolSingleTests {
         HBaseThriftService hBaseThriftService = HBaseThriftService.getInstance("localhost", 9090);
         Random random = new Random();
 
+
+
         while (true) {
 
             System.out.println(hBaseThriftService.getTableNames());
