@@ -20,9 +20,26 @@ public class HBaseThriftPoolSingleTests {
 
     @Test
     public void testThriftPool() {
-        final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        System.out.println(hBaseThrift.getTableNames());
-        hBaseThrift.close();
+        HBaseThriftService hBaseThriftService = HBaseThriftService.getInstance("localhost", 9090);
+        Random random = new Random();
+
+        while (true) {
+
+            System.out.println(hBaseThriftService.getTableNames());
+            System.out.println(hBaseThriftService.getByRowKeyToMap("LEO_USER","a10001"));
+            try {
+                int r = random.nextInt(10) + 1;
+                //int r = 4;
+                System.out.println("即将等待：" + r + "分钟");
+                Thread.sleep(r * 60 * 1000);
+                System.out.println(hBaseThriftService.getByRowKeyToMap("LEO_USER","a10001"));
+                System.out.println("等待时间：" + r + "分钟");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("################################################################################################");
+        }
     }
 
     @Test
