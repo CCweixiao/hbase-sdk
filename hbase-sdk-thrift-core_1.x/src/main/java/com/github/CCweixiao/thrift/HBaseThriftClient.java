@@ -141,7 +141,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
 
     @Override
     public Map<String, String> getByRowKeyWithFamilyToMap(String tableName, String rowKey, String familyName) {
-        return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, null);
+        return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, new ArrayList<>());
     }
 
     @Override
@@ -186,6 +186,15 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
             throw new HBaseThriftException(e);
         }
         return res;
+    }
+
+    @Override
+    public Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, String... qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, Arrays.asList(qualifiers));
+        } else {
+            return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, new ArrayList<>());
+        }
     }
 
     @Override
@@ -248,6 +257,15 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
             resMap.put(ByteBufferUtil.byteBufferToString(result.row), res);
         });
         return resMap;
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, String... qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            return getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, Arrays.asList(qualifiers));
+        } else {
+            return getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, new ArrayList<>());
+        }
     }
 
     @Override
@@ -392,7 +410,6 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
     public List<String> getTableNames() {
         ArrayList<String> tableNames = new ArrayList<>();
         try {
-            Hbase.Client hbaseClient = hbaseThriftClient();
             for (ByteBuffer name : hbaseClient.getTableNames()) {
                 tableNames.add(ByteBufferUtil.byteBufferToString(name));
             }

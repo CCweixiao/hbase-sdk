@@ -89,6 +89,11 @@ public class HBaseThrift implements Closeable, HBaseThriftOperations {
     }
 
     @Override
+    public Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, String... qualifiers) {
+        return hBaseThriftClient.getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, qualifiers);
+    }
+
+    @Override
     public Map<String, Map<String, String>> getRowsByRowKeysToMap(String tableName, List<String> rowKeyList) {
         return hBaseThriftClient.getRowsByRowKeysToMap(tableName, rowKeyList);
     }
@@ -101,6 +106,11 @@ public class HBaseThrift implements Closeable, HBaseThriftOperations {
 
     @Override
     public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
+        return hBaseThriftClient.getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, qualifiers);
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, String... qualifiers) {
         return hBaseThriftClient.getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, qualifiers);
     }
 

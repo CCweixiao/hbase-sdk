@@ -99,6 +99,13 @@ public class HBaseThriftService implements HBaseThriftOperations {
     }
 
     @Override
+    public Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, String... qualifiers) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, qualifiers);
+        }
+    }
+
+    @Override
     public Map<String, Map<String, String>> getRowsByRowKeysToMap(String tableName, List<String> rowKeyList) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.getRowsByRowKeysToMap(tableName, rowKeyList);
@@ -114,6 +121,13 @@ public class HBaseThriftService implements HBaseThriftOperations {
 
     @Override
     public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, qualifiers);
+        }
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, String... qualifiers) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, qualifiers);
         }

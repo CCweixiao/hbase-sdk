@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public interface HBaseThriftOperations {
     /**
-     * 保存数据，构造Map类型的数据参数，例如： {"INFO:NAME": "leo", "INFO:AGE": 18}
+     * 保存单条数据，构造Map类型的数据参数，例如： {"INFO:NAME": "leo", "INFO:AGE": 18}
      *
      * @param tableName 表名
      * @param rowKey    rowKey
@@ -115,6 +115,18 @@ public interface HBaseThriftOperations {
 
 
     /**
+     * 根据RowKey和列簇以及字段名查询数据，返回Map结构的数据
+     * 返回的数据格式为：{"INFO:NAME": "leo", "INFO:AGE": 18}
+     *
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 字段名列表
+     * @return 结果数据
+     */
+    Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, String... qualifiers);
+
+    /**
      * 根据RowKey查询数据，返回Map结构的数据
      * 返回的数据格式为：{"a1001" : {"INFO:NAME": "leo", "INFO:AGE": 18}}
      *
@@ -147,6 +159,17 @@ public interface HBaseThriftOperations {
      */
     Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers);
 
+    /**
+     * 根据RowKey和列簇以及字段名查询数据，返回Map结构的数据
+     * 返回的数据格式为：{"a1001" : {"INFO:NAME": "leo", "INFO:AGE": 18}}
+     *
+     * @param tableName  表名
+     * @param rowKeyList rowKey列表
+     * @param familyName 列簇名
+     * @param qualifiers 字段名列表
+     * @return 结果数据
+     */
+    Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, String... qualifiers);
 
     /**
      * 根据RowKey删除数据
