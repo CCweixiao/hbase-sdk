@@ -8,14 +8,15 @@ import java.util.*;
 /**
  * @author leojie 2020/12/27 2:59 下午
  */
-public class HBaseThriftPoolSingleTests {
+public class HBaseThriftThreadPoolSingleTests {
 
     private HBaseThriftService hBaseThriftService;
 
     @Before
     public void init() {
-        hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
+        hBaseThriftService =new  HBaseThriftService("localhost", 9090);
     }
+
 
     @Test
     public void testThriftPool() {

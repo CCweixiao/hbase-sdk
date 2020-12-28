@@ -1,6 +1,7 @@
 package sample;
 
 import com.github.CCweixiao.thrift.HBaseThriftService;
+import com.github.CCweixiao.thrift.HBaseThriftServiceHolder;
 
 import java.util.Random;
 
@@ -9,19 +10,19 @@ import java.util.Random;
  */
 public class HBaseThriftPoolTest {
     public static void main(String[] args) {
-        HBaseThriftService hBaseThriftService = HBaseThriftService.getInstance("localhost", 9090);
+        HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
         Random random = new Random();
 
         while (true) {
 
-            System.out.println(hBaseThriftService);
+            System.out.println(hBaseThriftService.getTableNames());
 
             try {
                 int r = random.nextInt(10) + 1;
                 //int r = 4;
                 System.out.println("即将等待：" + r + "分钟");
                 Thread.sleep(r * 60 * 1000);
-                System.out.println(hBaseThriftService);
+                System.out.println(hBaseThriftService.getTableNames());
                 //System.out.println("getNumIdle=" + hBaseThriftPool.getNumIdle());
                 //System.out.println("getNumActive=" + hBaseThriftPool.getNumActive());
                 System.out.println("等待时间：" + r + "分钟");

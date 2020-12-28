@@ -9,22 +9,20 @@ import java.util.Map;
  * @author leojie 2020/12/27 11:41 下午
  */
 public class HBaseThriftService implements HBaseThriftOperations {
+
     private final HBaseThriftPool pool;
 
 
-    private HBaseThriftService(String host, int port) {
+    public HBaseThriftService(String host, int port) {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         pool = new HBaseThriftPool(config, host, port);
     }
 
-    private static class HBaseThriftServiceHolder {
-        private static HBaseThriftService instance(String host, int port) {
-            return new HBaseThriftService(host, port);
-        }
-    }
-
-    public static HBaseThriftService getInstance(String host, int port) {
-        return HBaseThriftServiceHolder.instance(host, port);
+    public HBaseThriftService(String host, int port, int poolSize) {
+        HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
+        config.setMaxTotal(poolSize);
+        config.setMaxIdle(poolSize);
+        pool = new HBaseThriftPool(config, host, port);
     }
 
 

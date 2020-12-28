@@ -17,7 +17,7 @@ public class HBaseThriftPoolTests {
     public void init() {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         hBaseThriftPool = new HBaseThriftPool(config, "localhost", 9090);
-        hBaseThriftService = HBaseThriftService.getInstance("localhost", 9090);
+        hBaseThriftService = new HBaseThriftService("localhost", 9090);
     }
 
     @Test
@@ -52,7 +52,7 @@ public class HBaseThriftPoolTests {
         Map<String, Map<String, String>> data = new HashMap<>(2);
         data.put("a10001", data1);
         data.put("a10002", data2);
-        hBaseThriftService.saveBatch("LEO_USER",data);
+        hBaseThriftService.saveBatch("LEO_USER", data);
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
