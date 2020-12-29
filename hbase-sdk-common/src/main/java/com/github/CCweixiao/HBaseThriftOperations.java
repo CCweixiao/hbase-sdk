@@ -247,6 +247,39 @@ public interface HBaseThriftOperations {
     void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers);
 
     /**
+     * scan查询数据，返回Map列表类型，例如：[{"a10001" : {"info:name": "leo", "info:age": 18}}]
+     *
+     * @param tableName 表名
+     * @param limit     限制的返回行数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param stopRow      结束rowKey
+     * @param rowPrefix    rowKey前缀
+     * @param familyName   列簇名
+     * @param qualifiers   字段名列表
+     * @param filterStr    过滤字符串
+     * @param timestamp    时间戳
+     * @param batchSize    批次大小
+     * @param scanBatching scan缓存大小
+     * @param reverse      是否反转
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow,
+                                                         String rowPrefix, String familyName,
+                                                         List<String> qualifiers, String filterStr,
+                                                         Long timestamp, Integer batchSize, Integer scanBatching,
+                                                         boolean reverse, Integer limit);
+
+
+    /**
      * 获取所有表名
      *
      * @return 所有表名

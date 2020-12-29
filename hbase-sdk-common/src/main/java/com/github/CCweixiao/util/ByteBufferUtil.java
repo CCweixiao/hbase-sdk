@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.util.Arrays;
 
 import static com.github.CCweixiao.util.HBaseThriftProtocol.CHAR_SET;
 
@@ -31,12 +32,25 @@ public class ByteBufferUtil {
         }
     }
 
-    public static ByteBuffer getByteBufferFromString(String str){
-        if(str == null){
+    public static ByteBuffer getByteBufferFromString(String str) {
+        if (str == null) {
             str = "";
         }
         return ByteBuffer.wrap(str.getBytes());
     }
 
+    public static String bytesIncrement(String str) {
+        if (StrUtil.isBlank(str)) {
+            return "";
+        }
+        final char[] chars = str.toCharArray();
+        for (int i = chars.length - 1; i < chars.length; i++) {
+            if (chars[i] != 0xff) {
+                chars[i] += 1;
+                return String.valueOf(chars);
+            }
+        }
+        return "";
+    }
 
 }

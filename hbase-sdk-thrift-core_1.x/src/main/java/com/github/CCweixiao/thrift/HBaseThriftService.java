@@ -188,6 +188,20 @@ public class HBaseThriftService implements HBaseThriftOperations {
     }
 
     @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findToMapList(tableName, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow, String rowPrefix, String familyName, List<String> qualifiers, String filterStr, Long timestamp, Integer batchSize, Integer scanBatching, boolean reverse, Integer limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findToMapList(tableName, startRow, stopRow, rowPrefix, familyName, qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, limit);
+        }
+    }
+
+    @Override
     public List<String> getTableNames() {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.getTableNames();

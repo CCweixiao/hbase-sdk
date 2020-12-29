@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -394,6 +395,150 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
             deleteBatch(tableName, rowKeys, familyName, Arrays.asList(qualifiers));
         } else {
             deleteBatch(tableName, rowKeys, familyName, new ArrayList<>());
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit) {
+        return findToMapList(tableName, null, null, null, null, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow,
+                                                                String rowPrefix, String familyName,
+                                                                List<String> qualifiers, String filterStr,
+                                                                Long timestamp, Integer batchSize,
+                                                                Integer scanBatching, boolean reverse, Integer limit) {
+        Map<String, String> attributes = new HashMap<>();
+
+        int scannerId = scannerOpen(tableName, startRow, stopRow, rowPrefix, familyName,
+                qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, attributes);
+        LOG.debug("Opened scanner (id={}) on '{}'", scannerId, tableName);
+        if (limit != null && limit < 0) {
+            throw new HBaseThriftException("'limit' must be >= 0");
+        }
+
+        AtomicInteger nReturned = new AtomicInteger();
+        int nFetched = 0;
+        int howMany;
+        List<Map<String, Map<String, String>>> results = new ArrayList<>();
+
+        try {
+            while (true) {
+                if (null == limit) {
+                    howMany = batchSize;
+                } else {
+                    howMany = Math.min(batchSize, limit - nReturned.get());
+                }
+                final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
+
+                if (items != null && !items.isEmpty()) {
+                    nFetched += items.size();
+                    items.forEach(scannerResult -> {
+                        Map<String, Map<String, String>> data = new HashMap<>();
+                        Map<String, String> tmpValue = new HashMap<>();
+                        scannerResult.columns.forEach((colName, value) -> {
+                            tmpValue.put(ByteBufferUtil.byteBufferToString(colName),
+                                    ByteBufferUtil.byteBufferToString(value.value));
+                        });
+                        data.put(ByteBufferUtil.byteBufferToString(scannerResult.row), tmpValue);
+                        results.add(data);
+                        nReturned.addAndGet(1);
+                        if (limit != null && nReturned.get() == limit) {
+                            return;
+                        }
+                    });
+                } else {
+                    break;
+                }
+            }
+        } catch (TException e) {
+            throw new HBaseThriftException(e);
+        } finally {
+            try {
+                hbaseClient.scannerClose(scannerId);
+                LOG.debug("Closed scanner (id={}) on '{}' ({} returned, {} fetched)", scannerId, tableName, nReturned, nFetched);
+            } catch (TException e) {
+                LOG.error("close scanner id failed. ", e);
+            }
+        }
+        return results;
+    }
+
+    private int scannerOpen(String tableName, String startRow, String stopRow,
+                            String rowPrefix, String familyName,
+                            List<String> qualifiers, String filterStr,
+                            Long timestamp, Integer batchSize, Integer scanBatching,
+                            boolean reverse, Map<String, String> attributes) {
+        if (StrUtil.isBlank(tableName)) {
+            throw new HBaseThriftException("table name is not empty.");
+        }
+
+        if (batchSize != null && batchSize < 1) {
+            throw new HBaseThriftException("'batchSize' must be >= 1");
+        }
+
+        if (scanBatching != null && scanBatching < 1) {
+            throw new HBaseThriftException("'scanBatching' must be >= 1");
+        }
+
+        if (StrUtil.isNotBlank(rowPrefix)) {
+            if (StrUtil.isNotBlank(startRow) || StrUtil.isNotBlank(stopRow)) {
+                throw new HBaseThriftException("'rowPrefix' cannot be combined with 'startRow' or 'stopRow'");
+            }
+
+            if (reverse) {
+                startRow = ByteBufferUtil.bytesIncrement(rowPrefix);
+                stopRow = rowPrefix;
+            } else {
+                startRow = rowPrefix;
+                stopRow = ByteBufferUtil.bytesIncrement(rowPrefix);
+            }
+        }
+
+        TScan scan = new TScan();
+        if (StrUtil.isNotBlank(startRow)) {
+            scan.setStartRow(ByteBufferUtil.getByteBufferFromString(startRow));
+        }
+        if (StrUtil.isNotBlank(stopRow)) {
+            scan.setStopRow(ByteBufferUtil.getByteBufferFromString(stopRow));
+        }
+
+        if (StrUtil.isNotBlank(familyName)) {
+            if (qualifiers != null && !qualifiers.isEmpty()) {
+                final List<ByteBuffer> columns = qualifiers.stream()
+                        .filter(StrUtil::isNotBlank)
+                        .map(qualifier -> ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier))
+                        .collect(Collectors.toList());
+                scan.setColumns(columns);
+            } else {
+                scan.setColumns(Collections.singletonList(ByteBufferUtil.getByteBufferFromString(familyName)));
+            }
+        }
+
+        if (timestamp != null && timestamp > 0) {
+            scan.setTimestamp(timestamp);
+        }
+
+        if (StrUtil.isNotBlank(filterStr)) {
+            scan.setFilterString(ByteBufferUtil.getByteBufferFromString(filterStr));
+        }
+
+        if (batchSize != null) {
+            scan.setCaching(batchSize);
+        }
+
+        if (scanBatching != null) {
+            scan.setBatchSize(scanBatching);
+        }
+
+        ByteBuffer tableNameByte = ByteBufferUtil.getByteBufferFromString(tableName);
+        try {
+            return hbaseClient.scannerOpenWithScan(tableNameByte, scan, getAttributesMap(attributes));
+        } catch (TException e) {
+            throw new HBaseThriftException(e);
         }
     }
 

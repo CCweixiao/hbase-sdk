@@ -155,6 +155,16 @@ public class HBaseThrift implements Closeable, HBaseThriftOperations {
     }
 
     @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit) {
+       return hBaseThriftClient.findToMapList(tableName, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow, String rowPrefix, String familyName, List<String> qualifiers, String filterStr, Long timestamp, Integer batchSize, Integer scanBatching, boolean reverse, Integer limit) {
+        return hBaseThriftClient.findToMapList(tableName, startRow, stopRow, rowPrefix, familyName, qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, limit);
+    }
+
+    @Override
     public List<String> getTableNames() {
         return hBaseThriftClient.getTableNames();
     }
