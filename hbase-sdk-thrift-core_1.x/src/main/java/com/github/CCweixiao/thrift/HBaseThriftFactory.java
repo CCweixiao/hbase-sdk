@@ -27,7 +27,7 @@ public class HBaseThriftFactory implements PooledObjectFactory<HBaseThrift> {
 
 
     @Override
-    public PooledObject<HBaseThrift> makeObject() throws Exception {
+    public PooledObject<HBaseThrift> makeObject(){
         final HBaseThrift hBaseThrift = new HBaseThrift(host, port, connectionTimeout, socketTimeout);
         try {
             hBaseThrift.connect();
@@ -41,12 +41,12 @@ public class HBaseThriftFactory implements PooledObjectFactory<HBaseThrift> {
     }
 
     @Override
-    public void destroyObject(PooledObject<HBaseThrift> pooledObject) throws Exception {
+    public void destroyObject(PooledObject<HBaseThrift> pooledObject){
         final HBaseThrift hbaseThrift = pooledObject.getObject();
         if (hbaseThrift.isConnected()) {
             hbaseThrift.disconnect();
         }
-        LOG.info("hbase thrift client connection destroyed successfully.");
+        LOG.debug("hbase thrift client connection destroyed successfully.");
         System.out.println("--------------------------------------------------------------------");
 
     }
@@ -56,7 +56,7 @@ public class HBaseThriftFactory implements PooledObjectFactory<HBaseThrift> {
         final HBaseThrift hBaseThrift = pooledObject.getObject();
         try {
             boolean isValid = hBaseThrift.isConnected() && hBaseThrift.ping();
-            LOG.info("current hbase thrift client is valid or not, {}", isValid);
+            LOG.debug("current hbase thrift client is valid or not, {}", isValid);
             System.out.println("--------------------------------------------------------------------");
             return isValid;
         } catch (final Exception e) {
@@ -65,12 +65,12 @@ public class HBaseThriftFactory implements PooledObjectFactory<HBaseThrift> {
     }
 
     @Override
-    public void activateObject(PooledObject<HBaseThrift> pooledObject) throws Exception {
+    public void activateObject(PooledObject<HBaseThrift> pooledObject) {
 
     }
 
     @Override
-    public void passivateObject(PooledObject<HBaseThrift> pooledObject) throws Exception {
+    public void passivateObject(PooledObject<HBaseThrift> pooledObject) {
 
     }
 }

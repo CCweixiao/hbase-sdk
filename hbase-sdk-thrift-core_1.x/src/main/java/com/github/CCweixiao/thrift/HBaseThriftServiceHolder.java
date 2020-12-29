@@ -6,17 +6,16 @@ package com.github.CCweixiao.thrift;
 public class HBaseThriftServiceHolder {
 
 
-    private static HBaseThriftService hBaseThriftService;
+    private volatile static HBaseThriftService hBaseThriftService;
 
     private HBaseThriftServiceHolder() {
 
     }
 
-
     public static HBaseThriftService getInstance(String host, int port) {
-        if (hBaseThriftService == null) {
+        if (null == hBaseThriftService) {
             synchronized (HBaseThriftServiceHolder.class) {
-                if (hBaseThriftService == null) {
+                if (null == hBaseThriftService) {
                     hBaseThriftService = new HBaseThriftService(host, port);
                 }
             }
@@ -25,9 +24,9 @@ public class HBaseThriftServiceHolder {
     }
 
     public static HBaseThriftService getInstance(String host, int port, int poolSize) {
-        if (hBaseThriftService == null) {
+        if (null == hBaseThriftService) {
             synchronized (HBaseThriftServiceHolder.class) {
-                if (hBaseThriftService == null) {
+                if (null == hBaseThriftService) {
                     hBaseThriftService = new HBaseThriftService(host, port, poolSize);
                 }
             }

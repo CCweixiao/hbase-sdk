@@ -24,11 +24,10 @@ public class DefaultHBaseThriftTSocketFactory implements HBaseThriftTSocketFacto
 
     @Override
     public TSocket createTSocket() throws HBaseThriftTSocketException {
-        TSocket socket = null;
+        TSocket socket = new TSocket(getHost(), getPort());
+        socket.setConnectTimeout(getConnectionTimeout());
 
         try {
-            socket = new TSocket(getHost(), getPort());
-            socket.setConnectTimeout(getConnectionTimeout());
             socket.open();
             socket.setSocketTimeout(getSocketTimeout());
             return socket;
