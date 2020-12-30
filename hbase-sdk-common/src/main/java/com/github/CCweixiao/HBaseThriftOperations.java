@@ -253,7 +253,130 @@ public interface HBaseThriftOperations {
      * @param limit     限制的返回行数
      * @return 查询结果
      */
-    List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit);
+    List<Map<String, Map<String, String>>> findAllRowToMapList(String tableName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param familyName   列簇名
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithFamilyToMapList(String tableName, String familyName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param familyName   列簇名
+     * @param qualifiers   字段名列表
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithFamilyAndQualifiersToMapList(String tableName, String familyName, List<String> qualifiers, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartRowToMapList(String tableName, String startRow, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param familyName   列簇名
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyToMapList(String tableName, String startRow, String familyName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param familyName   列簇名
+     * @param qualifiers   字段名列表
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String familyName, List<String> qualifiers, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param stopRow      结束rowKey
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowToMapList(String tableName, String startRow, String stopRow, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param stopRow      结束rowKey
+     * @param familyName   列簇名
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyToMapList(String tableName, String startRow, String stopRow, String familyName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param startRow     开始rowKey
+     * @param stopRow      结束rowKey
+     * @param familyName   列簇名
+     * @param qualifiers   字段名列表
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String stopRow, String familyName, List<String> qualifiers, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param rowPrefix    rowKey前缀
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithPrefixToMapList(String tableName, String rowPrefix, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param rowPrefix    rowKey前缀
+     * @param familyName   列簇名
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyToMapList(String tableName, String rowPrefix, String familyName, int limit);
+
+    /**
+     * scan 查询
+     *
+     * @param tableName    表名
+     * @param rowPrefix    rowKey前缀
+     * @param familyName   列簇名
+     * @param qualifiers   字段名列表
+     * @param limit        limit条数
+     * @return 查询结果
+     */
+    List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyAndQualifiersToMapList(String tableName, String rowPrefix, String familyName, List<String> qualifiers, int limit);
 
     /**
      * scan 查询
@@ -272,7 +395,7 @@ public interface HBaseThriftOperations {
      * @param limit        limit条数
      * @return 查询结果
      */
-    List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow,
+    List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow,
                                                          String rowPrefix, String familyName,
                                                          List<String> qualifiers, String filterStr,
                                                          Long timestamp, Integer batchSize, Integer scanBatching,

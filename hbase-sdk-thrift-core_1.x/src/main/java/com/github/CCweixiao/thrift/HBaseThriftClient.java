@@ -399,18 +399,95 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit) {
-        return findToMapList(tableName, null, null, null, null, new ArrayList<>(),
+    public List<Map<String, Map<String, String>>> findAllRowToMapList(String tableName, int limit) {
+        return scan(tableName, null, null, null, null, new ArrayList<>(),
                 null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
                 HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow,
-                                                                String rowPrefix, String familyName,
-                                                                List<String> qualifiers, String filterStr,
-                                                                Long timestamp, Integer batchSize,
-                                                                Integer scanBatching, boolean reverse, Integer limit) {
+    public List<Map<String, Map<String, String>>> findAllRowWithFamilyToMapList(String tableName, String familyName, int limit) {
+        return scan(tableName, null, null, null, familyName, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithFamilyAndQualifiersToMapList(String tableName, String familyName, List<String> qualifiers, int limit) {
+        return scan(tableName, null, null, null, familyName, qualifiers,
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowToMapList(String tableName, String startRow, int limit) {
+        return scan(tableName, startRow, null, null, null, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyToMapList(String tableName, String startRow, String familyName, int limit) {
+        return scan(tableName, startRow, null, null, familyName, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String familyName, List<String> qualifiers, int limit) {
+        return scan(tableName, startRow, null, null, familyName, qualifiers,
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowToMapList(String tableName, String startRow, String stopRow, int limit) {
+        return scan(tableName, startRow, stopRow, null, null, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyToMapList(String tableName, String startRow, String stopRow, String familyName, int limit) {
+        return scan(tableName, startRow, stopRow, null, familyName, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String stopRow, String familyName, List<String> qualifiers, int limit) {
+        return scan(tableName, startRow, stopRow, null, familyName, qualifiers,
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixToMapList(String tableName, String rowPrefix, int limit) {
+        return scan(tableName, null, null, rowPrefix, null, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyToMapList(String tableName, String rowPrefix, String familyName, int limit) {
+        return scan(tableName, null, null, rowPrefix, familyName, new ArrayList<>(),
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyAndQualifiersToMapList(String tableName, String rowPrefix, String familyName, List<String> qualifiers, int limit) {
+        return scan(tableName, null, null, rowPrefix, familyName, qualifiers,
+                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
+                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow,
+                                                       String rowPrefix, String familyName,
+                                                       List<String> qualifiers, String filterStr,
+                                                       Long timestamp, Integer batchSize,
+                                                       Integer scanBatching, boolean reverse, Integer limit) {
         Map<String, String> attributes = new HashMap<>();
 
         int scannerId = scannerOpen(tableName, startRow, stopRow, rowPrefix, familyName,
@@ -433,23 +510,19 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
                     howMany = Math.min(batchSize, limit - nReturned.get());
                 }
                 final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
-
                 if (items != null && !items.isEmpty()) {
                     nFetched += items.size();
                     items.forEach(scannerResult -> {
                         Map<String, Map<String, String>> data = new HashMap<>();
                         Map<String, String> tmpValue = new HashMap<>();
-                        scannerResult.columns.forEach((colName, value) -> {
-                            tmpValue.put(ByteBufferUtil.byteBufferToString(colName),
-                                    ByteBufferUtil.byteBufferToString(value.value));
-                        });
+                        scannerResult.columns.forEach((colName, value) -> tmpValue.put(ByteBufferUtil.byteBufferToString(colName), ByteBufferUtil.byteBufferToString(value.value)));
                         data.put(ByteBufferUtil.byteBufferToString(scannerResult.row), tmpValue);
                         results.add(data);
                         nReturned.addAndGet(1);
-                        if (limit != null && nReturned.get() == limit) {
-                            return;
-                        }
                     });
+                    if (limit != null && nReturned.get() == limit) {
+                        break;
+                    }
                 } else {
                     break;
                 }
@@ -533,6 +606,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThr
         if (scanBatching != null) {
             scan.setBatchSize(scanBatching);
         }
+
+        scan.setReversed(reverse);
 
         ByteBuffer tableNameByte = ByteBufferUtil.getByteBufferFromString(tableName);
         try {

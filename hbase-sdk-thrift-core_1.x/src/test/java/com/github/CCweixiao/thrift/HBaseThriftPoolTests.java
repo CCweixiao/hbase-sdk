@@ -175,7 +175,7 @@ public class HBaseThriftPoolTests {
     @Test
     public void testScan(){
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        System.out.println(hBaseThrift.findToMapList("LEO_USER", 1));
+        System.out.println(hBaseThrift.findAllRowToMapList("LEO_USER", 1));
     }
 
 }

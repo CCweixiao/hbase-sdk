@@ -25,6 +25,10 @@ public class HBaseThriftService implements HBaseThriftOperations {
         pool = new HBaseThriftPool(config, host, port);
     }
 
+    public HBaseThriftService(String host, int port, HBaseThriftPoolConfig config){
+        pool = new HBaseThriftPool(config, host, port);
+    }
+
 
     @Override
     public void save(String tableName, String rowKey, Map<String, String> data) {
@@ -188,16 +192,94 @@ public class HBaseThriftService implements HBaseThriftOperations {
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> findToMapList(String tableName, int limit) {
+    public List<Map<String, Map<String, String>>> findAllRowToMapList(String tableName, int limit) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.findToMapList(tableName, limit);
+            return hBaseThrift.findAllRowToMapList(tableName, limit);
         }
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> findToMapList(String tableName, String startRow, String stopRow, String rowPrefix, String familyName, List<String> qualifiers, String filterStr, Long timestamp, Integer batchSize, Integer scanBatching, boolean reverse, Integer limit) {
+    public List<Map<String, Map<String, String>>> findAllRowWithFamilyToMapList(String tableName, String familyName, int limit) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.findToMapList(tableName, startRow, stopRow, rowPrefix, familyName, qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, limit);
+            return hBaseThrift.findAllRowWithFamilyToMapList(tableName, familyName, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithFamilyAndQualifiersToMapList(String tableName, String familyName, List<String> qualifiers, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithFamilyAndQualifiersToMapList(tableName, familyName, qualifiers, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowToMapList(String tableName, String startRow, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartRowToMapList(tableName, startRow, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyToMapList(String tableName, String startRow, String familyName, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartRowAndFamilyToMapList(tableName, startRow, familyName, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String familyName, List<String> qualifiers, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartRowAndFamilyAndQualifiersToMapList(tableName, startRow, familyName, qualifiers, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowToMapList(String tableName, String startRow, String stopRow, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartAndStopRowToMapList(tableName, startRow, stopRow, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyToMapList(String tableName, String startRow, String stopRow, String familyName, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartAndStopRowAndFamilyToMapList(tableName, startRow, stopRow, familyName, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String stopRow, String familyName, List<String> qualifiers, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithStartAndStopRowAndFamilyAndQualifiersToMapList(tableName, startRow, stopRow, familyName, qualifiers, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixToMapList(String tableName, String rowPrefix, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithPrefixToMapList(tableName, rowPrefix, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyToMapList(String tableName, String rowPrefix, String familyName, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithPrefixAndFamilyToMapList(tableName, rowPrefix, familyName, limit);
+        }
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyAndQualifiersToMapList(String tableName, String rowPrefix, String familyName, List<String> qualifiers, int limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.findAllRowWithPrefixAndFamilyAndQualifiersToMapList(tableName, rowPrefix, familyName, qualifiers, limit);
+        }
+    }
+
+
+    @Override
+    public List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow, String rowPrefix, String familyName, List<String> qualifiers, String filterStr, Long timestamp, Integer batchSize, Integer scanBatching, boolean reverse, Integer limit) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.scan(tableName, startRow, stopRow, rowPrefix, familyName, qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, limit);
         }
     }
 

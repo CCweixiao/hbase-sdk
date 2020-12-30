@@ -9,5 +9,5 @@ public class HBaseThriftProtocol {
     public static final int DEFAULT_PORT = 9090;
     public static final int DEFAULT_TIMEOUT = 6000;
 
-    public static final int DEFAULT_SCAN_CACHING = 1000;
+    public static final int DEFAULT_SCAN_CACHING = 10;
 }
