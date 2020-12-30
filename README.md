@@ -200,7 +200,8 @@ public class UserService {
     - [**`insert`**](#insert)
     - [**`select`**](#select)
     - [**`delete`**](#delete)
-    
+- [**`HBaseThriftAPI`**](#HBaseThriftAPI) 
+    - [**`创建HBaseThriftService连接池`**](#创建HBaseThriftService连接池)
     
 ## 集群管理
 
@@ -703,6 +704,32 @@ delete * from LEO_USER where rowKey is stringkey ( 'a10002' ) ( name equal 'leo2
     }
 ```
 
+## HBaseThriftAPI
+
+HBase常用的客户端API会直接连接zookeeper，如果api使用不当，产生BUG，会造成zookeeper的连接耗尽；HBaseThriftApi不仅有跨平台特性，
+同时也会在底层避免我们直接连接zk。
+
+如果直接使用hbase thrift的api，你可能会遇到以下几种情况：
+1. 频繁创建TSocket连接，不必要的开销增加
+2. 某一时间段内可能频繁创建过多的TSocket，造成本地短连接过多
+3. 创建完一个TSocket，间隔时间过长不使用，会被服务端主动断开
+
+### 创建HBaseThriftService连接池
+
+为了解决上述问题，所以采取连接池的实现方式。HBase Thrift API 连接池的实现基于commons-pool2，类似jedis。
+
+连接池的使用也非常简单
+
+```java
+HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
+HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090, 10);
+List<String> allTableNames = hBaseThriftService.getTableNames();
+
+```
+
+更多API的使用可以参考源码中测试用例以及相关的API文档。
+
+
 ## 特别鸣谢
 
 HQL的语法设计以及antlr4的语法解析，有参考alibaba的开源项目 `simplehbase`，在此特别感谢。simplehbase感觉是一个被遗弃的项目，针对的HBase版本是0。94，
@@ -724,6 +751,10 @@ HQL的antlr4解析功能不太完善，比如，目前HQL对中文要求不太�
 - 还有更多
 
 ## 更新日志
+
+### v2.0.7 2020-12-30
+
+- HBase Thrift API上线，以及提供Thrift API 的连接池实现
 
 ### v2.0.6 2020-11-29
 
