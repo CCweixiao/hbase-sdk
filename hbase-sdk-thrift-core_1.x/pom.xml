@@ -13,7 +13,7 @@
 
     <artifactId>hbase-sdk-thrift-core_1.x</artifactId>
     <properties>
-        <hbase.thrift.version>1.4.3</hbase.thrift.version>
+        <hbase.thrift.version>1.2.0-cdh5.13.1</hbase.thrift.version>
         <commons.pool2.version>2.6.2</commons.pool2.version>
     </properties>
 

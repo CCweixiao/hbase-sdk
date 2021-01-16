@@ -9,6 +9,7 @@ import java.util.Map;
  * @author leojie 2020/9/26 11:04 上午
  */
 public interface HBaseTableOperations {
+
     /**
      * 保存数据，构造Map类型的数据参数，例如： {"INFO:NAME": "leo", "INFO:AGE": 18}
      *
@@ -421,5 +422,6 @@ public interface HBaseTableOperations {
      * @param qualifiers 多个字段名
      */
     void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers);
+
 
 }
