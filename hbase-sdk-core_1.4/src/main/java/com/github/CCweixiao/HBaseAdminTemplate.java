@@ -2,17 +2,23 @@ package com.github.CCweixiao;
 
 import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbtop.HBaseMetricOperations;
+import com.github.CCweixiao.hbtop.Record;
+import com.github.CCweixiao.hbtop.RecordFilter;
+import com.github.CCweixiao.hbtop.Summary;
+import com.github.CCweixiao.hbtop.field.Field;
+import com.github.CCweixiao.hbtop.field.FieldValue;
+import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.SnapshotDesc;
 import com.github.CCweixiao.model.TableDesc;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.StrUtil;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
@@ -29,7 +35,7 @@ import static com.github.CCweixiao.constant.HMHBaseConstant.ENABLE_REPLICATION_S
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HBaseMetricOperations {
     public HBaseAdminTemplate(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
@@ -714,4 +720,63 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
         });
     }
 
+    @Override
+    public Summary refreshSummary() {
+        return this.execute(admin -> {
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+
+            String currentTime = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis());
+
+            String version = clusterStatus.getHBaseVersion();
+            String clusterId = clusterStatus.getClusterId();
+
+            int liveServers = clusterStatus.getServersSize();
+            int deadServers = clusterStatus.getDeadServerNames().size();
+            int regionCount = clusterStatus.getRegionsCount();
+            int ritCount = clusterStatus.getRegionsInTransition().size();
+            int namespaceCount = admin.listNamespaceDescriptors().length;
+            int tableCount = admin.listTableNames().length;
+            int snapshotCount = admin.listSnapshots().size();
+
+            double averageLoad = clusterStatus.getAverageLoad();
+            long aggregateRequestPerSecond = 0;
+            for (ServerName sn : clusterStatus.getServers()) {
+                ServerLoad sl = clusterStatus.getLoad(sn);
+                aggregateRequestPerSecond += sl.getNumberOfRequests();
+            }
+            return new Summary(currentTime, version, clusterId, liveServers + deadServers,
+                    liveServers, deadServers, namespaceCount, tableCount, snapshotCount, regionCount, ritCount, averageLoad, aggregateRequestPerSecond);
+        });
+    }
+
+    @Override
+    public List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort) {
+        return this.execute(admin -> {
+            // Filter
+            List<Record> records = new ArrayList<>();
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+
+            for (Record record : currentMode.getRecords(clusterStatus)) {
+                boolean filter = false;
+                for (RecordFilter recordFilter : filters) {
+                    if (!recordFilter.execute(record)) {
+                        filter = true;
+                        break;
+                    }
+                }
+                if (!filter) {
+                    records.add(record);
+                }
+            }
+
+            // Sort
+            records.sort((recordLeft, recordRight) -> {
+                FieldValue left = recordLeft.get(currentSortField);
+                FieldValue right = recordRight.get(currentSortField);
+                return (ascendingSort ? 1 : -1) * left.compareTo(right);
+            });
+
+            return Collections.unmodifiableList(records);
+        });
+    }
 }

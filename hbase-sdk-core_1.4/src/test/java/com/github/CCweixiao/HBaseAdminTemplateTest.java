@@ -1,11 +1,17 @@
 package com.github.CCweixiao;
 
+import com.github.CCweixiao.hbtop.Record;
+import com.github.CCweixiao.hbtop.RecordFilter;
+import com.github.CCweixiao.hbtop.Summary;
+import com.github.CCweixiao.hbtop.field.Field;
+import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,6 +24,16 @@ public class HBaseAdminTemplateTest {
     private HBaseAdminTemplate hBaseTemplate;
 
     @Before
+    public void initHBaseTemplate1() {
+        Properties properties = new Properties();
+
+        properties.setProperty("hbase.zookeeper.quorum", "localhost");
+        properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
+
+        hBaseTemplate = new HBaseAdminTemplate(properties);
+    }
+
+    //@Before
     public void initHBaseTemplate() {
         Properties properties = new Properties();
         properties.setProperty("java.security.krb5.conf", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/krb5.conf");
@@ -27,8 +43,8 @@ public class HBaseAdminTemplateTest {
         properties.setProperty("keytab.file", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/hadoop.keytab");
         properties.setProperty("kerberos.principal", "hadoop@LEO.COM");
 
-        properties.setProperty("hbase.master.kerberos.principal","hbase/_HOST@LEO.COM");
-        properties.setProperty("hbase.regionserver.kerberos.principal","hbase/_HOST@LEO.COM");
+        properties.setProperty("hbase.master.kerberos.principal", "hbase/_HOST@LEO.COM");
+        properties.setProperty("hbase.regionserver.kerberos.principal", "hbase/_HOST@LEO.COM");
 
         properties.setProperty("hbase.zookeeper.quorum", "node2.bigdata.leo.com,node1.bigdata.leo.com,node3.bigdata.leo.com");
         properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
@@ -120,5 +136,18 @@ public class HBaseAdminTemplateTest {
         }
         boolean res = hBaseTemplate.deleteTable(tableName);
         System.out.println(res);
+    }
+
+    @Test
+    public void testGetSummary() {
+        final Summary summary = hBaseTemplate.refreshSummary();
+        System.out.println(summary);
+    }
+
+    @Test
+    public void testGetRecord() {
+        List<RecordFilter> recordFilters = new ArrayList<>();
+        final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
+        System.out.println(records);
     }
 }
