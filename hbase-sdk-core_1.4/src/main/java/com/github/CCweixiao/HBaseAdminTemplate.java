@@ -647,7 +647,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                 .familyName(family.getNameAsString())
                 .maxVersions(family.getMaxVersions())
                 .timeToLive(family.getTimeToLive())
-                .compressionType(family.getCompressionType().getName())
+                .compressionType(family.getCompressionType().getName().toUpperCase())
                 .replicationScope(family.getScope())
                 .build()).collect(Collectors.toList());
     }
@@ -662,7 +662,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyDesc.getFamilyName());
         columnDescriptor.setMaxVersions(familyDesc.getMaxVersions());
         columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
-        columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+        final Compression.Algorithm compression = Compression.Algorithm.valueOf(familyDesc.getCompressionType().toUpperCase());
+        columnDescriptor.setCompressionType(compression);
         return columnDescriptor;
     }
 

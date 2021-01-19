@@ -90,8 +90,11 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "LEO_NS2:USER";
-
+        String tableName = "TEST:USER3";
+        if (hBaseTemplate.tableExists(tableName)) {
+            hBaseTemplate.disableTable(tableName, false);
+            hBaseTemplate.deleteTable(tableName);
+        }
         TableDesc tableDesc = new TableDesc();
         tableDesc.setTableName(tableName);
 
@@ -111,11 +114,10 @@ public class HBaseAdminTemplateTest {
                 .timeToLive(864000)
                 .maxVersions(3).build();
 
-        tableDesc = tableDesc.addFamilyDesc(familyDesc1)
-                .addFamilyDesc(familyDesc2);
+        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
 
-        //hBaseTemplate.createTable(tableDesc, false);
+        hBaseTemplate.createTable(tableDesc);
     }
 
     @Test
@@ -149,5 +151,12 @@ public class HBaseAdminTemplateTest {
         List<RecordFilter> recordFilters = new ArrayList<>();
         final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
         System.out.println(records);
+    }
+
+    @Test
+    public void testGetFamilyCom() {
+        String tableName = "TEST:USER3";
+        final TableDesc leo_test2 = hBaseTemplate.getTableDesc(tableName);
+        System.out.println(leo_test2);
     }
 }
