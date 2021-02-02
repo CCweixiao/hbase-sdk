@@ -54,7 +54,7 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testListNamespace() {
-        List<String> namespaces = hBaseTemplate.listNamespaces();
+        List<String> namespaces = hBaseTemplate.listNamespaceNames();
         System.out.println(namespaces);
     }
 
@@ -131,11 +131,11 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void deleteTable() {
-        String tableName = "LEO_NS2:USER";
-        boolean disabled = hBaseTemplate.isTableDisabled(tableName);
+        String tableName = "leo_test";
+       /* boolean disabled = hBaseTemplate.isTableDisabled(tableName);
         if (!disabled) {
             hBaseTemplate.disableTable(tableName, false);
-        }
+        }*/
         boolean res = hBaseTemplate.deleteTable(tableName);
         System.out.println(res);
     }
@@ -158,5 +158,66 @@ public class HBaseAdminTemplateTest {
         String tableName = "TEST:USER3";
         final TableDesc leo_test2 = hBaseTemplate.getTableDesc(tableName);
         System.out.println(leo_test2);
+    }
+
+    @Test
+    public void testGetTableDesc() {
+        String tableName = "TEST:USER";
+        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
+
+        System.out.println(tableDesc);
+    }
+
+    @Test
+    public void testListTableDesc() {
+        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc(true);
+        System.out.println(tableDescList);
+    }
+
+    @Test
+    public void testReNameTable() {
+        hBaseTemplate.renameTable("TEST:USER", "TEST:USER_NEW", false);
+        hBaseTemplate.renameTable("TEST:USER3", "TEST:USER3_NEW", false);
+    }
+
+    @Test
+    public void testTruncateTable() {
+        hBaseTemplate.truncateTable("leo_test", true);
+    }
+
+    @Test
+    public void testAddFamily(){
+        FamilyDesc familyDesc = new FamilyDesc.Builder()
+                .familyName("INFO2")
+                .replicationScope(0)
+                .compressionType("NONE")
+                .timeToLive(864000)
+                .maxVersions(3).build();
+
+        hBaseTemplate.addFamily("leo_test22",familyDesc);
+    }
+
+    @Test
+    public void changeFamily(){
+        FamilyDesc familyDesc = new FamilyDesc.Builder()
+                .familyName("info")
+                .replicationScope(0)
+                .compressionType("snappy")
+                .timeToLive(864000)
+                .maxVersions(3).build();
+
+        hBaseTemplate.modifyFamily("leo_test", familyDesc);
+    }
+
+    @Test
+    public void testDeleteFamily(){
+        hBaseTemplate.deleteFamily("leo_test","INFO2");
+    }
+
+    @Test
+    public void testGetFamily(){
+        final TableDesc tableDesc = hBaseTemplate.getTableDesc("leo_test");
+        final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
+        System.out.println(tableDesc);
     }
 }

@@ -30,13 +30,6 @@ public interface HBaseAdminOperations {
     List<TableDesc> listTableDesc();
 
     /**
-     * 获取某张表所有的列簇
-     *
-     * @return 所有的列簇信息
-     */
-    List<FamilyDesc> listFamilyDesc(String tableName);
-
-    /**
      * @param includeSysTables 是否包含系统表
      * @return 所有的HBase表及其描述
      */
@@ -50,6 +43,15 @@ public interface HBaseAdminOperations {
      * @return 筛选出的HBase表及其描述
      */
     List<TableDesc> listTableDesc(String regex, boolean includeSysTables);
+
+    /**
+     * 获取某一命名空间下的所有表信息
+     *
+     * @param namespaceName 命名空间名称
+     * @return 所有表信息
+     */
+    List<TableDesc> listTableDescByNamespace(final String namespaceName);
+
 
     /**
      * 获取所有表名
@@ -76,20 +78,19 @@ public interface HBaseAdminOperations {
     List<String> listTableNames(String regex, boolean includeSysTables);
 
     /**
-     * 获取某一命名空间下的所有表信息
-     *
-     * @param namespaceName 命名空间名称
-     * @return 所有表信息
-     */
-    List<TableDesc> listTableDescByNamespace(final String namespaceName);
-
-    /**
      * 获取某一命名空间下的所有表名
      *
      * @param namespaceName 命名空间名称
      * @return 所有表名
      */
     List<String> listTableNamesByNamespace(final String namespaceName);
+
+    /**
+     * 获取某张表所有的列簇信息
+     *
+     * @return 所有的列簇信息
+     */
+    List<FamilyDesc> listFamilyDesc(String tableName);
 
     /**
      * 获取某一张表的描述信息
@@ -106,7 +107,6 @@ public interface HBaseAdminOperations {
      * @return 表是否被创建成功
      */
     boolean createTable(final TableDesc tableDesc);
-
 
     /**
      * 创建表，预分区
@@ -144,10 +144,10 @@ public interface HBaseAdminOperations {
     /**
      * 修改表
      *
-     * @param desc 表描述
+     * @param tableDesc 表描述
      * @return 表是否被修改成功
      */
-    boolean modifyTableProps(final TableDesc desc);
+    boolean modifyTableProps(final TableDesc tableDesc);
 
     /**
      * 修改表名
@@ -338,7 +338,7 @@ public interface HBaseAdminOperations {
      *
      * @return 所有的命名空间名称
      */
-    List<String> listNamespaces();
+    List<String> listNamespaceNames();
 
     /**
      * 获取某张表最后一次的major compact时间戳，如果是0则最新的HFile无法被找到

@@ -1,8 +1,10 @@
-spring:
-  data:
-    hbase:
-      quorum: node1,node2,node3
-      node-parent: /hbase
-      zk-client-port: 2181
-      root-dir: /hbase
-      client-properties: hbase.client.retries.number=3
+#spring:
+#  data:
+#    hbase:
+#      quorum: docker-hbase
+#      node-parent: /hbase
+#      zk-client-port: 2181
+#      root-dir: /hbase
+#      client-properties: hbase.client.retries.number=3
+server:
+  port: 8088

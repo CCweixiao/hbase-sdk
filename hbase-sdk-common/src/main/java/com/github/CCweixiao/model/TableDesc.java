@@ -1,5 +1,6 @@
 package com.github.CCweixiao.model;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.util.StrUtil;
 
@@ -21,6 +22,7 @@ public class TableDesc {
 
     private Map<String, String> tableProps;
     private List<FamilyDesc> familyDescList;
+    private long lastMajorCompactTimestamp;
 
     /**
      * 表描述信息
@@ -83,6 +85,14 @@ public class TableDesc {
         this.tableDesc = tableDesc;
     }
 
+    public long getLastMajorCompactTimestamp() {
+        return lastMajorCompactTimestamp;
+    }
+
+    public void setLastMajorCompactTimestamp(long lastMajorCompactTimestamp) {
+        this.lastMajorCompactTimestamp = lastMajorCompactTimestamp;
+    }
+
     public TableDesc addProp(final String key, String value) {
         if (tableProps == null) {
             this.tableProps = new HashMap<>();
@@ -126,6 +136,16 @@ public class TableDesc {
         return familyNames.contains(familyName);
     }
 
+    public String getFullTableName() {
+        if (StrUtil.isBlank(getNamespaceName())) {
+            this.namespaceName = HMHBaseConstant.DEFAULT_NAMESPACE_NAME;
+        }
+        if (StrUtil.isBlank(getTableName())) {
+            throw new HBaseOperationsException("The table name is not empty.");
+        }
+        return this.namespaceName.concat(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR).concat(getTableName());
+    }
+
     @Override
     public String toString() {
         return "TableDesc{" +
@@ -136,6 +156,7 @@ public class TableDesc {
                 ", tableProps=" + getTableProps() +
                 ", familyDescList=" + getFamilyDescList() +
                 ", tableDesc='" + getTableDesc() + '\'' +
+                ", lastMajorCompactTimestamp=" + getLastMajorCompactTimestamp() + '\'' +
                 '}';
     }
 }

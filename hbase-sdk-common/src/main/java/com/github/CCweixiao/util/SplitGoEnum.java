@@ -5,10 +5,17 @@ package com.github.CCweixiao.util;
  */
 public enum SplitGoEnum {
     /**
-     * 预分区策略，十六进制
+     * 预分区策略，十六进制前缀
      */
     HEX_STRING_SPLIT("HexStringSplit"),
-    DECIMAL_STRING_SPLIT("DecimalStringSplit");
+    /**
+     * 十进制前缀
+     */
+    DECIMAL_STRING_SPLIT("DecimalStringSplit"),
+    /**
+     * 随机字符串前缀
+     */
+    UNIFORM_SPLIT("UniformSplit");
 
     private final String splitGo;
 

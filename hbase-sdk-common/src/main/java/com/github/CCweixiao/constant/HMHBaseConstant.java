@@ -18,6 +18,7 @@ public class HMHBaseConstant {
 
     public static final Integer DISABLE_REPLICATION_SCOPE = 0;
     public static final Integer ENABLE_REPLICATION_SCOPE = 1;
+    public static final String KERBEROS_AUTH = "kerberos";
 
 
     public static String getFullTableName(String tableName) {
@@ -27,7 +28,7 @@ public class HMHBaseConstant {
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;
         } else {
-            return DEFAULT_NAMESPACE_NAME + TABLE_NAME_SPLIT_CHAR + tableName;
+            return DEFAULT_NAMESPACE_NAME.concat(TABLE_NAME_SPLIT_CHAR).concat(tableName);
         }
     }
 

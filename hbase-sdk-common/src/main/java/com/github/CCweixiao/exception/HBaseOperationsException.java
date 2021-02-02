@@ -26,8 +26,6 @@ public class HBaseOperationsException extends RuntimeException {
 
     @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append("HBaseSdkException >>>>>>>>>>>>>>>>>  ").append(super.toString());
-        return buffer.toString();
+        return super.toString();
     }
 }

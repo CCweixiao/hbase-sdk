@@ -1,5 +1,9 @@
 package com.github.CCweixiao.model;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
+import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.util.StrUtil;
+
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
@@ -31,17 +35,27 @@ public class FamilyDesc {
         }
 
         public Builder maxVersions(Integer maxVersions) {
+            if (maxVersions <= 0) {
+                throw new HBaseOperationsException("最大版本号必须大于0");
+            }
             this.maxVersions = maxVersions;
             return this;
         }
 
         public Builder timeToLive(Integer timeToLive) {
+            if (timeToLive <= 0) {
+                throw new HBaseOperationsException("ttl必须大于0");
+            }
             this.timeToLive = timeToLive;
             return this;
         }
 
         public Builder compressionType(String compressionType) {
-            this.compressionType = compressionType;
+            if(StrUtil.isBlank(compressionType)){
+                this.compressionType = HMHBaseConstant.DEFAULT_COMPRESSION_TYPE;
+            }else{
+                this.compressionType = compressionType;
+            }
             return this;
         }
 
@@ -68,7 +82,11 @@ public class FamilyDesc {
     }
 
     public String getCompressionType() {
-        return compressionType;
+        if(StrUtil.isBlank(compressionType)){
+            return HMHBaseConstant.DEFAULT_COMPRESSION_TYPE;
+        }else{
+            return compressionType.toUpperCase();
+        }
     }
 
     public Integer getReplicationScope() {

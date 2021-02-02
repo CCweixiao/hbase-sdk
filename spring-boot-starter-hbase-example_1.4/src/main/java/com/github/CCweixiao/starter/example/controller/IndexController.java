@@ -1,14 +1,9 @@
 package com.github.CCweixiao.starter.example.controller;
 
 
-import com.github.CCweixiao.starter.example.pojo.UserPojo;
-import com.github.CCweixiao.starter.example.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * <p>测试的一个controller</p>
@@ -17,7 +12,7 @@ import java.util.Map;
  */
 @RestController
 public class IndexController {
-    @Autowired
+    /*@Autowired
     private UserService userService;
 
     @GetMapping("/getUser")
@@ -28,6 +23,13 @@ public class IndexController {
     @GetMapping("/getUser2")
     public List<Map<String, Object>> getUser2(){
         return userService.getDataWithMapper();
+    }*/
+
+    @GetMapping("/getUser")
+    public String getUser(@RequestParam(defaultValue = "", name = "token") String token) {
+        System.out.println(token);
+        //https://web-sso-sandbox.intsig.net/login?platform_id=jFfGyeOvKBp66iJCSt3xTv7MoSZOLwzT&redirect=http%3A%2F%2Flocalhost%3A8088/getUser
+        return "leo jie " + System.currentTimeMillis();
     }
 
 }
