@@ -1,5 +1,7 @@
 package com.github.CCweixiao;
 
+import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -15,12 +17,12 @@ public class HBaseAdminTemplateTest {
 
     @Before
     public void initHBaseTemplate() {
-        hBaseTemplate = new HBaseAdminTemplate("node1", "2181");
+        hBaseTemplate = new HBaseAdminTemplate("localhost", "2181");
     }
 
     @Test
     public void testListNamespace() {
-        List<String> namespaces = hBaseTemplate.listNamespaces();
+        List<String> namespaces = hBaseTemplate.listNamespaceNames();
 
         System.out.println(namespaces);
     }
@@ -28,6 +30,41 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testCreateNamespace() {
 
+    }
+
+    @Test
+    public void testListTableDesc(){
+        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc();
+        System.out.println(tableDescList);
+    }
+
+    @Test
+    public void testCreateTable() {
+        String tableName = "USER5";
+        TableDesc tableDesc = new TableDesc();
+        tableDesc.setNamespaceName("");
+        tableDesc.setTableName(tableName);
+
+        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
+
+        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
+                .familyName("INFO")
+                .replicationScope(1)
+                .compressionType("NONE")
+                .timeToLive(2147483647)
+                .maxVersions(3).build();
+
+        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
+                .familyName("INFO2")
+                .replicationScope(0)
+                .compressionType("NONE")
+                .timeToLive(864000)
+                .maxVersions(3).build();
+
+        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
+
+
+        hBaseTemplate.createTable(tableDesc);
     }
 
 

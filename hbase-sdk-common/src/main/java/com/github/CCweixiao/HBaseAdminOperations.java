@@ -52,7 +52,6 @@ public interface HBaseAdminOperations {
      */
     List<TableDesc> listTableDescByNamespace(final String namespaceName);
 
-
     /**
      * 获取所有表名
      *

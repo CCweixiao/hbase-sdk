@@ -13,9 +13,9 @@ import java.io.IOException;
  */
 public interface HBaseOperations {
     /**
-     * 获取HBase的连接对象
+     * 获取HBase的客户端连接对象
      *
-     * @return 获取HBase连接
+     * @return 获取HBase连接对象
      */
     Connection getConnection();
 
@@ -24,7 +24,7 @@ public interface HBaseOperations {
      *
      * @param action 管理员类型的操作
      * @param <T>    泛型类型
-     * @return 结果
+     * @return 操作结果
      */
     default <T> T execute(AdminCallback<T> action) {
         Admin admin = null;
@@ -45,7 +45,7 @@ public interface HBaseOperations {
     }
 
     /**
-     * 处理数据读写类型的操作
+     * 处理HBase表数据读写相关的操作
      *
      * @param tableName 表名
      * @param action    表级别的读写操作回调

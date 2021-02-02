@@ -1,6 +1,7 @@
 package com.github.CCweixiao;
 
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.util.StrUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
@@ -14,20 +15,32 @@ import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import static com.github.CCweixiao.constant.HMHBaseConstant.KERBEROS_AUTH;
+
 /**
  * @author leojie 2020/11/13 11:52 下午
  */
 public abstract class AbstractHBaseConfig implements HBaseOperations {
-   private static final Logger LOGGER = LoggerFactory.getLogger(HBaseOperations.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHBaseConfig.class);
     private Configuration configuration;
 
     private volatile Connection connection;
 
     public AbstractHBaseConfig(Configuration configuration) {
-        if (configuration == null) {
+        String auth = configuration.get("hbase.security.authentication", null);
+
+        if (StrUtil.isBlank(auth)) {
+            this.configuration = configuration;
+        } else {
+            if (KERBEROS_AUTH.equalsIgnoreCase(auth)) {
+                this.configuration = KerberosAuthorization.INSTANCE.getInstance(configuration);
+            } else {
+                throw new HBaseOperationsException("this type of authentication " + auth + " is not supported.");
+            }
+        }
+        if (this.configuration == null) {
             throw new HBaseOperationsException("a valid configuration is provided.");
         }
-        this.configuration = configuration;
     }
 
     public AbstractHBaseConfig(String zkHost, String zkPort) {
@@ -39,7 +52,17 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
     }
 
     public AbstractHBaseConfig(Properties properties) {
-        Configuration configuration = getConfiguration(properties);
+        String auth = properties.getProperty("hbase.security.authentication", null);
+        Configuration configuration;
+        if (StrUtil.isBlank(auth)) {
+            configuration = getConfiguration(properties);
+        } else {
+            if (KERBEROS_AUTH.equalsIgnoreCase(auth)) {
+                configuration = KerberosAuthorization.INSTANCE.getInstance(properties);
+            } else {
+                throw new HBaseOperationsException("this type of authentication " + auth + " is not supported.");
+            }
+        }
         if (configuration == null) {
             throw new HBaseOperationsException("a valid configuration is provided.");
         }
@@ -57,7 +80,7 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
                         LOGGER.info("the connection pool of HBase is created successfully.>>>>>>>>>>>>>>>>>>");
                     } catch (IOException e) {
                         LOGGER.error("the connection pool of HBase is created failed.>>>>>>>>>>>>>>>>>");
-                        LOGGER.error(e.getMessage());
+                        throw new HBaseOperationsException(e);
                     }
                 }
             }
@@ -76,6 +99,7 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
     public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
+
 
     public Configuration getConfiguration(String zkHost, String zkPort) {
         this.configuration = HBaseConfiguration.create();

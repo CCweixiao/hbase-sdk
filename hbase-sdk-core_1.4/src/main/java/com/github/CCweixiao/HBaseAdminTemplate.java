@@ -1,6 +1,5 @@
 package com.github.CCweixiao;
 
-import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbtop.HBaseMetricOperations;
 import com.github.CCweixiao.hbtop.Record;
@@ -19,7 +18,6 @@ import com.github.CCweixiao.util.StrUtil;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -431,8 +429,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                 change = true;
             }
             if (!columnDescriptor.getCompressionType().getName().equalsIgnoreCase(familyDesc.getCompressionType())) {
-                final Compression.Algorithm compressionType = Compression.Algorithm.valueOf(familyDesc.getCompressionType());
-                columnDescriptor.setCompressionType(compressionType);
+                columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
                 change = true;
             }
             if (columnDescriptor.getScope() != familyDesc.getReplicationScope()) {
@@ -516,7 +513,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         return this.execute(admin -> {
             final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
             if (tableDescriptors != null && tableDescriptors.length > 0) {
-                throw new HBaseOperationsException("命名空间" + namespaceName + "下存在表，不能被删除");
+                throw new HBaseOperationsException("命名空间[" + namespaceName + "]下存在表，不能被删除");
             }
             admin.deleteNamespace(namespaceName);
             return true;
@@ -620,119 +617,6 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             return true;
         });
     }
-
-    /**
-     * 转换TableDesc得到HTableDescriptor
-     *
-     * @param tableDesc TableDesc
-     * @return HTableDescriptor
-     */
-    private HTableDescriptor parseTableDescToHTableDescriptor(final TableDesc tableDesc) {
-        HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableDesc.getTableName()));
-
-        final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
-
-        if (familyDescList == null || familyDescList.isEmpty()) {
-            throw new HBaseOperationsException("请为表[" + tableDesc.getTableName() + "]指定一个或多个列簇！");
-        }
-
-        final Map<String, Long> familyCountMap = familyDescList.stream().collect(Collectors.groupingBy(FamilyDesc::getFamilyName, Collectors.counting()));
-        familyCountMap.forEach((familyName, count) -> {
-            if (count > 1) {
-                throw new HBaseOperationsException("同一张表中的列簇名[" + familyName + "]应该是唯一的");
-            }
-        });
-
-        if (tableDesc.getTableProps() != null && !tableDesc.getTableProps().isEmpty()) {
-            tableDesc.getTableProps().forEach(tableDescriptor::setValue);
-        }
-
-        for (FamilyDesc familyDesc : familyDescList) {
-            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
-            tableDescriptor.addFamily(columnDescriptor);
-        }
-        return tableDescriptor;
-    }
-
-    /**
-     * HTableDescriptor批量转换为TableDesc
-     *
-     * @param tableDescriptors HTableDescriptor
-     * @return TableDesc
-     */
-    private List<TableDesc> parseHTableDescriptorsToTableDescList(HTableDescriptor[] tableDescriptors) {
-        return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToTableDesc).collect(Collectors.toList());
-    }
-
-    /**
-     * HTableDescriptor 转换为TableDesc
-     *
-     * @param tableDescriptor 表定义
-     * @return TableDesc
-     */
-    private TableDesc parseHTableDescriptorToTableDesc(HTableDescriptor tableDescriptor) {
-        TableDesc tableDesc = new TableDesc();
-        String tableName = tableDescriptor.getNameAsString();
-        tableDesc.setNamespaceName(HMHBaseConstant.getNamespaceName(tableName));
-        tableDesc.setTableName(tableName);
-        tableDesc.setDisabled(isTableDisabled(tableName));
-        tableDesc.setMetaTable(tableDescriptor.isMetaTable());
-
-        final Map<ImmutableBytesWritable, ImmutableBytesWritable> values = tableDescriptor.getValues();
-        if (values != null && !values.isEmpty()) {
-            values.forEach((key, value) -> tableDesc.addProp(Bytes.toString(key.get()), Bytes.toString(value.get())));
-        }
-        tableDesc.setTableDesc(tableDescriptor.toString());
-        tableDesc.setFamilyDescList(parseFamilyDescriptorToFamilyDescList(tableDescriptor.getFamilies()));
-        return tableDesc;
-    }
-
-    /**
-     * HColumnDescriptor列表转换为FamilyDesc列表
-     *
-     * @param families HColumnDescriptor 列表
-     * @return FamilyDesc列表
-     */
-    public List<FamilyDesc> parseFamilyDescriptorToFamilyDescList(Collection<HColumnDescriptor> families) {
-        return families.stream().map(family -> new FamilyDesc.Builder()
-                .familyName(family.getNameAsString())
-                .maxVersions(family.getMaxVersions())
-                .timeToLive(family.getTimeToLive())
-                .compressionType(family.getCompressionType().getName().toUpperCase())
-                .replicationScope(family.getScope())
-                .build()).collect(Collectors.toList());
-    }
-
-    /**
-     * FamilyDesc -> HColumnDescriptor
-     *
-     * @param familyDesc 自定义列簇描述
-     * @return HColumnDescriptor
-     */
-    private HColumnDescriptor parseFamilyDescToHColumnDescriptor(FamilyDesc familyDesc) {
-        HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyDesc.getFamilyName());
-        columnDescriptor.setMaxVersions(familyDesc.getMaxVersions());
-        columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
-        final Compression.Algorithm compression = Compression.Algorithm.valueOf(familyDesc.getCompressionType().toUpperCase());
-        columnDescriptor.setCompressionType(compression);
-        return columnDescriptor;
-    }
-
-
-    private void tableIsNotExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-        if (!tableExists(fullTableName)) {
-            throw new HBaseOperationsException("表[" + tableName + "]不存在！");
-        }
-    }
-
-    private void tableIsExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-        if (tableExists(fullTableName)) {
-            throw new HBaseOperationsException("表[" + tableName + "]已经存在！");
-        }
-    }
-
 
     /**
      * 修改表和列簇的REPLICATION_SCOPE属性
