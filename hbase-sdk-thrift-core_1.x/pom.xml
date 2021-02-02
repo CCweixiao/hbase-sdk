@@ -12,27 +12,26 @@
     <packaging>jar</packaging>
 
     <artifactId>hbase-sdk-thrift-core_1.x</artifactId>
-    <properties>
-        <hbase.thrift.version>1.2.0-cdh5.13.1</hbase.thrift.version>
-        <commons.pool2.version>2.6.2</commons.pool2.version>
-    </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-common</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-thrift</artifactId>
-            <version>${hbase.thrift.version}</version>
+            <version>${hbase.thrift.1.4.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
             <version>${commons.pool2.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>
