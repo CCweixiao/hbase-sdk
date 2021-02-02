@@ -1,7 +1,7 @@
 package com.github.CCweixiao;
 
-import com.github.CCweixiao.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hql.HBaseSQLExtendContextUtil;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.client.HBaseCellResult;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;

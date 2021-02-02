@@ -1,9 +1,9 @@
 package com.github.CCwexiao.dsl.hql;
 
+import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.hql.config.DefaultHBaseSQLRuntimeSetting;
 import com.github.CCweixiao.hql.config.DefaultHBaseTableConfig;
-import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.dsl.client.RowKey;
