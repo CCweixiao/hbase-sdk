@@ -220,4 +220,11 @@ public class HBaseAdminTemplateTest {
         final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
         System.out.println(tableDesc);
     }
+
+    @Test
+    public void testTableIsExists(){
+        hBaseTemplate.tableIsNotExistsError("TEST:USER");
+    }
+
+
 }

@@ -140,16 +140,19 @@ public class TableDesc {
         if (StrUtil.isBlank(getTableName())) {
             throw new HBaseOperationsException("The table name is not empty.");
         }
-
-        if (StrUtil.isBlank(getNamespaceName())) {
-            this.namespaceName = HMHBaseConstant.DEFAULT_NAMESPACE_NAME;
+        if (StrUtil.isNotBlank(getNamespaceName())) {
+            if (!getTableName().contains(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR)) {
+                return getNamespaceName().concat(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR).concat(getTableName());
+            } else {
+                return getTableName();
+            }
         } else {
-            if (getTableName().contains(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR)) {
-                throw new HBaseOperationsException("namespace name is [" + getNamespaceName() + "] and table name is [" + getTableName() + "]");
+            if (!getTableName().contains(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR)) {
+                return HMHBaseConstant.DEFAULT_NAMESPACE_NAME.concat(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR).concat(getTableName());
+            } else {
+                return getTableName();
             }
         }
-
-        return this.namespaceName.concat(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR).concat(getTableName());
     }
 
     @Override
