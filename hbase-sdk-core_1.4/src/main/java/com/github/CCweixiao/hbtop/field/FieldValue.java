@@ -31,7 +31,7 @@ public final class FieldValue implements Comparable<FieldValue> {
   private final Object value;
   private final FieldValueType type;
 
-  FieldValue(Object value, FieldValueType type) {
+  public FieldValue(Object value, FieldValueType type) {
     Objects.requireNonNull(value);
     this.type = Objects.requireNonNull(type);
 

@@ -2,6 +2,13 @@ package com.github.CCweixiao;
 
 import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbtop.HBaseMetricOperations;
+import com.github.CCweixiao.hbtop.Record;
+import com.github.CCweixiao.hbtop.RecordFilter;
+import com.github.CCweixiao.hbtop.Summary;
+import com.github.CCweixiao.hbtop.field.Field;
+import com.github.CCweixiao.hbtop.field.FieldValue;
+import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.SnapshotDesc;
@@ -9,9 +16,9 @@ import com.github.CCweixiao.model.TableDesc;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.SplitKeyUtil;
 import com.github.CCweixiao.util.StrUtil;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.NamespaceDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -24,7 +31,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
-public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
+public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HBaseMetricOperations {
     public HBaseAdminTemplate(Configuration configuration) {
         super(configuration);
     }
@@ -639,6 +646,53 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate {
                 }
             }
             return true;
+        });
+    }
+
+    @Override
+    public Summary refreshSummary() {
+        return this.execute(admin -> {
+            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
+
+            String currentTime = FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss").format(System.currentTimeMillis());
+
+            String version = clusterMetrics.getHBaseVersion();
+            String clusterId = clusterMetrics.getClusterId();
+
+            int liveServers = clusterMetrics.getLiveServerMetrics().size();
+            int deadServers = clusterMetrics.getDeadServerNames().size();
+            int regionCount = clusterMetrics.getRegionCount();
+            int ritCount = clusterMetrics.getRegionStatesInTransition().size();
+            int namespaceCount = admin.listNamespaceDescriptors().length;
+            int tableCount = admin.listTableNames().length;
+            int snapshotCount = admin.listSnapshots().size();
+
+            double averageLoad = clusterMetrics.getAverageLoad();
+
+            long aggregateRequestPerSecond = clusterMetrics.getLiveServerMetrics().values().stream()
+                    .mapToLong(ServerMetrics::getRequestCountPerSecond).sum();
+
+            return new Summary(currentTime, version, clusterId, liveServers + deadServers,
+                    liveServers, deadServers, namespaceCount, tableCount, snapshotCount, regionCount, ritCount, averageLoad, aggregateRequestPerSecond);
+        });
+    }
+
+    @Override
+    public List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort) {
+        return this.execute(admin -> {
+            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
+            List<Record> records = currentMode.getRecords(clusterMetrics);
+
+            // Filter and sort
+            records = records.stream()
+                    .filter(r -> filters.stream().allMatch(f -> f.execute(r)))
+                    .sorted((recordLeft, recordRight) -> {
+                        FieldValue left = recordLeft.get(currentSortField);
+                        FieldValue right = recordRight.get(currentSortField);
+                        return (ascendingSort ? 1 : -1) * left.compareTo(right);
+                    }).collect(Collectors.toList());
+
+            return Collections.unmodifiableList(records);
         });
     }
 }
