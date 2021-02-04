@@ -12,6 +12,7 @@ import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.SnapshotDesc;
 import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.util.RegionSplitter;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.SplitKeyUtil;
 import com.github.CCweixiao.util.StrUtil;
@@ -21,7 +22,6 @@ import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.RegionSplitter;
 
 import java.util.*;
 import java.util.regex.Pattern;
