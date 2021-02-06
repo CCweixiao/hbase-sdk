@@ -47,6 +47,7 @@ public class RegionSplitter {
          * @param end last row (exclusive)
          * @param numSplits number of splits to generate
          * @param inclusive whether start and end are returned as split points
+         * @return split
          */
         byte[][] split(byte[] start, byte[] end, int numSplits, boolean inclusive);
 

@@ -118,7 +118,7 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
     }
 
     /**
-     * FamilyDesc -> HColumnDescriptor
+     * FamilyDesc HColumnDescriptor
      *
      * @param familyDesc 自定义列簇描述
      * @return HColumnDescriptor
