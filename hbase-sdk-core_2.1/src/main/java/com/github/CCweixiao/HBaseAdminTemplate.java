@@ -274,7 +274,9 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         tableIsNotExistsError(tableName);
 
         return this.execute(admin -> {
-            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(tableName));
+            final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
+            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableDescriptor);
+
             final Map<String, String> tableProps = tableDesc.getTableProps();
             if (tableProps != null && !tableProps.isEmpty()) {
                 tableProps.forEach(tableDescriptorBuilder::setValue);

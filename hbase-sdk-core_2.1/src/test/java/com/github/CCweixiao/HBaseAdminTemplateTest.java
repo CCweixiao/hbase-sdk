@@ -13,7 +13,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * HBase admin template test
@@ -48,7 +50,7 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "USER5";
+        String tableName = "USER6";
         TableDesc tableDesc = new TableDesc();
         tableDesc.setNamespaceName("");
         tableDesc.setTableName(tableName);
@@ -73,6 +75,16 @@ public class HBaseAdminTemplateTest {
 
 
         hBaseTemplate.createTable(tableDesc);
+    }
+
+    @Test
+    public void testModifyTable(){
+        TableDesc tableDesc = new TableDesc();
+        tableDesc.setTableName("USER6");
+        Map<String,String> prop = new HashMap<>();
+        prop.put("name","leo");
+        tableDesc.setTableProps(prop);
+        hBaseTemplate.modifyTableProps(tableDesc);
     }
 
     @Test
