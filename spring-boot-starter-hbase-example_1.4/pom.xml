@@ -59,6 +59,10 @@
                 <artifactId>spring-boot-starter-hbase_1.4</artifactId>
             </dependency>-->
         <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-core_1.4</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>

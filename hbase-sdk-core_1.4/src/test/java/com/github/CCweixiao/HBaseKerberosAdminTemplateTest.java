@@ -20,14 +20,23 @@ import java.util.Properties;
  *
  * @author leojie 2020/8/15 10:28 上午
  */
-public class HBaseAdminTemplateTest {
+public class HBaseKerberosAdminTemplateTest {
     private HBaseAdminTemplate hBaseTemplate;
 
     @Before
-    public void initHBaseTemplate1() {
+    public void initHBaseTemplate() {
         Properties properties = new Properties();
+        properties.setProperty("java.security.krb5.conf", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/krb5.conf");
+        properties.setProperty("hadoop.security.authentication", "kerberos");
+        properties.setProperty("hbase.security.authentication", "kerberos");
 
-        properties.setProperty("hbase.zookeeper.quorum", "localhost");
+        properties.setProperty("keytab.file", "/Users/mac/leo_project/hbase-sdk/hbase-sdk-core_1.4/src/test/resources/conf/hadoop.keytab");
+        properties.setProperty("kerberos.principal", "hadoop@LEO.COM");
+
+        properties.setProperty("hbase.master.kerberos.principal", "hbase/_HOST@LEO.COM");
+        properties.setProperty("hbase.regionserver.kerberos.principal", "hbase/_HOST@LEO.COM");
+
+        properties.setProperty("hbase.zookeeper.quorum", "node2.bigdata.leo.com,node1.bigdata.leo.com,node3.bigdata.leo.com");
         properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
 
         hBaseTemplate = new HBaseAdminTemplate(properties);
