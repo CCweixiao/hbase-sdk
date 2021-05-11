@@ -39,7 +39,7 @@ public class HBaseAdminTemplateThreadSample {
                     properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
 
                     Configuration configuration = ConfigurationFactory.getConfiguration(properties);
-                    HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate(configuration);
+                    HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate(properties);
                     int r = random.nextInt(10) + 1;
                     System.out.println(hBaseAdminTemplate.listNamespaceNames());
                     System.out.println("Thread-" + Thread.currentThread().getName() + "即将等待：" + r + "秒钟");

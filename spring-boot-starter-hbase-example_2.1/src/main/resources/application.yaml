@@ -1,7 +1,9 @@
+server:
+  port: 8099
 spring:
   data:
     hbase:
-      quorum: node1,node2,node3
+      quorum: localhost
       node-parent: /hbase
       zk-client-port: 2181
       root-dir: /hbase
