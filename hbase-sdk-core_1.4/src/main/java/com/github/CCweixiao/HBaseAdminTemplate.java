@@ -22,8 +22,11 @@ import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -34,6 +37,10 @@ import static com.github.CCweixiao.constant.HMHBaseConstant.ENABLE_REPLICATION_S
  * @author leojie 2020/9/25 11:11 下午
  */
 public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HBaseMetricOperations {
+    private static final Logger LOG = LoggerFactory.getLogger(HBaseAdminTemplate.class);
+
+    public static final Pattern REGION_COMPILE = Pattern.compile("\\.([\\w]+)\\.");
+
     public HBaseAdminTemplate(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
@@ -614,6 +621,84 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     public boolean deleteSnapshots(String regex) {
         return this.execute(admin -> {
             admin.deleteSnapshot(regex);
+            return true;
+        });
+    }
+
+    @Override
+    public boolean mergeRegions(byte[] firstRegion, byte[] secondRegion, boolean force) {
+        return this.execute(admin -> {
+            admin.mergeRegions(firstRegion, secondRegion, force);
+            return true;
+        });
+    }
+
+    @Override
+    public boolean mergeTableSmallRegions(String tableName, int limitRegionsNum, int limitRegionSize) {
+        return this.execute(admin -> {
+            final ClusterStatus clusterStatus = admin.getClusterStatus();
+            ServerName master = clusterStatus.getMaster();
+
+
+            List<String> biggerRegions = new ArrayList<>();
+            clusterStatus.getServers().forEach((serverName -> {
+                clusterStatus.getLoad(serverName).getRegionsLoad().forEach((region, regionLoad) -> {
+
+                    final String regionStrName = regionLoad.getNameAsString();
+                    if (regionStrName.startsWith(tableName)) {
+                        Matcher regionNameMatcher = REGION_COMPILE.matcher(regionStrName);
+                        String regionEncodedName = "";
+                        if (regionNameMatcher.find()) {
+                            regionEncodedName = regionNameMatcher.group(1);
+                        }
+                        if (StrUtil.isBlank(regionEncodedName)) {
+                            throw new HBaseOperationsException("无法获取region[" + regionStrName + "]的加密名称");
+                        }
+                        final int regionStoreFileSize = regionLoad.getStorefileSizeMB();
+                        if (regionStoreFileSize > limitRegionSize) {
+                            biggerRegions.add(regionEncodedName);
+                        }
+                    }
+                });
+            }));
+            List<HRegionInfo> mergedRegions = new ArrayList<>();
+            admin.getTableRegions(TableName.valueOf(tableName)).forEach(regionInfo -> {
+                if (biggerRegions.contains(regionInfo.getEncodedName())) {
+                    // 把大region设置成null，使之不会参与合并
+                    mergedRegions.add(null);
+                } else {
+                    mergedRegions.add(regionInfo);
+                }
+            });
+            List<HRegionInfo> subMergedRegions;
+            int mergedRegionsSize = mergedRegions.size();
+            if (mergedRegionsSize > limitRegionsNum) {
+                subMergedRegions = mergedRegions.subList(0, limitRegionsNum);
+            } else {
+                subMergedRegions = mergedRegions;
+            }
+            // 保证region相邻
+            for (int i = 0, j = 1; i < subMergedRegions.size() - 1; i += 2, j += 2) {
+                HRegionInfo firstRegionInfo = subMergedRegions.get(i);
+                HRegionInfo secondRegionInfo = subMergedRegions.get(j);
+                if (firstRegionInfo == null) {
+                    continue;
+                }
+                if (secondRegionInfo == null) {
+                    continue;
+                }
+                if (firstRegionInfo.isOffline() || firstRegionInfo.isSplit()) {
+                    continue;
+                }
+                if (secondRegionInfo.isOffline() || secondRegionInfo.isSplit()) {
+                    continue;
+                }
+                if (!HRegionInfo.areAdjacent(firstRegionInfo, secondRegionInfo)) {
+                    continue;
+                }
+                admin.mergeRegions(firstRegionInfo.getEncodedNameAsBytes(), secondRegionInfo.getEncodedNameAsBytes(), false);
+                LOG.info("表:{},Region:{},{}异步合并指令运行成功", tableName, firstRegionInfo.getEncodedName(), secondRegionInfo.getEncodedName());
+            }
             return true;
         });
     }

@@ -104,5 +104,10 @@ public class HBaseAdminTemplateTest {
         System.out.println(records);
     }
 
+    @Test
+    public void testMergeHBaseRegions(){
+        hBaseTemplate.mergeTableSmallRegions("TEST:LEO_TEST", 100, 1024);
+    }
+
 
 }

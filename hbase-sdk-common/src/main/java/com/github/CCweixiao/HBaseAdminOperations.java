@@ -404,4 +404,22 @@ public interface HBaseAdminOperations {
      */
     boolean deleteSnapshots(final String regex);
 
+    /**
+     * 合并region
+     *
+     * @param firstRegion  第一个region名称
+     * @param secondRegion 第二个region名称
+     * @param force 是否强制合并，加true为暴力合并，即不连续的两个region合并，尽量不要使用
+     * @return 合并region提交的结果
+     */
+    boolean mergeRegions(final byte[] firstRegion, final byte[] secondRegion, boolean force);
+
+    /**
+     * 合并某张表的小region
+     * @param tableName 表名
+     * @param limitRegionsNum 限制参与合并的region数，例如，总的region数是1000，此值设置为100，那么每次只有100个region参与合并
+     * @param limitRegionSize 限制参与合并的region大小，单位是M，例如，如果每个region的大小设置为20G，那么只有小于10G的region的进行合并（此阈值可以调整）
+     */
+    boolean mergeTableSmallRegions(final String tableName, int limitRegionsNum, int limitRegionSize);
+
 }
