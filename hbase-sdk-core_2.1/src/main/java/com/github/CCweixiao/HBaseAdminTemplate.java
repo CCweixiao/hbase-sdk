@@ -23,7 +23,8 @@ import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.util.*;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  * @author leojie 2020/9/25 11:11 下午
  */
 public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HBaseMetricOperations {
-    public static final Logger LOG = Logger.getLogger(HBaseAdminTemplate.class);
+    public static final Logger LOG = LoggerFactory.getLogger(HBaseAdminTemplate.class);
     public static final Pattern REGION_COMPILE = Pattern.compile("\\.([\\w]+)\\.");
 
     public HBaseAdminTemplate(Configuration configuration) {
