@@ -4,8 +4,7 @@ import com.github.CCweixiao.exception.HBaseSdkConnectionException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
@@ -13,7 +12,7 @@ import java.io.IOException;
  * @author leojie 2021/2/9 11:15 下午
  */
 public class SingleConnectionFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SingleConnectionFactory.class);
+    //private static final Logger LOGGER = Logger.getLogger(SingleConnectionFactory.class);
 
     private volatile static Connection connection;
 
@@ -27,9 +26,9 @@ public class SingleConnectionFactory {
                 if (connection == null) {
                     try {
                         connection = ConnectionFactory.createConnection(configuration);
-                        LOGGER.info("the connection of HBase is created successfully.>>>>>>>>>>>>>>>>>>");
+                        //LOGGER.info("the connection of HBase is created successfully.>>>>>>>>>>>>>>>>>>");
                     } catch (IOException e) {
-                        LOGGER.error("the connection of HBase is created failed.>>>>>>>>>>>>>>>>>");
+                        // LOGGER.error("the connection of HBase is created failed.>>>>>>>>>>>>>>>>>");
                         throw new HBaseSdkConnectionException(e);
                     }
                 }

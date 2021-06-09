@@ -3,14 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>hbase-sdk</artifactId>
+        <artifactId>hbase-sdk-samples</artifactId>
         <groupId>com.github.CCweixiao</groupId>
         <version>2.0.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <packaging>jar</packaging>
-    <artifactId>spring-boot-starter-hbase-example_1.4</artifactId>
+    <artifactId>spring-boot-starter-hbase-example_2.1</artifactId>
 
     <properties>
         <maven.deploy.skip>true</maven.deploy.skip>
@@ -29,42 +29,28 @@
     </dependencyManagement>
 
     <dependencies>
-        <!--<dependency>
-            <groupId>me.zhyd.oauth</groupId>
-            <artifactId>JustAuth</artifactId>
-            <version>1.15.9</version>
-        </dependency>
--->
-        <!--    <dependency>
-                <groupId>org.apache.hbase</groupId>
-                <artifactId>hbase-client</artifactId>
-                <version>${hbase1.4.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <artifactId>slf4j-api</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                    <exclusion>
-                        <artifactId>slf4j-log4j12</artifactId>
-                        <groupId>org.slf4j</groupId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-web</artifactId>
-            </dependency>
-            <dependency>
-                <groupId>com.github.CCweixiao</groupId>
-                <artifactId>spring-boot-starter-hbase_1.4</artifactId>
-            </dependency>-->
         <dependency>
-            <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-core_1.4</artifactId>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase2.1.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>spring-boot-starter-hbase_2.1</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -74,7 +60,7 @@
     </dependencies>
 
     <build>
-        <finalName>spring-boot-starter-use-example_1.4</finalName>
+        <finalName>spring-boot-starter-use-example_2.1</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

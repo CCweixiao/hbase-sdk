@@ -23,8 +23,8 @@ import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
+
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -35,8 +35,7 @@ import java.util.stream.Collectors;
  * @author leojie 2020/9/25 11:11 下午
  */
 public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HBaseMetricOperations {
-    private static final Logger LOG = LoggerFactory.getLogger(HBaseAdminTemplate.class);
-
+    public static final Logger LOG = Logger.getLogger(HBaseAdminTemplate.class);
     public static final Pattern REGION_COMPILE = Pattern.compile("\\.([\\w]+)\\.");
 
     public HBaseAdminTemplate(Configuration configuration) {
@@ -695,7 +694,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                     continue;
                 }
                 admin.mergeRegionsAsync(firstRegionInfo.getEncodedNameAsBytes(), secondRegionInfo.getEncodedNameAsBytes(), false);
-                LOG.info("表:{},Region:{},{}异步合并指令运行成功", tableName, firstRegionInfo.getEncodedName(), secondRegionInfo.getEncodedName());
+                LOG.info("表:" + tableName + ", Region:" + firstRegionInfo.getEncodedName() + ", " + secondRegionInfo.getEncodedName() + " 异步合并指令运行成功");
             }
             return true;
         });

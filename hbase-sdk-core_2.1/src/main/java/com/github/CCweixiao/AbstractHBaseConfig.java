@@ -3,12 +3,9 @@ package com.github.CCweixiao;
 import com.github.CCweixiao.connection.ConfigurationFactory;
 import com.github.CCweixiao.connection.SingleConnectionFactory;
 import com.github.CCweixiao.exception.HBaseOperationsException;
-import com.github.CCweixiao.exception.HBaseSdkConnectionException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**

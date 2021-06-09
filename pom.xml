@@ -50,9 +50,8 @@
         <module>spring-boot-starter-hbase_1.4</module>
         <module>hbase-sdk-core_2.1</module>
         <module>spring-boot-starter-hbase_2.1</module>
-        <module>spring-boot-starter-hbase-example_1.4</module>
-        <module>spring-boot-starter-hbase-example_2.1</module>
         <module>hbase-sdk-thrift-core_1.x</module>
+        <module>hbase-sdk-samples</module>
     </modules>
 
     <properties>
