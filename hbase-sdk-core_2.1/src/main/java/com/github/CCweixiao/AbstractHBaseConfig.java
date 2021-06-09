@@ -35,12 +35,12 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
 
     @Override
     public Connection getConnection() {
-        //return SingleConnectionFactory.getConnection(this.configuration);
-        try {
-            return ConnectionFactory.createConnection(configuration);
-        } catch (IOException e) {
-            throw new HBaseSdkConnectionException(e);
-        }
+        return SingleConnectionFactory.getConnection(this.configuration);
+//        try {
+//            return ConnectionFactory.createConnection(configuration);
+//        } catch (IOException e) {
+//            throw new HBaseSdkConnectionException(e);
+//        }
         // LOGGER.info("the connection of HBase is created successfully.>>>>>>>>>>>>>>>>>>");
     }
 
