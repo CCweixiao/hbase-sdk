@@ -10,6 +10,8 @@ public class HBaseAdminTemplateTest2 {
     public void testSingle(){
 
         HBaseAdminTemplate adminTemplate2 = new HBaseAdminTemplate("docker-hbase-remote", "2181");
+//        HBaseAdminTemplate adminTemplate3 = new HBaseAdminTemplate("docker-hbase-remote", "2181");
+//        System.out.println(adminTemplate2.getConnection() == adminTemplate3.getConnection());
         System.out.println(adminTemplate2.listNamespaceNames().size());
         System.out.println(adminTemplate2.listTableNames().size());
 

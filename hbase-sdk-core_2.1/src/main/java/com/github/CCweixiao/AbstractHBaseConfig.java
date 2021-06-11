@@ -1,14 +1,11 @@
 package com.github.CCweixiao;
 
 import com.github.CCweixiao.connection.ConfigurationFactory;
-import com.github.CCweixiao.connection.SingleConnectionFactory;
+import com.github.CCweixiao.connection.MultipleConnectionFactory;
 import com.github.CCweixiao.exception.HBaseOperationsException;
-import com.github.CCweixiao.exception.HBaseSdkConnectionException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 
-import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -35,12 +32,12 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
 
     @Override
     public Connection getConnection() {
-        // return SingleConnectionFactory.getConnection(this.configuration);
-        try {
+        return MultipleConnectionFactory.getConnection(this.configuration);
+       /* try {
             return ConnectionFactory.createConnection(configuration);
         } catch (IOException e) {
             throw new HBaseSdkConnectionException(e);
-        }
+        }*/
     }
 
 
