@@ -29,9 +29,10 @@ public class HBaseTemplateTest {
     public void testSaveUser() {
         UserEntity userEntity = new UserEntity();
         userEntity.setUserId("10001");
-        userEntity.setUsername("leo");
-        userEntity.setAge(18);
-        userEntity.setVip(true);
+//        userEntity.setUsername("leo");
+//        userEntity.setAge(18);
+//        userEntity.setVip(true);
+        userEntity.setDisabled(false);
         try {
             hBaseTemplate.save(userEntity);
             System.out.println("用户数据保存成功！");

@@ -22,6 +22,7 @@ public class UserEntity {
     private int age;
     @HBaseColumn(name = "is_vip", family = "INFO2", toUpperCase = true)
     private boolean isVip;
+    private boolean isDisabled;
 
     public String getUserId() {
         return userId;
@@ -53,6 +54,14 @@ public class UserEntity {
 
     public void setVip(boolean vip) {
         isVip = vip;
+    }
+
+    public boolean isDisabled() {
+        return isDisabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        isDisabled = disabled;
     }
 
     @Override
