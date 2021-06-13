@@ -1,5 +1,6 @@
 package com.github.CCweixiao;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbtop.HBaseMetricOperations;
 import com.github.CCweixiao.hbtop.Record;
@@ -7,11 +8,10 @@ import com.github.CCweixiao.hbtop.RecordFilter;
 import com.github.CCweixiao.hbtop.Summary;
 import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.field.FieldValue;
+import com.github.CCweixiao.hbtop.field.FieldValueType;
+import com.github.CCweixiao.hbtop.field.Size;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
-import com.github.CCweixiao.model.NamespaceDesc;
-import com.github.CCweixiao.model.SnapshotDesc;
-import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.model.*;
 import com.github.CCweixiao.util.RegionSplitter;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.SplitKeyUtil;
@@ -768,31 +768,50 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     @Override
     public List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
-            // Filter
-            List<Record> records = new ArrayList<>();
             ClusterStatus clusterStatus = admin.getClusterStatus();
-
-            for (Record record : currentMode.getRecords(clusterStatus)) {
-                boolean filter = false;
-                for (RecordFilter recordFilter : filters) {
-                    if (!recordFilter.execute(record)) {
-                        filter = true;
-                        break;
-                    }
-                }
-                if (!filter) {
-                    records.add(record);
-                }
-            }
-
-            // Sort
-            records.sort((recordLeft, recordRight) -> {
-                FieldValue left = recordLeft.get(currentSortField);
-                FieldValue right = recordRight.get(currentSortField);
-                return (ascendingSort ? 1 : -1) * left.compareTo(right);
-            });
-
-            return Collections.unmodifiableList(records);
+            List<Record> records = currentMode.getRecords(clusterStatus);
+            return filterAndSortRecords(records, filters, currentSortField, ascendingSort);
         });
+    }
+
+    @Override
+    public List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort) {
+        return this.execute(admin -> {
+            List<RecordFilter> recordFilters = new ArrayList<>();
+            RecordFilter recordFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
+                    .notEqual(new FieldValue(HMHBaseConstant.DEFAULT_SYS_TABLE_NAMESPACE, FieldValueType.STRING));
+            recordFilters.add(recordFilter);
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = Mode.TABLE.getRecords(clusterStatus);
+
+            records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
+            return records.stream().map(record -> {
+                HBaseTableRecord tableRecord = new HBaseTableRecord();
+                tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
+                tableRecord.setTableName(record.get(Field.TABLE).asString());
+                tableRecord.setStoreFileSizeTag(record.get(Field.STORE_FILE_SIZE).asString());
+                tableRecord.setStoreFileSize(record.get(Field.STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                tableRecord.setUncompressedStoreFileSizeTag(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asString());
+                tableRecord.setUncompressedStoreFileSize(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                tableRecord.setNumStoreFiles(record.get(Field.NUM_STORE_FILES).asInt());
+                tableRecord.setMemStoreSizeTag(record.get(Field.MEM_STORE_SIZE).asString());
+                tableRecord.setMemStoreSize(record.get(Field.MEM_STORE_SIZE).asSize().get(Size.Unit.MEGABYTE));
+                tableRecord.setRegionCount(record.get(Field.REGION_COUNT).asInt());
+                return tableRecord;
+            }).collect(Collectors.toList());
+        });
+    }
+
+    private List<Record> filterAndSortRecords(List<Record> records, List<RecordFilter> recordFilters,
+                                              Field currentSortField, boolean ascendingSort) {
+        // Filter and sort
+        List<Record> sortAndFilterRecords = records.stream()
+                .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
+                .sorted((recordLeft, recordRight) -> {
+                    FieldValue left = recordLeft.get(currentSortField);
+                    FieldValue right = recordRight.get(currentSortField);
+                    return (ascendingSort ? 1 : -1) * left.compareTo(right);
+                }).collect(Collectors.toList());
+        return Collections.unmodifiableList(sortAndFilterRecords);
     }
 }

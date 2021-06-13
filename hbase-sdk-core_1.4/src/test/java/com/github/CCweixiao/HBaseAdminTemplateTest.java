@@ -4,8 +4,11 @@ import com.github.CCweixiao.hbtop.Record;
 import com.github.CCweixiao.hbtop.RecordFilter;
 import com.github.CCweixiao.hbtop.Summary;
 import com.github.CCweixiao.hbtop.field.Field;
+import com.github.CCweixiao.hbtop.field.FieldValue;
+import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.HBaseTableRecord;
 import com.github.CCweixiao.model.NamespaceDesc;
 import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
@@ -130,8 +133,21 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testGetRecord() {
         List<RecordFilter> recordFilters = new ArrayList<>();
+        RecordFilter recordFilter =RecordFilter.newBuilder(Field.TABLE, false)
+                .equal(new FieldValue("LEOLEO", FieldValueType.STRING));
+        RecordFilter recordFilter2 =RecordFilter.newBuilder(Field.NAMESPACE, false)
+                .equal(new FieldValue("LLL", FieldValueType.STRING));
+        recordFilters.add(recordFilter);
+        recordFilters.add(recordFilter2);
+
         final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
         System.out.println(records);
+    }
+
+    @Test
+    public void testHBaseTableRecords() {
+        final List<HBaseTableRecord> hBaseTableRecords = hBaseTemplate.refreshTableRecords(Field.REGION_COUNT, false);
+        System.out.println(hBaseTableRecords);
     }
 
     @Test

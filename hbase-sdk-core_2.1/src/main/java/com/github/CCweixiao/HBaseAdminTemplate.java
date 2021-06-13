@@ -8,11 +8,9 @@ import com.github.CCweixiao.hbtop.RecordFilter;
 import com.github.CCweixiao.hbtop.Summary;
 import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.field.FieldValue;
+import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
-import com.github.CCweixiao.model.NamespaceDesc;
-import com.github.CCweixiao.model.SnapshotDesc;
-import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.model.*;
 import com.github.CCweixiao.util.RegionSplitter;
 import com.github.CCweixiao.util.SplitGoEnum;
 import com.github.CCweixiao.util.SplitKeyUtil;
@@ -767,16 +765,48 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
             List<Record> records = currentMode.getRecords(clusterMetrics);
 
-            // Filter and sort
-            records = records.stream()
-                    .filter(r -> filters.stream().allMatch(f -> f.execute(r)))
-                    .sorted((recordLeft, recordRight) -> {
-                        FieldValue left = recordLeft.get(currentSortField);
-                        FieldValue right = recordRight.get(currentSortField);
-                        return (ascendingSort ? 1 : -1) * left.compareTo(right);
-                    }).collect(Collectors.toList());
+            return filterAndSortRecords(records, filters, currentSortField, ascendingSort);
 
-            return Collections.unmodifiableList(records);
         });
+    }
+
+    @Override
+    public List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort) {
+        return this.execute(admin -> {
+            List<RecordFilter> recordFilters = new ArrayList<>();
+            RecordFilter recordFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
+                    .notEqual(new FieldValue(HMHBaseConstant.DEFAULT_SYS_TABLE_NAMESPACE, FieldValueType.STRING));
+            recordFilters.add(recordFilter);
+            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
+            List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
+            records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
+            return records.stream().map(record -> {
+                HBaseTableRecord tableRecord = new HBaseTableRecord();
+                tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
+                tableRecord.setTableName(record.get(Field.TABLE).asString());
+                tableRecord.setStoreFileSizeTag(record.get(Field.STORE_FILE_SIZE).asString());
+                tableRecord.setStoreFileSize(record.get(Field.STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                tableRecord.setUncompressedStoreFileSizeTag(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asString());
+                tableRecord.setUncompressedStoreFileSize(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                tableRecord.setNumStoreFiles(record.get(Field.NUM_STORE_FILES).asInt());
+                tableRecord.setMemStoreSizeTag(record.get(Field.MEM_STORE_SIZE).asString());
+                tableRecord.setMemStoreSize(record.get(Field.MEM_STORE_SIZE).asSize().get(Size.Unit.MEGABYTE));
+                tableRecord.setRegionCount(record.get(Field.REGION_COUNT).asInt());
+                return tableRecord;
+            }).collect(Collectors.toList());
+        });
+    }
+
+    private List<Record> filterAndSortRecords(List<Record> records, List<RecordFilter> recordFilters,
+                                              Field currentSortField, boolean ascendingSort) {
+        // Filter and sort
+        List<Record> sortAndFilterRecords = records.stream()
+                .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
+                .sorted((recordLeft, recordRight) -> {
+                    FieldValue left = recordLeft.get(currentSortField);
+                    FieldValue right = recordRight.get(currentSortField);
+                    return (ascendingSort ? 1 : -1) * left.compareTo(right);
+                }).collect(Collectors.toList());
+        return Collections.unmodifiableList(sortAndFilterRecords);
     }
 }

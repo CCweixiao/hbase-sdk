@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbtop;
 
 import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.mode.Mode;
+import com.github.CCweixiao.model.HBaseTableRecord;
 
 import java.util.List;
 
@@ -28,5 +29,14 @@ public interface HBaseMetricOperations {
      * @return 统计指标列表
      */
     List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort);
+
+    /**
+     * 获取集群表的统计指标
+     *
+     * @param currentSortField 当前排序字段
+     * @param ascendingSort    是否升序排列
+     * @return 统计指标
+     */
+    List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort);
 
 }

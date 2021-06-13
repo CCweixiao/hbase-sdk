@@ -8,6 +8,7 @@ import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.HBaseTableRecord;
 import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
@@ -96,12 +97,21 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testHBaseRecords() {
         List<RecordFilter> recordFilters = new ArrayList<>();
-        RecordFilter recordFilter =RecordFilter.newBuilder(Field.TABLE, true)
-                .equal(new FieldValue("USER_NEW", FieldValueType.STRING));
+        RecordFilter recordFilter =RecordFilter.newBuilder(Field.NAMESPACE, false)
+                .notEqual(new FieldValue("hbase", FieldValueType.STRING));
         recordFilters.add(recordFilter);
 
-        final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
+
+        final List<Record> records = hBaseTemplate.refreshRecords(Mode.TABLE, recordFilters, Field.REGION_COUNT, false);
+        Record record = records.get(0);
+        double memSize = record.get(Field.STORE_FILE_SIZE).asSize().get();
         System.out.println(records);
+    }
+
+    @Test
+    public void testHBaseTableRecords() {
+        final List<HBaseTableRecord> hBaseTableRecords = hBaseTemplate.refreshTableRecords(Field.REGION_COUNT, false);
+        System.out.println(hBaseTableRecords);
     }
 
     @Test
