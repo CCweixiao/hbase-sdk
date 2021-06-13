@@ -40,6 +40,14 @@ public class HMHBaseConstant {
         }
     }
 
+    public static String getTableName(String tableName) {
+        if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
+            return tableName.split(TABLE_NAME_SPLIT_CHAR)[1];
+        } else {
+            return tableName;
+        }
+    }
+
     public static String getFullTableName(String namespaceName, String tableName) {
         if (StrUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("表名不能为空");

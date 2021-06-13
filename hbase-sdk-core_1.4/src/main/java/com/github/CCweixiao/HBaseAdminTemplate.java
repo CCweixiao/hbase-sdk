@@ -802,16 +802,76 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         });
     }
 
+    @Override
+    public List<HBaseRegionRecord> refreshRegionRecords(String tableName, Field currentSortField, boolean ascendingSort) {
+        return this.execute(admin -> {
+            List<RecordFilter> recordFilters = new ArrayList<>();
+
+            RecordFilter namespaceFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
+                    .equal(new FieldValue(HMHBaseConstant.getNamespaceName(tableName), FieldValueType.STRING));
+            RecordFilter tableFilter = RecordFilter.newBuilder(Field.TABLE, false)
+                    .equal(new FieldValue(HMHBaseConstant.getTableName(tableName), FieldValueType.STRING));
+            recordFilters.add(namespaceFilter);
+            recordFilters.add(tableFilter);
+
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = Mode.REGION.getRecords(clusterStatus);
+            records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
+
+            List<HBaseRegionRecord> regionRecords = new ArrayList<>(records.size());
+
+            for (int i = 0, j = 1; i < records.size(); i += 1, j += 1) {
+                Record firstRegionRecord = records.get(i);
+                String endKey;
+                if (j >= records.size() - 1) {
+                    endKey = "";
+                } else {
+                    Record secondRegionRecord = records.get(j);
+                    endKey = secondRegionRecord.getOrDefault(Field.START_KEY, new FieldValue("", FieldValueType.STRING)).asString();
+                }
+                HBaseRegionRecord regionRecord = new HBaseRegionRecord();
+
+                regionRecord.setNamespaceName(firstRegionRecord.get(Field.NAMESPACE).asString());
+                regionRecord.setTableName(firstRegionRecord.get(Field.TABLE).asString());
+                regionRecord.setRegionName(firstRegionRecord.get(Field.REGION_NAME).asString());
+                regionRecord.setEncodedRegionName(firstRegionRecord.get(Field.REGION).asString());
+                regionRecord.setRegionServer(firstRegionRecord.get(Field.REGION_SERVER).asString());
+
+                regionRecord.setStoreFileSizeTag(firstRegionRecord.get(Field.STORE_FILE_SIZE).asString());
+                regionRecord.setStoreFileSize(firstRegionRecord.get(Field.STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                regionRecord.setUncompressedStoreFileSizeTag(firstRegionRecord.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asString());
+                regionRecord.setUncompressedStoreFileSize(firstRegionRecord.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+                regionRecord.setNumStoreFiles(firstRegionRecord.get(Field.NUM_STORE_FILES).asInt());
+                regionRecord.setMemStoreSizeTag(firstRegionRecord.get(Field.MEM_STORE_SIZE).asString());
+                regionRecord.setMemStoreSize(firstRegionRecord.get(Field.MEM_STORE_SIZE).asSize().get(Size.Unit.MEGABYTE));
+
+                regionRecord.setLocality(firstRegionRecord.get(Field.LOCALITY).asFloat());
+                regionRecord.setStartKey(firstRegionRecord.get(Field.START_KEY).asString());
+                regionRecord.setEndKey(endKey);
+                regionRecords.add(regionRecord);
+
+            }
+            return regionRecords;
+        });
+    }
+
     private List<Record> filterAndSortRecords(List<Record> records, List<RecordFilter> recordFilters,
                                               Field currentSortField, boolean ascendingSort) {
         // Filter and sort
-        List<Record> sortAndFilterRecords = records.stream()
-                .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
-                .sorted((recordLeft, recordRight) -> {
-                    FieldValue left = recordLeft.get(currentSortField);
-                    FieldValue right = recordRight.get(currentSortField);
-                    return (ascendingSort ? 1 : -1) * left.compareTo(right);
-                }).collect(Collectors.toList());
+        List<Record> sortAndFilterRecords;
+        if(currentSortField != null){
+            sortAndFilterRecords = records.stream()
+                    .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
+                    .sorted((recordLeft, recordRight) -> {
+                        FieldValue left = recordLeft.get(currentSortField);
+                        FieldValue right = recordRight.get(currentSortField);
+                        return (ascendingSort ? 1 : -1) * left.compareTo(right);
+                    }).collect(Collectors.toList());
+        }else{
+            sortAndFilterRecords = records.stream()
+                    .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
+                    .collect(Collectors.toList());
+        }
         return Collections.unmodifiableList(sortAndFilterRecords);
     }
 }

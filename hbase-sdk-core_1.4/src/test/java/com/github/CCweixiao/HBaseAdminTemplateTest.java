@@ -7,10 +7,7 @@ import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
-import com.github.CCweixiao.model.HBaseTableRecord;
-import com.github.CCweixiao.model.NamespaceDesc;
-import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.model.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -142,6 +139,12 @@ public class HBaseAdminTemplateTest {
 
         final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
         System.out.println(records);
+    }
+
+    @Test
+    public void testHBaseRegionRecords(){
+        final List<HBaseRegionRecord> hBaseRegionRecords = hBaseTemplate.refreshRegionRecords("LLL:LEOLEO", null, false);
+        System.out.println(hBaseRegionRecords);
     }
 
     @Test

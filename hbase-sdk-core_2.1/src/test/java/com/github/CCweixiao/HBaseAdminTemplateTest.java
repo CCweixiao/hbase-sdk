@@ -8,6 +8,7 @@ import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.HBaseRegionRecord;
 import com.github.CCweixiao.model.HBaseTableRecord;
 import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
@@ -95,6 +96,20 @@ public class HBaseAdminTemplateTest {
     }
 
     @Test
+    public void testGetRecord() {
+        List<RecordFilter> recordFilters = new ArrayList<>();
+        RecordFilter recordFilter =RecordFilter.newBuilder(Field.TABLE, false)
+                .equal(new FieldValue("USER_NEW", FieldValueType.STRING));
+        RecordFilter recordFilter2 =RecordFilter.newBuilder(Field.NAMESPACE, false)
+                .equal(new FieldValue("TEST", FieldValueType.STRING));
+        recordFilters.add(recordFilter);
+        recordFilters.add(recordFilter2);
+
+        final List<Record> records = hBaseTemplate.refreshRecords(Mode.REGION, recordFilters, Field.LAST_MAJOR_COMPACTION_TIME, false);
+        System.out.println(records);
+    }
+
+    @Test
     public void testHBaseRecords() {
         List<RecordFilter> recordFilters = new ArrayList<>();
         RecordFilter recordFilter =RecordFilter.newBuilder(Field.NAMESPACE, false)
@@ -106,6 +121,12 @@ public class HBaseAdminTemplateTest {
         Record record = records.get(0);
         double memSize = record.get(Field.STORE_FILE_SIZE).asSize().get();
         System.out.println(records);
+    }
+
+    @Test
+    public void testHBaseRegionRecords(){
+        final List<HBaseRegionRecord> hBaseRegionRecords = hBaseTemplate.refreshRegionRecords("LLL:LEOLEO", null, false);
+        System.out.println(hBaseRegionRecords);
     }
 
     @Test
