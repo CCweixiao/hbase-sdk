@@ -41,10 +41,19 @@ public interface HBaseMetricOperations {
     List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort);
 
     /**
+     * 获取某一张表的统计指标
+     *
+     * @param fullTableName 全表名
+     * @return 统计指标
+     */
+    HBaseTableRecord refreshTableRecord(String fullTableName);
+
+    /**
      * 获取集群region的统计指标
-     * @param tableName  表名
+     *
+     * @param tableName        表名
      * @param currentSortField 当前排序字段
-     * @param ascendingSort 是否升序排列
+     * @param ascendingSort    是否升序排列
      * @return 统计指标
      */
     List<HBaseRegionRecord> refreshRegionRecords(String tableName, Field currentSortField, boolean ascendingSort);

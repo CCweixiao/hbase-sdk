@@ -137,6 +137,12 @@ public class HBaseAdminTemplateTest {
     }
 
     @Test
+    public void testHBaseTableRecord() {
+        HBaseTableRecord tableRecord = hBaseTemplate.refreshTableRecord("LLL:LEOLEO");
+        System.out.println(tableRecord);
+    }
+
+    @Test
     public void testMergeHBaseRegions(){
         hBaseTemplate.mergeTableSmallRegions("TEST:LEO_TEST", 100, 1024);
     }

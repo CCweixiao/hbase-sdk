@@ -12,7 +12,6 @@ import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.*;
 import com.github.CCweixiao.util.*;
-import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -784,6 +783,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         });
     }
 
+
+
     @Override
     public List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
@@ -794,37 +795,48 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
             List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
             records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
-            return records.stream().map(record -> {
-                HBaseTableRecord tableRecord = new HBaseTableRecord();
-                tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
-                tableRecord.setTableName(record.get(Field.TABLE).asString());
-                tableRecord.setStoreFileSizeTag(record.get(Field.STORE_FILE_SIZE).asString());
-                tableRecord.setStoreFileSize(record.get(Field.STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
-                tableRecord.setUncompressedStoreFileSizeTag(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asString());
-                tableRecord.setUncompressedStoreFileSize(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
-                tableRecord.setNumStoreFiles(record.get(Field.NUM_STORE_FILES).asInt());
-                tableRecord.setMemStoreSizeTag(record.get(Field.MEM_STORE_SIZE).asString());
-                tableRecord.setMemStoreSize(record.get(Field.MEM_STORE_SIZE).asSize().get(Size.Unit.MEGABYTE));
-                tableRecord.setRegionCount(record.get(Field.REGION_COUNT).asInt());
-                return tableRecord;
-            }).collect(Collectors.toList());
+            return records.stream().map(this::convertRecordToHBaseTableRecord).collect(Collectors.toList());
+        });
+    }
+
+    private HBaseTableRecord convertRecordToHBaseTableRecord(Record record){
+        HBaseTableRecord tableRecord = new HBaseTableRecord();
+        tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
+        tableRecord.setTableName(record.get(Field.TABLE).asString());
+        tableRecord.setStoreFileSizeTag(record.get(Field.STORE_FILE_SIZE).asString());
+        tableRecord.setStoreFileSize(record.get(Field.STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+        tableRecord.setUncompressedStoreFileSizeTag(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asString());
+        tableRecord.setUncompressedStoreFileSize(record.get(Field.UNCOMPRESSED_STORE_FILE_SIZE).asSize().get(Size.Unit.GIGABYTE));
+        tableRecord.setNumStoreFiles(record.get(Field.NUM_STORE_FILES).asInt());
+        tableRecord.setMemStoreSizeTag(record.get(Field.MEM_STORE_SIZE).asString());
+        tableRecord.setMemStoreSize(record.get(Field.MEM_STORE_SIZE).asSize().get(Size.Unit.MEGABYTE));
+        tableRecord.setRegionCount(record.get(Field.REGION_COUNT).asInt());
+        return tableRecord;
+    }
+
+    @Override
+    public HBaseTableRecord refreshTableRecord(String fullTableName) {
+        return this.execute(admin -> {
+            List<RecordFilter> recordFilters = createTableRecordFilters(fullTableName);
+            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
+            List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
+            if (records.isEmpty()){
+                return null;
+            }
+            records = filterAndSortRecords(records, recordFilters, null, true);
+            Record record = records.get(0);
+            return convertRecordToHBaseTableRecord(record);
         });
     }
 
     @Override
     public List<HBaseRegionRecord> refreshRegionRecords(String tableName, Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
-            List<RecordFilter> recordFilters = new ArrayList<>();
 
-            RecordFilter namespaceFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
-                    .equal(new FieldValue(HMHBaseConstant.getNamespaceName(tableName), FieldValueType.STRING));
-            RecordFilter tableFilter = RecordFilter.newBuilder(Field.TABLE, false)
-                    .equal(new FieldValue(HMHBaseConstant.getTableName(tableName), FieldValueType.STRING));
-            recordFilters.add(namespaceFilter);
-            recordFilters.add(tableFilter);
 
             final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
             List<Record> records = Mode.REGION.getRecords(clusterMetrics);
+            List<RecordFilter> recordFilters = createTableRecordFilters(tableName);
             records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
 
             List<HBaseRegionRecord> regionRecords = new ArrayList<>(records.size());
@@ -886,5 +898,17 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         }
 
         return Collections.unmodifiableList(sortAndFilterRecords);
+    }
+
+    private List<RecordFilter> createTableRecordFilters(String tableName) {
+        List<RecordFilter> recordFilters = new ArrayList<>();
+
+        RecordFilter namespaceFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
+                .equal(new FieldValue(HMHBaseConstant.getNamespaceName(tableName), FieldValueType.STRING));
+        RecordFilter tableFilter = RecordFilter.newBuilder(Field.TABLE, false)
+                .equal(new FieldValue(HMHBaseConstant.getTableName(tableName), FieldValueType.STRING));
+        recordFilters.add(namespaceFilter);
+        recordFilters.add(tableFilter);
+        return recordFilters;
     }
 }
