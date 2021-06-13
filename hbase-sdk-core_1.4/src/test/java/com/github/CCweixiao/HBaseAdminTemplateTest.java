@@ -134,9 +134,9 @@ public class HBaseAdminTemplateTest {
     public void testGetRecord() {
         List<RecordFilter> recordFilters = new ArrayList<>();
         RecordFilter recordFilter =RecordFilter.newBuilder(Field.TABLE, false)
-                .equal(new FieldValue("LEOLEO", FieldValueType.STRING));
+                .equal(new FieldValue("USER_NEW", FieldValueType.STRING));
         RecordFilter recordFilter2 =RecordFilter.newBuilder(Field.NAMESPACE, false)
-                .equal(new FieldValue("LLL", FieldValueType.STRING));
+                .equal(new FieldValue("TEST", FieldValueType.STRING));
         recordFilters.add(recordFilter);
         recordFilters.add(recordFilter2);
 
