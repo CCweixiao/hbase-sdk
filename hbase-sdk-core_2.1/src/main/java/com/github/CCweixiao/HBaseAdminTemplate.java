@@ -11,10 +11,8 @@ import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.*;
-import com.github.CCweixiao.util.RegionSplitter;
-import com.github.CCweixiao.util.SplitGoEnum;
-import com.github.CCweixiao.util.SplitKeyUtil;
-import com.github.CCweixiao.util.StrUtil;
+import com.github.CCweixiao.util.*;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.time.FastDateFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -633,6 +631,22 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
+    public boolean mergeMultipleRegions(byte[][] regions, boolean force) {
+        return this.execute(admin -> {
+            int mergeRegionsNum = regions.length;
+            if (mergeRegionsNum % 2 != 0){
+                mergeRegionsNum = mergeRegionsNum - 1;
+            }
+            for(int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2){
+                byte[] firstByteRegionName = regions[i];
+                byte[] secondByteRegionName = regions[j];
+                admin.mergeRegionsAsync(firstByteRegionName,secondByteRegionName, force);
+            }
+            return true;
+        });
+    }
+
+    @Override
     public boolean mergeTableSmallRegions(String tableName, int limitRegionsNum, int limitRegionSize) {
         return this.execute(admin -> {
             final ClusterMetrics clusterStatus = admin.getClusterMetrics();
@@ -818,7 +832,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             for (int i = 0, j = 1; i < records.size(); i += 1, j += 1) {
                 Record firstRegionRecord = records.get(i);
                 String endKey;
-                if (j >= records.size() - 1) {
+                if (j > records.size() - 1) {
                     endKey = "";
                 } else {
                     Record secondRegionRecord = records.get(j);
@@ -830,6 +844,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                 regionRecord.setTableName(firstRegionRecord.get(Field.TABLE).asString());
                 regionRecord.setRegionName(firstRegionRecord.get(Field.REGION_NAME).asString());
                 regionRecord.setEncodedRegionName(firstRegionRecord.get(Field.REGION).asString());
+
+                regionRecord.setStartCode(DateUtil.parseTimestampToTimeStr(Long.parseLong(firstRegionRecord.get(Field.START_CODE).asString())));
                 regionRecord.setRegionServer(firstRegionRecord.get(Field.REGION_SERVER).asString());
 
                 regionRecord.setStoreFileSizeTag(firstRegionRecord.get(Field.STORE_FILE_SIZE).asString());

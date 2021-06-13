@@ -12,6 +12,7 @@ public class HBaseRegionRecord implements Serializable {
     private String tableName;
     private String regionName;
     private String encodedRegionName;
+    private String startCode;
     private String regionServer;
     private String storeFileSizeTag;
     private double storeFileSize;
@@ -54,6 +55,14 @@ public class HBaseRegionRecord implements Serializable {
 
     public void setEncodedRegionName(String encodedRegionName) {
         this.encodedRegionName = encodedRegionName;
+    }
+
+    public String getStartCode() {
+        return startCode;
+    }
+
+    public void setStartCode(String startCode) {
+        this.startCode = startCode;
     }
 
     public String getRegionServer() {

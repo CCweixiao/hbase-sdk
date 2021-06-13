@@ -415,6 +415,14 @@ public interface HBaseAdminOperations {
     boolean mergeRegions(final byte[] firstRegion, final byte[] secondRegion, boolean force);
 
     /**
+     * 合并多个region
+     * @param regions 多个region
+     * @param force  是否强制合并
+     * @return 合并region提交的结果
+     */
+    boolean mergeMultipleRegions(final byte[][] regions, boolean force);
+
+    /**
      * 合并某张表的小region
      * @param tableName 表名
      * @param limitRegionsNum 限制参与合并的region数，例如，总的region数是1000，此值设置为100，那么每次只有100个region参与合并

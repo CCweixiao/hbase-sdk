@@ -11,6 +11,7 @@ import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.HBaseRegionRecord;
 import com.github.CCweixiao.model.HBaseTableRecord;
 import com.github.CCweixiao.model.TableDesc;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -141,4 +142,16 @@ public class HBaseAdminTemplateTest {
     }
 
 
+    @Test
+    public void testMergeMultipleRegions(){
+        String[] regions = {"844f9ab408a55a2e85c8f50a219e9ad7", "f18f1587819735e7ee09898d7a0bae5d",
+        "106b95cec9830be239677cad8ef737d0", "44d4d52e438d4ea0e79b5312c9e0e020", "aec6d775711c92ae61ed5e32c22a8c13"};
+
+        byte[][] byteRegions = new byte[regions.length][];
+        for (int i = 0; i < regions.length; i++) {
+            byteRegions[i] = Bytes.toBytes(regions[i]);
+        }
+
+        hBaseTemplate.mergeMultipleRegions(byteRegions, false);
+    }
 }
