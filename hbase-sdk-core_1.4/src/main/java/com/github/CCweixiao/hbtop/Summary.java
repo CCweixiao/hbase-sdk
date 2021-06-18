@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbtop;
 
 
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.hadoop.hbase.classification.InterfaceAudience;
@@ -19,11 +20,12 @@ public class Summary {
     private final int namespaceCount;
     private final int tableCount;
     private final int snapshotCount;
-
     private final int regionCount;
     private final int ritCount;
     private final double averageLoad;
     private final long aggregateRequestPerSecond;
+    private List<String> liveServerNames;
+    private List<String> deadServerNames;
 
     public Summary(String currentTime, String version, String clusterId, int servers,
                    int liveServers, int deadServers,int namespaceCount, int tableCount, int snapshotCount,
@@ -94,5 +96,21 @@ public class Summary {
 
     public long getAggregateRequestPerSecond() {
         return aggregateRequestPerSecond;
+    }
+
+    public List<String> getLiveServerNames() {
+        return liveServerNames;
+    }
+
+    public void setLiveServerNames(List<String> liveServerNames) {
+        this.liveServerNames = liveServerNames;
+    }
+
+    public List<String> getDeadServerNames() {
+        return deadServerNames;
+    }
+
+    public void setDeadServerNames(List<String> deadServerNames) {
+        this.deadServerNames = deadServerNames;
     }
 }

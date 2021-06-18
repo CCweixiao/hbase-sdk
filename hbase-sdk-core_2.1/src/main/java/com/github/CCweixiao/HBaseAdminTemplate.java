@@ -753,7 +753,6 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
             String version = clusterMetrics.getHBaseVersion();
             String clusterId = clusterMetrics.getClusterId();
-
             int liveServers = clusterMetrics.getLiveServerMetrics().size();
             int deadServers = clusterMetrics.getDeadServerNames().size();
             int regionCount = clusterMetrics.getRegionCount();
@@ -767,8 +766,16 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             long aggregateRequestPerSecond = clusterMetrics.getLiveServerMetrics().values().stream()
                     .mapToLong(ServerMetrics::getRequestCountPerSecond).sum();
 
-            return new Summary(currentTime, version, clusterId, liveServers + deadServers,
+            Summary clusterSummary = new Summary(currentTime, version, clusterId, liveServers + deadServers,
                     liveServers, deadServers, namespaceCount, tableCount, snapshotCount, regionCount, ritCount, averageLoad, aggregateRequestPerSecond);
+            List<String> liveServerNames = new ArrayList<>(liveServers);
+
+            clusterMetrics.getLiveServerMetrics().forEach(((serverName, serverMetrics) -> liveServerNames.add(serverName.getServerName())));
+            List<String> deadServerNames = clusterMetrics.getDeadServerNames().stream().map(ServerName::getServerName).collect(Collectors.toList());
+            clusterSummary.setLiveServerNames(liveServerNames);
+            clusterSummary.setDeadServerNames(deadServerNames);
+
+            return clusterSummary;
         });
     }
 

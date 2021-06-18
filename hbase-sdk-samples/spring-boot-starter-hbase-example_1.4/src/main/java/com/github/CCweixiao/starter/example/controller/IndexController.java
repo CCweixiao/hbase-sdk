@@ -28,7 +28,6 @@ public class IndexController {
     @GetMapping("/getUser")
     public String getUser(@RequestParam(defaultValue = "", name = "token") String token) {
         System.out.println(token);
-        //https://web-sso-sandbox.intsig.net/login?platform_id=jFfGyeOvKBp66iJCSt3xTv7MoSZOLwzT&redirect=http%3A%2F%2Flocalhost%3A8088/getUser
         return "leo jie " + System.currentTimeMillis();
     }
 

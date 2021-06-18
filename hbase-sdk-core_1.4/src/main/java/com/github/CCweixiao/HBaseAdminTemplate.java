@@ -770,8 +770,13 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                 ServerLoad sl = clusterStatus.getLoad(sn);
                 aggregateRequestPerSecond += sl.getNumberOfRequests();
             }
-            return new Summary(currentTime, version, clusterId, liveServers + deadServers,
+            Summary clusterSummary = new Summary(currentTime, version, clusterId, liveServers + deadServers,
                     liveServers, deadServers, namespaceCount, tableCount, snapshotCount, regionCount, ritCount, averageLoad, aggregateRequestPerSecond);
+            List<String> liveServerNames = clusterStatus.getServers().stream().map(ServerName::getServerName).collect(Collectors.toList());
+            List<String> deadServerNames = clusterStatus.getDeadServerNames().stream().map(ServerName::getServerName).collect(Collectors.toList());
+            clusterSummary.setLiveServerNames(liveServerNames);
+            clusterSummary.setDeadServerNames(deadServerNames);
+            return clusterSummary;
         });
     }
 
