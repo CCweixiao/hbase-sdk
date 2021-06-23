@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/9/9 10:44 下午
  */
+@Deprecated
 public class TableDesc {
     private String namespaceName;
     private String tableName = null;

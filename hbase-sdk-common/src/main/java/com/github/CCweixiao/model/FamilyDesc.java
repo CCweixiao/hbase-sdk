@@ -7,6 +7,7 @@ import com.github.CCweixiao.util.StrUtil;
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
+@Deprecated
 public class FamilyDesc {
     private final String familyName;
     private final Integer maxVersions;
