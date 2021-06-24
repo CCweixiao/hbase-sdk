@@ -145,16 +145,17 @@ public interface HBaseAdminOperations {
      * 修改表属性
      *
      * @param tableName 表名
-     * @param props 属性
-     * @param isAsync 是否异步
+     * @param props     属性
+     * @param isAsync   是否异步
      * @return 修改是否成功
      */
     boolean modifyTableProps(final String tableName, Map<String, String> props, boolean isAsync);
 
     /**
      * 异步修改表属性
+     *
      * @param tableName 表名
-     * @param props 属性
+     * @param props     属性
      * @return 修改是否成功
      */
     boolean modifyTablePropsAsync(final String tableName, Map<String, String> props);
@@ -165,27 +166,46 @@ public interface HBaseAdminOperations {
      * @param oldTableName   旧表名
      * @param newTableName   新表名
      * @param deleteOldTable 是否删除旧表
-     * @param isAsync 是否是异步的
+     * @param isAsync        是否是异步的
      * @return 修改表名结果
      */
-    boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable,  boolean isAsync);
+    boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable, boolean isAsync);
 
     /**
      * 删除表
      *
      * @param tableName 表名
+     * @param isAsync   异步删除
      * @return 表是否被删除成功
      */
-    boolean deleteTable(final String tableName);
+    boolean deleteTable(final String tableName, boolean isAsync);
+
+    /**
+     * 异步删除表
+     *
+     * @param tableName 表名
+     * @return 表是否被删除成功
+     */
+    boolean deleteTableAsync(final String tableName);
 
     /**
      * 清空表
      *
      * @param tableName      表名
      * @param preserveSplits 是否保留预分区信息
+     * @param isAsync        是否为异步操作
      * @return 表是否被成功清空
      */
-    boolean truncateTable(final String tableName, final boolean preserveSplits);
+    boolean truncateTable(final String tableName, final boolean preserveSplits, boolean isAsync);
+
+    /**
+     * 异步清空表
+     *
+     * @param tableName      表名
+     * @param preserveSplits 是否保留预分区信息
+     * @return 表是否被成功清空
+     */
+    boolean truncateTableAsync(final String tableName, final boolean preserveSplits);
 
     /**
      * 启用表
@@ -196,6 +216,13 @@ public interface HBaseAdminOperations {
      */
     boolean enableTable(String tableName, boolean isAsync);
 
+    /**
+     * 启用表
+     *
+     * @param tableName 表名
+     * @return 启用表是否成功
+     */
+    boolean enableTableAsync(String tableName);
 
     /**
      * 禁用表
@@ -205,6 +232,15 @@ public interface HBaseAdminOperations {
      * @return 禁用表是否成功
      */
     boolean disableTable(String tableName, boolean isAsync);
+
+
+    /**
+     * 禁用表
+     *
+     * @param tableName 表名
+     * @return 禁用表是否成功
+     */
+    boolean disableTableAsync(String tableName);
 
 
     /**
@@ -237,9 +273,19 @@ public interface HBaseAdminOperations {
      *
      * @param tableName  表名
      * @param familyDesc 列簇定义信息
+     * @param isAsync    异步操作
      * @return 新增列簇是否成功
      */
-    boolean addFamily(final String tableName, final ColumnFamilyDesc familyDesc);
+    boolean addFamily(final String tableName, final ColumnFamilyDesc familyDesc, boolean isAsync);
+
+    /**
+     * 为某张表新增一个列簇， 异步
+     *
+     * @param tableName  表名
+     * @param familyDesc 列簇定义信息
+     * @return 新增列簇是否成功
+     */
+    boolean addFamilyAsync(final String tableName, final ColumnFamilyDesc familyDesc);
 
 
     /**
@@ -247,27 +293,57 @@ public interface HBaseAdminOperations {
      *
      * @param tableName  表名
      * @param familyName 列簇名
+     * @param isAsync    是否异步
      * @return 删除列簇是否成功
      */
-    boolean deleteFamily(final String tableName, final String familyName);
+    boolean deleteFamily(final String tableName, final String familyName, boolean isAsync);
+
+    /**
+     * 删除一个列簇，异步
+     *
+     * @param tableName  表名
+     * @param familyName 列簇名
+     * @return 删除列簇是否成功
+     */
+    boolean deleteFamilyAsync(final String tableName, final String familyName);
 
     /**
      * 修改一个列簇
      *
      * @param tableName  表名
      * @param familyDesc 列簇描述
+     * @param isAsync    是否异步
      * @return 修改列簇是否成功
      */
-    boolean modifyFamily(final String tableName, final ColumnFamilyDesc familyDesc);
+    boolean modifyFamily(final String tableName, final ColumnFamilyDesc familyDesc, boolean isAsync);
+
+    /**
+     * 修改一个列簇，异步
+     *
+     * @param tableName  表名
+     * @param familyDesc 列簇描述
+     * @return 修改列簇是否成功
+     */
+    boolean modifyFamilyAsync(final String tableName, final ColumnFamilyDesc familyDesc);
 
     /**
      * 启用replication
      *
      * @param tableName 表名
      * @param families  列簇名
+     * @param isAsync   是否异步
      * @return 启用replication是否成功
      */
-    boolean enableReplicationScope(String tableName, List<String> families);
+    boolean enableReplicationScope(String tableName, List<String> families, boolean isAsync);
+
+    /**
+     * 启用replication，异步
+     *
+     * @param tableName 表名
+     * @param families  列簇名
+     * @return 启用replication是否成功
+     */
+    boolean enableReplicationScopeAsync(String tableName, List<String> families);
 
 
     /**
@@ -275,9 +351,19 @@ public interface HBaseAdminOperations {
      *
      * @param tableName 表名
      * @param families  列簇名
+     * @param isAsync   是否异步
      * @return 禁用replication是否成功
      */
-    boolean disableReplicationScope(String tableName, List<String> families);
+    boolean disableReplicationScope(String tableName, List<String> families, boolean isAsync);
+
+    /**
+     * 禁用replication，异步
+     *
+     * @param tableName 表名
+     * @param families  列簇名
+     * @return 禁用replication是否成功
+     */
+    boolean disableReplicationScopeAsync(String tableName, List<String> families);
 
     /**
      * 刷新表，异步操作
@@ -308,9 +394,18 @@ public interface HBaseAdminOperations {
      * 创建一个命名空间
      *
      * @param namespaceDesc 该命名空间的描述
+     * @param isAsync       是否异步
      * @return namespace是否创建成功
      */
-    boolean createNamespace(final NamespaceDesc namespaceDesc);
+    boolean createNamespace(final NamespaceDesc namespaceDesc, boolean isAsync);
+
+    /**
+     * 创建一个命名空间
+     *
+     * @param namespaceDesc 该命名空间的描述
+     * @return namespace是否创建成功
+     */
+    boolean createNamespaceAsync(final NamespaceDesc namespaceDesc);
 
     /**
      * 判断命名空间是否存在
@@ -320,6 +415,14 @@ public interface HBaseAdminOperations {
      */
     boolean namespaceIsExists(final String namespaceName);
 
+    /**
+     * 删除命名空间
+     *
+     * @param namespaceName 命名空间名称
+     * @param isAsync       是否异步
+     * @return namespace是否删除成功
+     */
+    boolean deleteNamespace(final String namespaceName, boolean isAsync);
 
     /**
      * 删除命名空间
@@ -327,7 +430,7 @@ public interface HBaseAdminOperations {
      * @param namespaceName 命名空间名称
      * @return namespace是否删除成功
      */
-    boolean deleteNamespace(final String namespaceName);
+    boolean deleteNamespaceAsync(final String namespaceName);
 
     /**
      * 获取一个命名空间的描述
@@ -378,9 +481,27 @@ public interface HBaseAdminOperations {
      * 创建快照
      *
      * @param snapshotDesc 快照信息描述
+     * @param isAsync      是否异步
      * @return 创建快照是否成功
      */
-    boolean snapshot(SnapshotDesc snapshotDesc);
+    boolean snapshot(SnapshotDesc snapshotDesc, boolean isAsync);
+
+    /**
+     * 创建快照
+     *
+     * @param snapshotDesc 快照信息描述
+     * @return 创建快照是否成功
+     */
+    boolean snapshotAsync(SnapshotDesc snapshotDesc);
+
+    /**
+     * 恢复快照
+     *
+     * @param snapshotName 快照名称
+     * @param isAsync      是否异步
+     * @return 恢复快照是否成功
+     */
+    boolean restoreSnapshot(final String snapshotName, boolean isAsync);
 
     /**
      * 恢复快照
@@ -388,7 +509,19 @@ public interface HBaseAdminOperations {
      * @param snapshotName 快照名称
      * @return 恢复快照是否成功
      */
-    boolean restoreSnapshot(final String snapshotName);
+    boolean restoreSnapshotAsync(final String snapshotName);
+
+
+    /**
+     * 克隆快照
+     *
+     * @param snapshotName 快照名称
+     * @param tableName    表名
+     * @param isAsync      是否异步
+     * @return 克隆快照是否成功
+     */
+    boolean cloneSnapshot(final String snapshotName, final String tableName, boolean isAsync);
+
 
     /**
      * 克隆快照
@@ -397,7 +530,7 @@ public interface HBaseAdminOperations {
      * @param tableName    表名
      * @return 克隆快照是否成功
      */
-    boolean cloneSnapshot(final String snapshotName, final String tableName);
+    boolean cloneSnapshotAsync(final String snapshotName, final String tableName);
 
     /**
      * 删除快照
@@ -411,7 +544,7 @@ public interface HBaseAdminOperations {
     /**
      * 根据正则批量删除快照
      *
-     * @param regex 正则
+     * @param regex   正则
      * @return 删除快照是否成功
      */
     boolean deleteSnapshots(final String regex);

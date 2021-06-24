@@ -8,10 +8,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -113,17 +115,21 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
     }
 
 
-    protected void tableIsNotExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-        if (!tableExists(fullTableName)) {
-            throw new HBaseOperationsException("表[" + tableName + "]不存在！");
+    protected void tableIsNotExistsError(Admin admin, String tableName) throws IOException {
+        if (!admin.tableExists(TableName.valueOf(tableName))) {
+            throw new HBaseOperationsException("表[" + tableName + "]不存在");
         }
     }
 
-    protected void tableIsExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-        if (tableExists(fullTableName)) {
-            throw new HBaseOperationsException("表[" + tableName + "]已经存在！");
+    protected void tableIsNotDisableError(Admin admin, String tableName) throws IOException {
+        if (!admin.isTableDisabled(TableName.valueOf(tableName))) {
+            throw new HBaseOperationsException("非禁用状态的表不可被操作");
+        }
+    }
+
+    protected void tableIsExistsError(Admin admin, String tableName) throws IOException {
+        if (admin.tableExists(TableName.valueOf(tableName))) {
+            throw new HBaseOperationsException("表[" + tableName + "]已经存在");
         }
     }
 }

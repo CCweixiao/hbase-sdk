@@ -50,7 +50,7 @@ public class HBaseKerberosAdminTemplateTest {
     public void testCreateNamespace() {
         String namespaceName = "LEO_NS2";
         if (hBaseTemplate.namespaceIsExists(namespaceName)) {
-            hBaseTemplate.deleteNamespace(namespaceName);
+            hBaseTemplate.deleteNamespace(namespaceName, true);
         }
 
         NamespaceDesc namespaceDesc = new NamespaceDesc();
@@ -59,7 +59,7 @@ public class HBaseKerberosAdminTemplateTest {
         namespaceDesc = namespaceDesc.addNamespaceProp("tag", "测试命名空间")
                 .addNamespaceProp("createBy", "leo").addNamespaceProp("updateBy", "");
 
-        hBaseTemplate.createNamespace(namespaceDesc);
+        hBaseTemplate.createNamespace(namespaceDesc, true);
     }
 
     @Test
@@ -73,7 +73,7 @@ public class HBaseKerberosAdminTemplateTest {
     @Test
     public void testDeleteNamespace() {
         String namespaceName = "LEO_NS2";
-        hBaseTemplate.deleteNamespace(namespaceName);
+        hBaseTemplate.deleteNamespace(namespaceName, true);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class HBaseKerberosAdminTemplateTest {
         if (!disabled) {
             hBaseTemplate.disableTable(tableName, false);
         }*/
-        boolean res = hBaseTemplate.deleteTable(tableName);
+        boolean res = hBaseTemplate.deleteTableAsync(tableName);
         System.out.println(res);
     }
 
@@ -127,7 +127,7 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testTruncateTable() {
-        hBaseTemplate.truncateTable("leo_test", true);
+        hBaseTemplate.truncateTableAsync("leo_test", true);
     }
 
     @Test
@@ -141,7 +141,7 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testDeleteFamily(){
-        hBaseTemplate.deleteFamily("leo_test","INFO2");
+        hBaseTemplate.deleteFamilyAsync("leo_test","INFO2");
     }
 
     @Test
@@ -151,7 +151,7 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testTableIsExists(){
-        hBaseTemplate.tableIsNotExistsError("TEST:USER");
+        hBaseTemplate.tableExists("TEST:USER");
     }
 
 

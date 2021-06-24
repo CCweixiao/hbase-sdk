@@ -43,7 +43,7 @@ public class HBaseAdminTemplateTest {
     public void testCreateNamespace() {
         String namespaceName = "LEO_NS2";
         if (hBaseTemplate.namespaceIsExists(namespaceName)) {
-            hBaseTemplate.deleteNamespace(namespaceName);
+            hBaseTemplate.deleteNamespace(namespaceName, true);
         }
 
         NamespaceDesc namespaceDesc = new NamespaceDesc();
@@ -52,7 +52,7 @@ public class HBaseAdminTemplateTest {
         namespaceDesc = namespaceDesc.addNamespaceProp("tag", "测试命名空间")
                 .addNamespaceProp("createBy", "leo").addNamespaceProp("updateBy", "");
 
-        hBaseTemplate.createNamespace(namespaceDesc);
+        hBaseTemplate.createNamespace(namespaceDesc, true);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testDeleteNamespace() {
         String namespaceName = "LEO_NS2";
-        hBaseTemplate.deleteNamespace(namespaceName);
+        hBaseTemplate.deleteNamespace(namespaceName, true);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class HBaseAdminTemplateTest {
         if (!disabled) {
             hBaseTemplate.disableTable(tableName, false);
         }*/
-        boolean res = hBaseTemplate.deleteTable(tableName);
+        boolean res = hBaseTemplate.deleteTableAsync(tableName);
         System.out.println(res);
     }
 
@@ -167,14 +167,14 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testTruncateTable() {
-        hBaseTemplate.truncateTable("leo_test", true);
+        hBaseTemplate.truncateTableAsync("leo_test", true);
     }
 
     @Test
     public void testAddFamily(){
         ColumnFamilyDesc familyDesc = new ColumnFamilyDesc.Builder().defaultColumnFamilyDesc("INFO2").build();
 
-        hBaseTemplate.addFamily("leo_test22",familyDesc);
+        hBaseTemplate.addFamilyAsync("leo_test22",familyDesc);
     }
 
     @Test
@@ -182,12 +182,12 @@ public class HBaseAdminTemplateTest {
         ColumnFamilyDesc familyDesc = new ColumnFamilyDesc.Builder()
                 .defaultColumnFamilyDesc("info").build();
 
-        hBaseTemplate.modifyFamily("leo_test", familyDesc);
+        hBaseTemplate.modifyFamilyAsync("leo_test", familyDesc);
     }
 
     @Test
     public void testDeleteFamily(){
-        hBaseTemplate.deleteFamily("leo_test","INFO2");
+        hBaseTemplate.deleteFamilyAsync("leo_test","INFO2");
     }
 
     @Test
@@ -199,7 +199,7 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testTableIsExists(){
-        hBaseTemplate.tableIsNotExistsError("TEST:USER");
+        hBaseTemplate.tableExists("TEST:USER");
     }
 
     @Test

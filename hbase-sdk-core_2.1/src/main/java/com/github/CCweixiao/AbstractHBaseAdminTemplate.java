@@ -121,6 +121,12 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
         }
     }
 
+    protected void tableIsNotDisableError(Admin admin, String tableName) throws IOException {
+        if (!admin.isTableDisabled(TableName.valueOf(tableName))) {
+            throw new HBaseOperationsException("非禁用状态的表不可被操作");
+        }
+    }
+
     protected void tableIsExistsError(Admin admin, String tableName) throws IOException {
         if (admin.tableExists(TableName.valueOf(tableName))) {
             throw new HBaseOperationsException("表[" + tableName + "]已经存在");
