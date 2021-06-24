@@ -71,31 +71,19 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "TEST:USER3";
-        if (hBaseTemplate.tableExists(tableName)) {
-            hBaseTemplate.disableTable(tableName, false);
-            hBaseTemplate.deleteTable(tableName);
-        }
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setTableName(tableName);
+        String tableName = "USER6";
+        ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
+                .defaultColumnFamilyDesc("INFO").build();
 
-        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
+        ColumnFamilyDesc familyDesc2 = new ColumnFamilyDesc.Builder()
+                .defaultColumnFamilyDesc("INFO2").build();
 
-        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-                .familyName("INFO")
-                .replicationScope(1)
-                .compressionType("NONE")
-                .timeToLive(2147483647)
-                .maxVersions(3).build();
+        HTableDesc tableDesc = new HTableDesc.Builder()
+                .defaultTableDescWithNS("default", tableName)
+                .addTableProp("createUser", "leo")
+                .addColumnFamilyDesc(familyDesc1)
+                .addColumnFamilyDesc(familyDesc2).build();
 
-        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
-
-        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
 
         hBaseTemplate.createTable(tableDesc);
@@ -104,10 +92,7 @@ public class HBaseAdminTemplateTest {
     @Test
     public void getTableDesc() {
         String tableName = "TEST:LEO_USER";
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
-        System.out.println(tableDesc.getProp("lastUpdateBy"));
-        System.out.println(tableDesc.getProp("remark"));
-        System.out.println(tableDesc.getTableDesc());
+        final HTableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
     }
 
     @Test
@@ -156,21 +141,21 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testGetFamilyCom() {
         String tableName = "TEST:USER3";
-        final TableDesc leo_test2 = hBaseTemplate.getTableDesc(tableName);
+        final HTableDesc leo_test2 = hBaseTemplate.getTableDesc(tableName);
         System.out.println(leo_test2);
     }
 
     @Test
     public void testGetTableDesc() {
         String tableName = "TEST:USER";
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
+        final HTableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
 
         System.out.println(tableDesc);
     }
 
     @Test
     public void testListTableDesc() {
-        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc(true);
+        final List<HTableDesc> tableDescList = hBaseTemplate.listTableDesc(true);
         System.out.println(tableDescList);
     }
 
@@ -187,24 +172,15 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testAddFamily(){
-        FamilyDesc familyDesc = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
+        ColumnFamilyDesc familyDesc = new ColumnFamilyDesc.Builder().defaultColumnFamilyDesc("INFO2").build();
 
         hBaseTemplate.addFamily("leo_test22",familyDesc);
     }
 
     @Test
     public void changeFamily(){
-        FamilyDesc familyDesc = new FamilyDesc.Builder()
-                .familyName("info")
-                .replicationScope(0)
-                .compressionType("snappy")
-                .timeToLive(864000)
-                .maxVersions(3).build();
+        ColumnFamilyDesc familyDesc = new ColumnFamilyDesc.Builder()
+                .defaultColumnFamilyDesc("info").build();
 
         hBaseTemplate.modifyFamily("leo_test", familyDesc);
     }
@@ -216,8 +192,8 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testGetFamily(){
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc("leo_test");
-        final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
+        final HTableDesc tableDesc = hBaseTemplate.getTableDesc("leo_test");
+        final List<ColumnFamilyDesc> familyDescList = tableDesc.getColumnFamilyDescList();
         System.out.println(tableDesc);
     }
 

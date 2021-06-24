@@ -56,17 +56,17 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public List<TableDesc> listTableDesc() {
+    public List<HTableDesc> listTableDesc() {
         return listTableDesc("", false);
     }
 
     @Override
-    public List<TableDesc> listTableDesc(boolean includeSysTables) {
+    public List<HTableDesc> listTableDesc(boolean includeSysTables) {
         return listTableDesc("", includeSysTables);
     }
 
     @Override
-    public List<TableDesc> listTableDesc(String regex, boolean includeSysTables) {
+    public List<HTableDesc> listTableDesc(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
             HTableDescriptor[] tableDescriptors;
             if (StrUtil.isBlank(regex)) {
@@ -77,28 +77,18 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             if (tableDescriptors == null || tableDescriptors.length == 0) {
                 return new ArrayList<>();
             }
-            List<TableDesc> tableDescList = parseHTableDescriptorsToTableDescList(tableDescriptors);
-
-            for (TableDesc tableDesc : tableDescList) {
-                tableDesc.setLastMajorCompactTimestamp(admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableDesc.getTableName())));
-            }
-            return tableDescList;
+            return parseHTableDescriptorsToHTableDescList(tableDescriptors);
         });
     }
 
     @Override
-    public List<TableDesc> listTableDescByNamespace(String namespaceName) {
+    public List<HTableDesc> listTableDescByNamespace(String namespaceName) {
         return this.execute(admin -> {
             final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
             if (tableDescriptors == null || tableDescriptors.length == 0) {
                 return new ArrayList<>();
             }
-            final List<TableDesc> tableDescList = parseHTableDescriptorsToTableDescList(tableDescriptors);
-
-            for (TableDesc tableDesc : tableDescList) {
-                tableDesc.setLastMajorCompactTimestamp(admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableDesc.getTableName())));
-            }
-            return tableDescList;
+            return parseHTableDescriptorsToHTableDescList(tableDescriptors);
         });
     }
 
@@ -130,51 +120,47 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public List<String> listTableNamesByNamespace(String namespaceName) {
-        List<TableDesc> tableDescList = listTableDescByNamespace(namespaceName);
-        return tableDescList.stream().map(TableDesc::getTableName).collect(Collectors.toList());
+        List<HTableDesc> tableDescList = listTableDescByNamespace(namespaceName);
+        return tableDescList.stream().map(HTableDesc::getTableName).collect(Collectors.toList());
     }
 
     @Override
-    public List<FamilyDesc> listFamilyDesc(String tableName) {
+    public List<ColumnFamilyDesc> listFamilyDesc(String tableName) {
         tableIsNotExistsError(tableName);
         return this.execute(admin -> {
             HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
             final Collection<HColumnDescriptor> families = tableDescriptor.getFamilies();
-            return parseFamilyDescriptorToFamilyDescList(families);
+            return parseFamilyDescriptorToColumnFamilyDescList(families);
         });
     }
 
     @Override
-    public TableDesc getTableDesc(String tableName) {
+    public HTableDesc getTableDesc(String tableName) {
         return this.execute(admin -> {
             HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
-            TableDesc tableDesc = parseHTableDescriptorToTableDesc(tableDescriptor);
-            tableDesc.setLastMajorCompactTimestamp(admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableName)));
-            return tableDesc;
+            return parseHTableDescriptorToHTableDesc(tableDescriptor);
         });
     }
 
     @Override
-    public boolean createTable(TableDesc tableDesc) {
+    public boolean createTable(HTableDesc tableDesc) {
         String tableName = tableDesc.getFullTableName();
         tableIsExistsError(tableName);
-        tableDesc.setTableName(tableName);
 
         return this.execute(admin -> {
-            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            HTableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             admin.createTable(tableDescriptor);
             return true;
         });
     }
 
     @Override
-    public boolean createTable(TableDesc tableDesc, String startKey, String endKey, int numRegions, boolean isAsync) {
+    public boolean createTable(HTableDesc tableDesc, String startKey, String endKey, int numRegions, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
         tableIsExistsError(tableName);
-        tableDesc.setTableName(tableName);
 
         return this.execute(admin -> {
-            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            HTableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = (StrUtil.isNotBlank(startKey) && StrUtil.isNotBlank(endKey) && numRegions > 0);
 
             if (preSplit) {
@@ -218,13 +204,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean createTable(TableDesc tableDesc, String[] splitKeys, boolean isAsync) {
+    public boolean createTable(HTableDesc tableDesc, String[] splitKeys, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
         tableIsExistsError(tableName);
-        tableDesc.setTableName(tableName);
 
         return this.execute(admin -> {
-            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            HTableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = splitKeys != null && splitKeys.length > 0;
 
             if (preSplit) {
@@ -242,13 +227,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean createTable(TableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync) {
+    public boolean createTable(HTableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
         tableIsExistsError(tableName);
-        tableDesc.setTableName(tableName);
 
         return this.execute(admin -> {
-            HTableDescriptor tableDescriptor = parseTableDescToHTableDescriptor(tableDesc);
+            HTableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = splitGoEnum != null && numRegions > 0;
 
             if (preSplit) {
@@ -276,7 +260,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
 
     @Override
-    public boolean modifyTableProps(TableDesc tableDesc) {
+    public boolean modifyTableProps(HTableDesc tableDesc) {
         final String tableName = tableDesc.getFullTableName();
         tableIsNotExistsError(tableName);
 
@@ -385,14 +369,14 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean addFamily(String tableName, FamilyDesc familyDesc) {
+    public boolean addFamily(String tableName, ColumnFamilyDesc familyDesc) {
         tableIsNotExistsError(tableName);
         return this.execute(admin -> {
             final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
             if (tableDescriptor.hasFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
                 throw new HBaseOperationsException("列簇[" + familyDesc.getFamilyName() + "]在表[" + tableName + "]中已经存在");
             }
-            HColumnDescriptor columnDescriptor = parseFamilyDescToHColumnDescriptor(familyDesc);
+            HColumnDescriptor columnDescriptor = parseColumnFamilyDescToHColumnDescriptor(familyDesc);
             admin.addColumn(TableName.valueOf(tableName), columnDescriptor);
             return true;
         });
@@ -412,7 +396,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean modifyFamily(String tableName, FamilyDesc familyDesc) {
+    public boolean modifyFamily(String tableName, ColumnFamilyDesc familyDesc) {
         tableIsNotExistsError(tableName);
 
         return this.execute(admin -> {
@@ -424,8 +408,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             HColumnDescriptor columnDescriptor = tableDescriptor.getFamily(Bytes.toBytes(familyDesc.getFamilyName()));
             boolean change = false;
 
-            if (columnDescriptor.getMaxVersions() != familyDesc.getMaxVersions()) {
-                columnDescriptor.setMaxVersions(familyDesc.getMaxVersions());
+            if (columnDescriptor.getMaxVersions() != familyDesc.getVersions()) {
+                columnDescriptor.setMaxVersions(familyDesc.getVersions());
                 change = true;
             }
             if (columnDescriptor.getTimeToLive() != familyDesc.getTimeToLive()) {

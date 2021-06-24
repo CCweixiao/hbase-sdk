@@ -7,10 +7,7 @@ import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
-import com.github.CCweixiao.model.HBaseRegionRecord;
-import com.github.CCweixiao.model.HBaseTableRecord;
-import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.model.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,34 +44,25 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testListTableDesc() {
-        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc();
+        final List<HTableDesc> tableDescList = hBaseTemplate.listTableDesc();
         System.out.println(tableDescList);
     }
 
     @Test
     public void testCreateTable() {
         String tableName = "USER6";
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setNamespaceName("");
-        tableDesc.setTableName(tableName);
+        ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
+                .defaultColumnFamilyDesc("INFO").build();
 
-        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
+        ColumnFamilyDesc familyDesc2 = new ColumnFamilyDesc.Builder()
+                .defaultColumnFamilyDesc("INFO2").build();
 
-        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-                .familyName("INFO")
-                .replicationScope(1)
-                .compressionType("NONE")
-                .timeToLive(2147483647)
-                .maxVersions(3).build();
+        HTableDesc tableDesc = new HTableDesc.Builder()
+                .defaultTableDescWithNS("default", tableName)
+                .addTableProp("createUser", "leo")
+                .addColumnFamilyDesc(familyDesc1)
+                .addColumnFamilyDesc(familyDesc2).build();
 
-        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
-
-        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
 
         hBaseTemplate.createTable(tableDesc);
@@ -82,12 +70,12 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testModifyTable(){
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setTableName("USER6");
-        Map<String,String> prop = new HashMap<>();
-        prop.put("name","leo");
-        tableDesc.setTableProps(prop);
-        hBaseTemplate.modifyTableProps(tableDesc);
+//        HTableDesc tableDesc = new TableDesc();
+//        tableDesc.setTableName("USER6");
+//        Map<String,String> prop = new HashMap<>();
+//        prop.put("name","leo");
+//        tableDesc.setTableProps(prop);
+//        hBaseTemplate.modifyTableProps(tableDesc);
     }
 
     @Test

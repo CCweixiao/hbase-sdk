@@ -8,6 +8,7 @@ import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
 import com.github.CCweixiao.model.FamilyDesc;
+import com.github.CCweixiao.model.HTableDesc;
 import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +56,7 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testListTableDesc() {
-        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc();
+        final List<HTableDesc> tableDescList = hBaseTemplate.listTableDesc();
         System.out.println(tableDescList);
     }
 
@@ -85,17 +86,17 @@ public class HBaseKerberosAdminTemplateTest {
         tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
 
-        hBaseTemplate.createTable(tableDesc);
+        // hBaseTemplate.createTable(tableDesc);
     }
 
     @Test
     public void testModifyTable(){
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setTableName("USER6");
-        Map<String,String> prop = new HashMap<>();
-        prop.put("name","leo");
-        tableDesc.setTableProps(prop);
-        hBaseTemplate.modifyTableProps(tableDesc);
+//        TableDesc tableDesc = new TableDesc();
+//        tableDesc.setTableName("USER6");
+//        Map<String,String> prop = new HashMap<>();
+//        prop.put("name","leo");
+//        tableDesc.setTableProps(prop);
+//        hBaseTemplate.modifyTableProps(tableDesc);
     }
 
     @Test

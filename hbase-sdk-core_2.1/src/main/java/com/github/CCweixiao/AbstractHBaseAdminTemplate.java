@@ -119,7 +119,7 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
 
     protected HTableDesc parseHTableDescriptorToHTableDesc(TableDescriptor tableDescriptor){
         final Map<Bytes, Bytes> values = tableDescriptor.getValues();
-        final Map<String, String> props = new HashMap<>();
+        final Map<String, String> props = new HashMap<>(2);
 
         if (values != null && !values.isEmpty()) {
             values.forEach((key, value) -> props.put(Bytes.toString(key.get()), Bytes.toString(value.get())));

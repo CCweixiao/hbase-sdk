@@ -73,7 +73,7 @@ public class HTableDesc {
             return this;
         }
 
-        public Builder defaultTableDescWithFamily(String namespaceName, String tableName) {
+        public Builder defaultTableDescWithNS(String namespaceName, String tableName) {
             this.namespaceName = namespaceName;
             this.tableName = HMHBaseConstant.getFullTableName(namespaceName, tableName);
             this.maxFileSize = DEFAULT_MAX_FILE_SIZE;
