@@ -21,13 +21,12 @@ public class HTableDesc {
 
     private final String namespaceName;
     private final String tableName;
-    private final long maxFileSize;
-    private final boolean readOnly;
-    private final long memStoreFlushSize;
-    private final boolean compactionEnabled;
+    private final Long maxFileSize;
+    private final Boolean readOnly;
+    private final Long memStoreFlushSize;
+    private final Boolean compactionEnabled;
     private final Map<String, String> tableProps;
     private final List<ColumnFamilyDesc> columnFamilyDescList;
-    private final boolean metaTable;
 
     public HTableDesc(Builder builder) {
         this.namespaceName = builder.namespaceName;
@@ -38,20 +37,17 @@ public class HTableDesc {
         this.compactionEnabled = builder.compactionEnabled;
         this.tableProps = builder.tableProps;
         this.columnFamilyDescList = builder.columnFamilyDescList;
-        this.metaTable = builder.metaTable;
     }
 
     public static class Builder {
         private String namespaceName;
         private String tableName;
-        private long maxFileSize;
-        private boolean readOnly;
-        private long memStoreFlushSize;
-        private boolean compactionEnabled;
+        private Long maxFileSize;
+        private Boolean readOnly;
+        private Long memStoreFlushSize;
+        private Boolean compactionEnabled;
         private Map<String, String> tableProps;
         private List<ColumnFamilyDesc> columnFamilyDescList;
-        private boolean metaTable;
-
 
         public Builder namespaceName(String namespaceName) {
             this.namespaceName = namespaceName;
@@ -66,39 +62,39 @@ public class HTableDesc {
         public Builder defaultTableDesc(String tableName) {
             this.namespaceName = HMHBaseConstant.getNamespaceName(tableName);
             this.tableName = HMHBaseConstant.getFullTableName(tableName);
-            this.maxFileSize = DEFAULT_MAX_FILE_SIZE;
-            this.readOnly = DEFAULT_READ_ONLY;
-            this.memStoreFlushSize = DEFAULT_MEM_STORE_FLUSH_SIZE;
-            this.compactionEnabled = DEFAULT_COMPACTION_ENABLED;
+            this.maxFileSize = null;
+            this.readOnly = null;
+            this.memStoreFlushSize = null;
+            this.compactionEnabled = null;
             return this;
         }
 
-        public Builder defaultTableDescWithNS(String namespaceName, String tableName) {
+        public Builder defaultTableDescWithNs(String namespaceName, String tableName) {
             this.namespaceName = namespaceName;
             this.tableName = HMHBaseConstant.getFullTableName(namespaceName, tableName);
-            this.maxFileSize = DEFAULT_MAX_FILE_SIZE;
-            this.readOnly = DEFAULT_READ_ONLY;
-            this.memStoreFlushSize = DEFAULT_MEM_STORE_FLUSH_SIZE;
-            this.compactionEnabled = DEFAULT_COMPACTION_ENABLED;
+            this.maxFileSize = null;
+            this.readOnly = null;
+            this.memStoreFlushSize = null;
+            this.compactionEnabled = null;
             return this;
         }
 
-        public Builder maxFileSize(long maxFileSize) {
+        public Builder maxFileSize(Long maxFileSize) {
             this.maxFileSize = maxFileSize;
             return this;
         }
 
-        public Builder readOnly(boolean readOnly) {
+        public Builder readOnly(Boolean readOnly) {
             this.readOnly = readOnly;
             return this;
         }
 
-        public Builder memStoreFlushSize(long memStoreFlushSize) {
+        public Builder memStoreFlushSize(Long memStoreFlushSize) {
             this.memStoreFlushSize = memStoreFlushSize;
             return this;
         }
 
-        public Builder compactionEnabled(boolean compactionEnabled) {
+        public Builder compactionEnabled(Boolean compactionEnabled) {
             this.compactionEnabled = compactionEnabled;
             return this;
         }
@@ -135,11 +131,6 @@ public class HTableDesc {
             return this;
         }
 
-        public Builder metaTable(boolean metaTable) {
-            this.metaTable = metaTable;
-            return this;
-        }
-
         public HTableDesc build() {
             return new HTableDesc(this);
         }
@@ -149,27 +140,23 @@ public class HTableDesc {
         return namespaceName;
     }
 
-    public boolean isMetaTable() {
-        return metaTable;
-    }
-
     public String getTableName() {
         return this.tableName;
     }
 
-    public long getMaxFileSize() {
+    public Long getMaxFileSize() {
         return this.maxFileSize;
     }
 
-    public boolean isReadOnly() {
+    public Boolean isReadOnly() {
         return this.readOnly;
     }
 
-    public long getMemStoreFlushSize() {
+    public Long getMemStoreFlushSize() {
         return this.memStoreFlushSize;
     }
 
-    public boolean isCompactionEnabled() {
+    public Boolean isCompactionEnabled() {
         return this.compactionEnabled;
     }
 
@@ -230,7 +217,7 @@ public class HTableDesc {
     @Override
     public String toString() {
         return "HTableDesc{" +
-                "namespaceName='" + namespaceName + '\'' +
+                "namespaceName='" + HMHBaseConstant.getNamespaceName(tableName) + '\'' +
                 ", tableName='" + tableName + '\'' +
                 ", maxFileSize=" + maxFileSize +
                 ", readOnly=" + readOnly +
@@ -238,7 +225,6 @@ public class HTableDesc {
                 ", compactionEnabled=" + compactionEnabled +
                 ", tableProps=" + tableProps +
                 ", columnFamilyDescList=" + columnFamilyDescList +
-                ", metaTable=" + metaTable +
                 '}';
     }
 }

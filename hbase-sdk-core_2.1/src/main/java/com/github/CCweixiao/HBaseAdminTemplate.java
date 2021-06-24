@@ -123,8 +123,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public List<ColumnFamilyDesc> listFamilyDesc(String tableName) {
-        tableIsNotExistsError(tableName);
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
             final ColumnFamilyDescriptor[] families = tableDescriptor.getColumnFamilies();
             return parseColumnFamilyDescriptorToColumnFamilyDescList(families);
@@ -142,9 +142,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     @Override
     public boolean createTable(HTableDesc tableDesc) {
         String tableName = tableDesc.getFullTableName();
-        tableIsExistsError(tableName);
-
         return this.execute(admin -> {
+            tableIsExistsError(admin, tableName);
             TableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             admin.createTable(tableDescriptor);
             return true;
@@ -154,9 +153,9 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     @Override
     public boolean createTable(HTableDesc tableDesc, String startKey, String endKey, int numRegions, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
-        tableIsExistsError(tableName);
 
         return this.execute(admin -> {
+            tableIsExistsError(admin, tableName);
             TableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = (StrUtil.isNotBlank(startKey) && StrUtil.isNotBlank(endKey) && numRegions > 0);
 
@@ -202,9 +201,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     @Override
     public boolean createTable(HTableDesc tableDesc, String[] splitKeys, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
-        tableIsExistsError(tableName);
-
         return this.execute(admin -> {
+            tableIsExistsError(admin, tableName);
             TableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = splitKeys != null && splitKeys.length > 0;
 
@@ -224,9 +222,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     @Override
     public boolean createTable(HTableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync) {
         String tableName = tableDesc.getFullTableName();
-        tableIsExistsError(tableName);
-
         return this.execute(admin -> {
+            tableIsExistsError(admin, tableName);
             TableDescriptor tableDescriptor = parseHTableDescToTableDescriptor(tableDesc);
             boolean preSplit = splitGoEnum != null && numRegions > 0;
 
@@ -254,18 +251,19 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean modifyTableProps(HTableDesc tableDesc) {
-        final String tableName = tableDesc.getFullTableName();
-        tableIsNotExistsError(tableName);
-
+    public boolean modifyTableProps(final String tableName, Map<String, String> props, boolean isAsync) {
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
             TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableDescriptor);
 
-            final Map<String, String> tableProps = tableDesc.getTableProps();
-            if (tableProps != null && !tableProps.isEmpty()) {
-                tableProps.forEach(tableDescriptorBuilder::setValue);
-                admin.modifyTable(tableDescriptorBuilder.build());
+            if (props != null && !props.isEmpty()) {
+                props.forEach(tableDescriptorBuilder::setValue);
+                if (isAsync) {
+                    admin.modifyTableAsync(tableDescriptorBuilder.build());
+                } else {
+                    admin.modifyTable(tableDescriptorBuilder.build());
+                }
                 return true;
             }
             return true;
@@ -273,20 +271,31 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable) {
-        tableIsNotExistsError(oldTableName);
-        tableIsExistsError(newTableName);
+    public boolean modifyTablePropsAsync(final String tableName, Map<String, String> props) {
+        return modifyTableProps(tableName, props, true);
+    }
 
-        if (isTableEnabled(oldTableName)) {
-            throw new HBaseOperationsException("表[" + oldTableName + "]重命名之前请先禁用");
-        }
-
+    @Override
+    public boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable, boolean isAsync) {
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, oldTableName);
+            tableIsExistsError(admin, newTableName);
+            if (admin.isTableEnabled(TableName.valueOf(oldTableName))) {
+                throw new HBaseOperationsException("表[" + oldTableName + "]重命名之前请先禁用");
+            }
             final String tempSnapShotName = oldTableName.replace(":", "_") +
                     "_SNAPSHOT_RENAME_" + UUID.randomUUID().toString().replaceAll("-", "");
-            admin.snapshot(tempSnapShotName, TableName.valueOf(oldTableName));
-            admin.cloneSnapshot(tempSnapShotName, TableName.valueOf(newTableName));
-            admin.deleteSnapshot(tempSnapShotName);
+            if (isAsync) {
+                SnapshotDescription snapshotDescription = new SnapshotDescription(tempSnapShotName, TableName.valueOf(oldTableName));
+                admin.snapshotAsync(snapshotDescription);
+                admin.cloneSnapshotAsync(tempSnapShotName, TableName.valueOf(newTableName));
+                admin.deleteSnapshot(tempSnapShotName);
+            } else {
+                admin.snapshot(tempSnapShotName, TableName.valueOf(oldTableName));
+                admin.cloneSnapshot(tempSnapShotName, TableName.valueOf(newTableName));
+                admin.deleteSnapshot(tempSnapShotName);
+            }
+
             if (deleteOldTable) {
                 admin.deleteTable(TableName.valueOf(oldTableName));
             } else {
@@ -302,7 +311,6 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             if (!admin.isTableDisabled(TableName.valueOf(tableName))) {
                 throw new HBaseOperationsException("表[" + tableName + "]删除之前请先禁用");
             }
-
             admin.deleteTable(TableName.valueOf(tableName));
             return true;
         });
@@ -366,8 +374,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean addFamily(String tableName, ColumnFamilyDesc familyDesc) {
-        tableIsNotExistsError(tableName);
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
             if (tableDescriptor.hasColumnFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
                 throw new HBaseOperationsException("列簇[" + familyDesc.getFamilyName() + "]在表[" + tableName + "]中已经存在");
@@ -392,9 +400,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean modifyFamily(String tableName, ColumnFamilyDesc familyDesc) {
-        tableIsNotExistsError(tableName);
-
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
 
             if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(familyDesc.getFamilyName()))) {
@@ -430,20 +437,18 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean enableReplicationScope(String tableName, List<String> families) {
-        tableIsNotExistsError(tableName);
         return modifyTableReplicationScope(tableName, HMHBaseConstant.ENABLE_REPLICATION_SCOPE, families);
     }
 
     @Override
     public boolean disableReplicationScope(String tableName, List<String> families) {
-        tableIsNotExistsError(tableName);
         return modifyTableReplicationScope(tableName, HMHBaseConstant.DISABLE_REPLICATION_SCOPE, families);
     }
 
     @Override
     public boolean flush(String tableName) {
-        tableIsNotExistsError(tableName);
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             admin.flush(TableName.valueOf(tableName));
             return true;
         });
@@ -451,8 +456,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean compact(String tableName) {
-        tableIsNotExistsError(tableName);
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             admin.compact(TableName.valueOf(tableName));
             return true;
         });
@@ -460,8 +465,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean majorCompact(String tableName) {
-        tableIsNotExistsError(tableName);
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             admin.majorCompact(TableName.valueOf(tableName));
             return true;
         });
@@ -534,8 +539,10 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public long getLastMajorCompactionTimestamp(String tableName) {
-        tableIsNotExistsError(tableName);
-        return this.execute(admin -> admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableName)));
+        return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
+            return admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableName));
+        });
     }
 
     @Override
@@ -563,8 +570,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean snapshot(SnapshotDesc snapshotDesc) {
-        tableIsNotExistsError(snapshotDesc.getTableName());
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, snapshotDesc.getTableName());
             admin.snapshot(snapshotDesc.getSnapshotName(), TableName.valueOf(snapshotDesc.getTableName()));
             return true;
         });
@@ -580,9 +587,8 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
     @Override
     public boolean cloneSnapshot(String snapshotName, String tableName) {
-        tableIsExistsError(tableName);
-
         return this.execute(admin -> {
+            tableIsExistsError(admin, tableName);
             admin.cloneSnapshot(snapshotName, TableName.valueOf(tableName));
             return true;
         });
@@ -616,13 +622,13 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     public boolean mergeMultipleRegions(byte[][] regions, boolean force) {
         return this.execute(admin -> {
             int mergeRegionsNum = regions.length;
-            if (mergeRegionsNum % 2 != 0){
+            if (mergeRegionsNum % 2 != 0) {
                 mergeRegionsNum = mergeRegionsNum - 1;
             }
-            for(int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2){
+            for (int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2) {
                 byte[] firstByteRegionName = regions[i];
                 byte[] secondByteRegionName = regions[j];
-                admin.mergeRegionsAsync(firstByteRegionName,secondByteRegionName, force);
+                admin.mergeRegionsAsync(firstByteRegionName, secondByteRegionName, force);
             }
             return true;
         });
@@ -704,13 +710,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
      * @return 修改REPLICATION_SCOPE的熟悉是否成功
      */
     private boolean modifyTableReplicationScope(String tableName, int replicationScope, List<String> families) {
-        tableIsNotExistsError(tableName);
-
         if (families == null || families.isEmpty()) {
             throw new HBaseOperationsException("请传入一个或多个待修改的列簇");
         }
 
         return this.execute(admin -> {
+            tableIsNotExistsError(admin, tableName);
             TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
             TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableDescriptor);
 
@@ -774,7 +779,6 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
 
-
     @Override
     public List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
@@ -789,7 +793,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         });
     }
 
-    private HBaseTableRecord convertRecordToHBaseTableRecord(Record record){
+    private HBaseTableRecord convertRecordToHBaseTableRecord(Record record) {
         HBaseTableRecord tableRecord = new HBaseTableRecord();
         tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
         tableRecord.setTableName(record.get(Field.TABLE).asString());
@@ -810,7 +814,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             List<RecordFilter> recordFilters = createTableRecordFilters(fullTableName);
             final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
             List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
-            if (records.isEmpty()){
+            if (records.isEmpty()) {
                 return null;
             }
             records = filterAndSortRecords(records, recordFilters, null, true);

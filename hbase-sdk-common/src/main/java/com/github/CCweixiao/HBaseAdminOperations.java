@@ -7,6 +7,7 @@ import com.github.CCweixiao.model.HTableDesc;
 import com.github.CCweixiao.util.SplitGoEnum;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>该接口用于定义管理员操作的API</p>
@@ -141,12 +142,22 @@ public interface HBaseAdminOperations {
     boolean createTable(final HTableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync);
 
     /**
-     * 修改表
+     * 修改表属性
      *
-     * @param tableDesc 表描述
-     * @return 表是否被修改成功
+     * @param tableName 表名
+     * @param props 属性
+     * @param isAsync 是否异步
+     * @return 修改是否成功
      */
-    boolean modifyTableProps(final HTableDesc tableDesc);
+    boolean modifyTableProps(final String tableName, Map<String, String> props, boolean isAsync);
+
+    /**
+     * 异步修改表属性
+     * @param tableName 表名
+     * @param props 属性
+     * @return 修改是否成功
+     */
+    boolean modifyTablePropsAsync(final String tableName, Map<String, String> props);
 
     /**
      * 修改表名
@@ -154,9 +165,10 @@ public interface HBaseAdminOperations {
      * @param oldTableName   旧表名
      * @param newTableName   新表名
      * @param deleteOldTable 是否删除旧表
+     * @param isAsync 是否是异步的
      * @return 修改表名结果
      */
-    boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable);
+    boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable,  boolean isAsync);
 
     /**
      * 删除表
@@ -409,22 +421,24 @@ public interface HBaseAdminOperations {
      *
      * @param firstRegion  第一个region名称
      * @param secondRegion 第二个region名称
-     * @param force 是否强制合并，加true为暴力合并，即不连续的两个region合并，尽量不要使用
+     * @param force        是否强制合并，加true为暴力合并，即不连续的两个region合并，尽量不要使用
      * @return 合并region提交的结果
      */
     boolean mergeRegions(final byte[] firstRegion, final byte[] secondRegion, boolean force);
 
     /**
      * 合并多个region
+     *
      * @param regions 多个region
-     * @param force  是否强制合并
+     * @param force   是否强制合并
      * @return 合并region提交的结果
      */
     boolean mergeMultipleRegions(final byte[][] regions, boolean force);
 
     /**
      * 合并某张表的小region
-     * @param tableName 表名
+     *
+     * @param tableName       表名
      * @param limitRegionsNum 限制参与合并的region数，例如，总的region数是1000，此值设置为100，那么每次只有100个region参与合并
      * @param limitRegionSize 限制参与合并的region大小，单位是M，例如，如果每个region的大小设置为20G，那么只有小于10G的region的进行合并（此阈值可以调整）
      */

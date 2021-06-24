@@ -260,16 +260,17 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
 
 
     @Override
-    public boolean modifyTableProps(HTableDesc tableDesc) {
-        final String tableName = tableDesc.getFullTableName();
+    public boolean modifyTableProps(final String tableName, Map<String, String> props, boolean isAsync) {
         tableIsNotExistsError(tableName);
-
         return this.execute(admin -> {
             final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
-            final Map<String, String> tableProps = tableDesc.getTableProps();
-            if (tableProps != null && !tableProps.isEmpty()) {
-                tableProps.forEach(tableDescriptor::setValue);
-                admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+            if (props != null && !props.isEmpty()) {
+                props.forEach(tableDescriptor::setValue);
+                if (isAsync) {
+                    admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+                } else {
+                    admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+                }
                 return true;
             }
             return true;
@@ -277,7 +278,12 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable) {
+    public boolean modifyTablePropsAsync(final String tableName, Map<String, String> props) {
+        return modifyTableProps(tableName, props, true);
+    }
+
+    @Override
+    public boolean renameTable(String oldTableName, String newTableName, boolean deleteOldTable,  boolean isAsync) {
         tableIsNotExistsError(oldTableName);
         tableIsExistsError(newTableName);
 
@@ -618,13 +624,13 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     public boolean mergeMultipleRegions(byte[][] regions, boolean force) {
         return this.execute(admin -> {
             int mergeRegionsNum = regions.length;
-            if (mergeRegionsNum % 2 != 0){
+            if (mergeRegionsNum % 2 != 0) {
                 mergeRegionsNum = mergeRegionsNum - 1;
             }
-            for(int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2){
+            for (int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2) {
                 byte[] firstByteRegionName = regions[i];
                 byte[] secondByteRegionName = regions[j];
-                admin.mergeRegions(firstByteRegionName,secondByteRegionName, force);
+                admin.mergeRegions(firstByteRegionName, secondByteRegionName, force);
             }
             return true;
         });
@@ -788,7 +794,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
         });
     }
 
-    private HBaseTableRecord convertRecordToHBaseTableRecord(Record record){
+    private HBaseTableRecord convertRecordToHBaseTableRecord(Record record) {
         HBaseTableRecord tableRecord = new HBaseTableRecord();
         tableRecord.setNamespaceName(record.get(Field.NAMESPACE).asString());
         tableRecord.setTableName(record.get(Field.TABLE).asString());
@@ -809,7 +815,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             List<RecordFilter> recordFilters = createTableRecordFilters(fullTableName);
             ClusterStatus clusterStatus = admin.getClusterStatus();
             List<Record> records = Mode.TABLE.getRecords(clusterStatus);
-            if (records.isEmpty()){
+            if (records.isEmpty()) {
                 return null;
             }
             records = filterAndSortRecords(records, recordFilters, null, true);
@@ -869,7 +875,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                                               Field currentSortField, boolean ascendingSort) {
         // Filter and sort
         List<Record> sortAndFilterRecords;
-        if(currentSortField != null){
+        if (currentSortField != null) {
             sortAndFilterRecords = records.stream()
                     .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
                     .sorted((recordLeft, recordRight) -> {
@@ -877,7 +883,7 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
                         FieldValue right = recordRight.get(currentSortField);
                         return (ascendingSort ? 1 : -1) * left.compareTo(right);
                     }).collect(Collectors.toList());
-        }else{
+        } else {
             sortAndFilterRecords = records.stream()
                     .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
                     .collect(Collectors.toList());

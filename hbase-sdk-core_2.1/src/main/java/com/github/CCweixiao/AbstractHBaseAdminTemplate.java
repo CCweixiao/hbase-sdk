@@ -6,13 +6,11 @@ import com.github.CCweixiao.model.ColumnFamilyDesc;
 import com.github.CCweixiao.model.HTableDesc;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
-import org.apache.hadoop.hbase.client.ColumnFamilyDescriptorBuilder;
-import org.apache.hadoop.hbase.client.TableDescriptor;
-import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,10 +32,19 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
 
     protected TableDescriptor parseHTableDescToTableDescriptor(final HTableDesc tableDesc) {
         final TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(tableDesc.getTableName()));
-        tableDescriptorBuilder.setMaxFileSize(tableDesc.getMaxFileSize());
-        tableDescriptorBuilder.setReadOnly(tableDesc.isReadOnly());
-        tableDescriptorBuilder.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());
-        tableDescriptorBuilder.setCompactionEnabled(tableDesc.isCompactionEnabled());
+
+        if (tableDesc.getMaxFileSize() != null) {
+            tableDescriptorBuilder.setMaxFileSize(tableDesc.getMaxFileSize());
+        }
+        if (tableDesc.isReadOnly() != null) {
+            tableDescriptorBuilder.setReadOnly(tableDesc.isReadOnly());
+        }
+        if (tableDesc.getMemStoreFlushSize() != null) {
+            tableDescriptorBuilder.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());
+        }
+        if (tableDesc.isCompactionEnabled() != null) {
+            tableDescriptorBuilder.setCompactionEnabled(tableDesc.isCompactionEnabled());
+        }
 
         if (tableDesc.columnFamilyIsEmpty()) {
             throw new HBaseOperationsException("请为表[" + tableDesc.getTableName() + "]指定一个或多个列簇");
@@ -78,7 +85,6 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
                 .compactionEnabled(tableDescriptor.isCompactionEnabled())
                 .tableProps(props)
                 .columnFamilyDescList(parseColumnFamilyDescriptorToColumnFamilyDescList(tableDescriptor.getColumnFamilies()))
-                .metaTable(tableDescriptor.isMetaTable())
                 .build();
     }
 
@@ -109,17 +115,14 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
         return columnFamilyDescriptorBuilder.build();
     }
 
-    protected void tableIsNotExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-
-        if (!tableExists(fullTableName)) {
+    protected void tableIsNotExistsError(Admin admin, String tableName) throws IOException {
+        if (!admin.tableExists(TableName.valueOf(tableName))) {
             throw new HBaseOperationsException("表[" + tableName + "]不存在");
         }
     }
 
-    protected void tableIsExistsError(String tableName) {
-        String fullTableName = HMHBaseConstant.getFullTableName(tableName);
-        if (tableExists(fullTableName)) {
+    protected void tableIsExistsError(Admin admin, String tableName) throws IOException {
+        if (admin.tableExists(TableName.valueOf(tableName))) {
             throw new HBaseOperationsException("表[" + tableName + "]已经存在");
         }
     }

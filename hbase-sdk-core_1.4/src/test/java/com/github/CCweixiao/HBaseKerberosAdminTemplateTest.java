@@ -121,8 +121,8 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testReNameTable() {
-        hBaseTemplate.renameTable("TEST:USER", "TEST:USER_NEW", false);
-        hBaseTemplate.renameTable("TEST:USER3", "TEST:USER3_NEW", false);
+        hBaseTemplate.renameTable("TEST:USER", "TEST:USER_NEW", false, true);
+        hBaseTemplate.renameTable("TEST:USER3", "TEST:USER3_NEW", false, true);
     }
 
     @Test

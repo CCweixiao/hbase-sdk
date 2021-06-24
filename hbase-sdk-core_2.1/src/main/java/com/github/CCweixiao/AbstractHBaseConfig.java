@@ -33,11 +33,6 @@ public abstract class AbstractHBaseConfig implements HBaseOperations {
     @Override
     public Connection getConnection() {
         return MultipleConnectionFactory.getConnection(this.configuration);
-       /* try {
-            return ConnectionFactory.createConnection(configuration);
-        } catch (IOException e) {
-            throw new HBaseSdkConnectionException(e);
-        }*/
     }
 
 

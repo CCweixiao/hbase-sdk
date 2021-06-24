@@ -79,7 +79,7 @@ public class HBaseAdminTemplateTest {
                 .defaultColumnFamilyDesc("INFO2").build();
 
         HTableDesc tableDesc = new HTableDesc.Builder()
-                .defaultTableDescWithNS("default", tableName)
+                .defaultTableDescWithNs("default", tableName)
                 .addTableProp("createUser", "leo")
                 .addColumnFamilyDesc(familyDesc1)
                 .addColumnFamilyDesc(familyDesc2).build();
@@ -161,8 +161,8 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testReNameTable() {
-        hBaseTemplate.renameTable("TEST:USER", "TEST:USER_NEW", false);
-        hBaseTemplate.renameTable("TEST:USER3", "TEST:USER3_NEW", false);
+        hBaseTemplate.renameTable("TEST:USER", "TEST:USER_NEW", false, true);
+        hBaseTemplate.renameTable("TEST:USER3", "TEST:USER3_NEW", false, true);
     }
 
     @Test

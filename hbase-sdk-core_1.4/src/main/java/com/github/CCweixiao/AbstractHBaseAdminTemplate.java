@@ -36,10 +36,18 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
 
     protected HTableDescriptor parseHTableDescToTableDescriptor(final HTableDesc tableDesc) {
         HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableDesc.getTableName()));
-        tableDescriptor.setMaxFileSize(tableDesc.getMaxFileSize());
-        tableDescriptor.setReadOnly(tableDesc.isReadOnly());
-        tableDescriptor.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());
-        tableDescriptor.setCompactionEnabled(tableDesc.isCompactionEnabled());
+        if (tableDesc.getMaxFileSize() != null) {
+            tableDescriptor.setMaxFileSize(tableDesc.getMaxFileSize());
+        }
+        if (tableDesc.isReadOnly() != null) {
+            tableDescriptor.setReadOnly(tableDesc.isReadOnly());
+        }
+        if (tableDesc.getMemStoreFlushSize() != null) {
+            tableDescriptor.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());
+        }
+        if (tableDesc.isCompactionEnabled() != null) {
+            tableDescriptor.setCompactionEnabled(tableDesc.isCompactionEnabled());
+        }
         if (tableDesc.columnFamilyIsEmpty()) {
             throw new HBaseOperationsException("请为表[" + tableDesc.getTableName() + "]指定一个或多个列簇");
         }
@@ -58,7 +66,7 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
         return Arrays.stream(tableDescriptors).map(this::parseHTableDescriptorToHTableDesc).collect(Collectors.toList());
     }
 
-    protected HTableDesc parseHTableDescriptorToHTableDesc(HTableDescriptor tableDescriptor){
+    protected HTableDesc parseHTableDescriptorToHTableDesc(HTableDescriptor tableDescriptor) {
         final Map<ImmutableBytesWritable, ImmutableBytesWritable> values = tableDescriptor.getValues();
         final Map<String, String> props = new HashMap<>(2);
 
@@ -74,7 +82,6 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
                 .compactionEnabled(tableDescriptor.isCompactionEnabled())
                 .tableProps(props)
                 .columnFamilyDescList(parseFamilyDescriptorToColumnFamilyDescList(tableDescriptor.getFamilies()))
-                .metaTable(tableDescriptor.isMetaTable())
                 .build();
     }
 
@@ -104,7 +111,6 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
         columnDescriptor.setInMemory(familyDesc.isInMemory());
         return columnDescriptor;
     }
-
 
 
     protected void tableIsNotExistsError(String tableName) {

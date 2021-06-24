@@ -13,9 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * HBase admin template test
@@ -33,24 +31,29 @@ public class HBaseAdminTemplateTest {
     @Test
     public void testListNamespace() {
         List<String> namespaces = hBaseTemplate.listNamespaceNames();
-
         System.out.println(namespaces);
     }
 
     @Test
     public void testCreateNamespace() {
-
     }
 
     @Test
     public void testListTableDesc() {
-        final List<HTableDesc> tableDescList = hBaseTemplate.listTableDesc();
+        final List<HTableDesc> tableDescList = hBaseTemplate.listTableDesc(true);
         System.out.println(tableDescList);
     }
 
     @Test
+    public void testGetTableDesc(){
+       HTableDesc tableDesc = hBaseTemplate.getTableDesc("hbase:meta");
+
+        System.out.println(tableDesc);
+    }
+
+    @Test
     public void testCreateTable() {
-        String tableName = "USER6";
+        String tableName = "USER19";
         ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
                 .defaultColumnFamilyDesc("INFO").build();
 
@@ -58,13 +61,11 @@ public class HBaseAdminTemplateTest {
                 .defaultColumnFamilyDesc("INFO2").build();
 
         HTableDesc tableDesc = new HTableDesc.Builder()
-                .defaultTableDescWithNS("default", tableName)
+                .defaultTableDescWithNs("default", tableName)
                 .addTableProp("createUser", "leo")
                 .addColumnFamilyDesc(familyDesc1)
-                .addColumnFamilyDesc(familyDesc2).build();
-
-
-
+                .addColumnFamilyDesc(familyDesc2)
+                .build();
         hBaseTemplate.createTable(tableDesc);
     }
 
