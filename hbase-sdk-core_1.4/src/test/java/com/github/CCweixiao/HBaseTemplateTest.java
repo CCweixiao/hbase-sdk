@@ -1,8 +1,8 @@
 package com.github.CCweixiao;
 
 import com.github.CCweixiao.entity.UserEntity;
-import com.github.CCweixiao.model.FamilyDesc;
-import com.github.CCweixiao.model.TableDesc;
+import com.github.CCweixiao.model.ColumnFamilyDesc;
+import com.github.CCweixiao.model.HTableDesc;
 import com.github.CCweixiao.util.JsonUtil;
 import org.apache.hadoop.hbase.client.Scan;
 import org.junit.Before;
@@ -30,26 +30,16 @@ public class HBaseTemplateTest {
         hBaseAdminTemplate = new HBaseAdminTemplate("localhost", "2181");
         boolean tableIsExists = hBaseAdminTemplate.tableExists("TEST:LEO_USER");
         if(!tableIsExists){
-            TableDesc tableDesc = new TableDesc();
-            tableDesc.setTableName("TEST:LEO_USER");
 
-            tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
 
-            FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-                    .familyName("INFO")
-                    .replicationScope(0)
-                    .compressionType("NONE")
-                    .timeToLive(2147483647)
-                    .maxVersions(1).build();
+            ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
+                    .defaultColumnFamilyDesc("INFO").build();
 
-            FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-                    .familyName("INFO2")
-                    .replicationScope(0)
-                    .compressionType("NONE")
-                    .timeToLive(2147483647)
-                    .maxVersions(1).build();
+            ColumnFamilyDesc familyDesc2 = new ColumnFamilyDesc.Builder()
+                    .defaultColumnFamilyDesc("INFO2").build();
 
-            tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
+            HTableDesc tableDesc = new HTableDesc.Builder().defaultTableDesc("TEST:LEO_USER")
+                    .addColumnFamilyDesc(familyDesc1).addColumnFamilyDesc(familyDesc2).build();
 
             hBaseAdminTemplate.createTable(tableDesc);
         }

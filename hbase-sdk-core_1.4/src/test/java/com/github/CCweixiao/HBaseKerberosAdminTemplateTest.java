@@ -5,9 +5,7 @@ import com.github.CCweixiao.hbtop.RecordFilter;
 import com.github.CCweixiao.hbtop.Summary;
 import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.NamespaceDesc;
-import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -80,43 +78,6 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "TEST:USER3";
-        if (hBaseTemplate.tableExists(tableName)) {
-            hBaseTemplate.disableTable(tableName, false);
-            hBaseTemplate.deleteTable(tableName);
-        }
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setTableName(tableName);
-
-        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
-
-        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-                .familyName("INFO")
-                .replicationScope(1)
-                .compressionType("NONE")
-                .timeToLive(2147483647)
-                .maxVersions(3).build();
-
-        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
-
-        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
-
-
-        hBaseTemplate.createTable(tableDesc);
-    }
-
-    @Test
-    public void getTableDesc() {
-        String tableName = "TEST:LEO_USER";
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
-        System.out.println(tableDesc.getProp("lastUpdateBy"));
-        System.out.println(tableDesc.getProp("remark"));
-        System.out.println(tableDesc.getTableDesc());
     }
 
     @Test
@@ -145,23 +106,17 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testGetFamilyCom() {
-        String tableName = "TEST:USER3";
-        final TableDesc leo_test2 = hBaseTemplate.getTableDesc(tableName);
-        System.out.println(leo_test2);
+
     }
 
     @Test
     public void testGetTableDesc() {
-        String tableName = "TEST:USER";
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc(tableName);
 
-        System.out.println(tableDesc);
     }
 
     @Test
     public void testListTableDesc() {
-        final List<TableDesc> tableDescList = hBaseTemplate.listTableDesc(true);
-        System.out.println(tableDescList);
+
     }
 
     @Test
@@ -177,26 +132,11 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testAddFamily(){
-        FamilyDesc familyDesc = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
-
-        hBaseTemplate.addFamily("leo_test22",familyDesc);
     }
 
     @Test
     public void changeFamily(){
-        FamilyDesc familyDesc = new FamilyDesc.Builder()
-                .familyName("info")
-                .replicationScope(0)
-                .compressionType("snappy")
-                .timeToLive(864000)
-                .maxVersions(3).build();
 
-        hBaseTemplate.modifyFamily("leo_test", familyDesc);
     }
 
     @Test
@@ -206,9 +146,7 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testGetFamily(){
-        final TableDesc tableDesc = hBaseTemplate.getTableDesc("leo_test");
-        final List<FamilyDesc> familyDescList = tableDesc.getFamilyDescList();
-        System.out.println(tableDesc);
+
     }
 
     @Test

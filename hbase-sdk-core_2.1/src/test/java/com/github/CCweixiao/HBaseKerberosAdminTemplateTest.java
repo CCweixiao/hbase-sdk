@@ -7,9 +7,7 @@ import com.github.CCweixiao.hbtop.field.Field;
 import com.github.CCweixiao.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbtop.field.FieldValueType;
 import com.github.CCweixiao.hbtop.mode.Mode;
-import com.github.CCweixiao.model.FamilyDesc;
 import com.github.CCweixiao.model.HTableDesc;
-import com.github.CCweixiao.model.TableDesc;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -62,28 +60,6 @@ public class HBaseKerberosAdminTemplateTest {
 
     @Test
     public void testCreateTable() {
-        String tableName = "USER6";
-        TableDesc tableDesc = new TableDesc();
-        tableDesc.setNamespaceName("");
-        tableDesc.setTableName(tableName);
-
-        tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
-
-        FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-                .familyName("INFO")
-                .replicationScope(1)
-                .compressionType("NONE")
-                .timeToLive(2147483647)
-                .maxVersions(3).build();
-
-        FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-                .familyName("INFO2")
-                .replicationScope(0)
-                .compressionType("NONE")
-                .timeToLive(864000)
-                .maxVersions(3).build();
-
-        tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
 
         // hBaseTemplate.createTable(tableDesc);
