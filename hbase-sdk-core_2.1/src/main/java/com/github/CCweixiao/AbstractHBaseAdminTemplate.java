@@ -69,7 +69,7 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
         return tableDescriptors.stream().map(this::parseHTableDescriptorToHTableDesc).collect(Collectors.toList());
     }
 
-    protected HTableDesc parseHTableDescriptorToHTableDesc(TableDescriptor tableDescriptor){
+    protected HTableDesc parseHTableDescriptorToHTableDesc(TableDescriptor tableDescriptor) {
         final Map<Bytes, Bytes> values = tableDescriptor.getValues();
         final Map<String, String> props = new HashMap<>(2);
 
@@ -104,14 +104,30 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
 
     protected ColumnFamilyDescriptor parseColumnFamilyDescToColumnFamilyDescriptor(ColumnFamilyDesc familyDesc) {
         ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(familyDesc.getFamilyName()));
-        columnFamilyDescriptorBuilder.setScope(familyDesc.getReplicationScope());
-        columnFamilyDescriptorBuilder.setMaxVersions(familyDesc.getVersions());
-        columnFamilyDescriptorBuilder.setMinVersions(familyDesc.getMinVersions());
-        columnFamilyDescriptorBuilder.setTimeToLive(familyDesc.getTimeToLive());
-        columnFamilyDescriptorBuilder.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
-        columnFamilyDescriptorBuilder.setBlocksize(familyDesc.getBlockSize());
-        columnFamilyDescriptorBuilder.setBlockCacheEnabled(familyDesc.isBlockCache());
-        columnFamilyDescriptorBuilder.setInMemory(familyDesc.isInMemory());
+        if (familyDesc.getReplicationScope() != null) {
+            columnFamilyDescriptorBuilder.setScope(familyDesc.getReplicationScope());
+        }
+        if (familyDesc.getVersions() != null) {
+            columnFamilyDescriptorBuilder.setMaxVersions(familyDesc.getVersions());
+        }
+        if (familyDesc.getMinVersions() != null) {
+            columnFamilyDescriptorBuilder.setMinVersions(familyDesc.getMinVersions());
+        }
+        if (familyDesc.getTimeToLive() != null) {
+            columnFamilyDescriptorBuilder.setTimeToLive(familyDesc.getTimeToLive());
+        }
+        if (familyDesc.getCompressionType() != null) {
+            columnFamilyDescriptorBuilder.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+        }
+        if (familyDesc.getBlockSize() != null) {
+            columnFamilyDescriptorBuilder.setBlocksize(familyDesc.getBlockSize());
+        }
+        if (familyDesc.isBlockCache() != null) {
+            columnFamilyDescriptorBuilder.setBlockCacheEnabled(familyDesc.isBlockCache());
+        }
+        if (familyDesc.isInMemory() != null) {
+            columnFamilyDescriptorBuilder.setInMemory(familyDesc.isInMemory());
+        }
         return columnFamilyDescriptorBuilder.build();
     }
 

@@ -14,12 +14,6 @@ import java.util.stream.Collectors;
  * @author leojie 2021/6/23 9:48 下午
  */
 public class HTableDesc {
-    public static final long DEFAULT_MAX_FILE_SIZE = 10737418240L;
-    public static final boolean DEFAULT_READ_ONLY = false;
-    public static final long DEFAULT_MEM_STORE_FLUSH_SIZE = 134217728L;
-    public static final boolean DEFAULT_COMPACTION_ENABLED = true;
-
-    private final String namespaceName;
     private final String tableName;
     private final Long maxFileSize;
     private final Boolean readOnly;
@@ -29,7 +23,6 @@ public class HTableDesc {
     private final List<ColumnFamilyDesc> columnFamilyDescList;
 
     public HTableDesc(Builder builder) {
-        this.namespaceName = builder.namespaceName;
         this.tableName = builder.tableName;
         this.maxFileSize = builder.maxFileSize;
         this.readOnly = builder.readOnly;
@@ -40,7 +33,6 @@ public class HTableDesc {
     }
 
     public static class Builder {
-        private String namespaceName;
         private String tableName;
         private Long maxFileSize;
         private Boolean readOnly;
@@ -49,19 +41,13 @@ public class HTableDesc {
         private Map<String, String> tableProps;
         private List<ColumnFamilyDesc> columnFamilyDescList;
 
-        public Builder namespaceName(String namespaceName) {
-            this.namespaceName = namespaceName;
-            return this;
-        }
-
         public Builder tableName(String tableName) {
             this.tableName = tableName;
             return this;
         }
 
         public Builder defaultTableDesc(String tableName) {
-            this.namespaceName = HMHBaseConstant.getNamespaceName(tableName);
-            this.tableName = HMHBaseConstant.getFullTableName(tableName);
+            this.tableName = tableName;
             this.maxFileSize = null;
             this.readOnly = null;
             this.memStoreFlushSize = null;
@@ -70,8 +56,7 @@ public class HTableDesc {
         }
 
         public Builder defaultTableDescWithNs(String namespaceName, String tableName) {
-            this.namespaceName = namespaceName;
-            this.tableName = HMHBaseConstant.getFullTableName(namespaceName, tableName);
+            this.tableName = namespaceName.concat(HMHBaseConstant.TABLE_NAME_SPLIT_CHAR).concat(tableName);
             this.maxFileSize = null;
             this.readOnly = null;
             this.memStoreFlushSize = null;
@@ -137,7 +122,7 @@ public class HTableDesc {
     }
 
     public String getNamespaceName() {
-        return namespaceName;
+        return HMHBaseConstant.getNamespaceName(tableName);
     }
 
     public String getTableName() {
@@ -217,12 +202,12 @@ public class HTableDesc {
     @Override
     public String toString() {
         return "HTableDesc{" +
-                "namespaceName='" + HMHBaseConstant.getNamespaceName(tableName) + '\'' +
-                ", tableName='" + tableName + '\'' +
-                ", maxFileSize=" + maxFileSize +
-                ", readOnly=" + readOnly +
-                ", memStoreFlushSize=" + memStoreFlushSize +
-                ", compactionEnabled=" + compactionEnabled +
+                "namespaceName='" + getNamespaceName() + '\'' +
+                ", tableName='" + getTableName() + '\'' +
+                ", maxFileSize=" + getMaxFileSize() +
+                ", readOnly=" + isReadOnly() +
+                ", memStoreFlushSize=" + getMaxFileSize() +
+                ", compactionEnabled=" + isCompactionEnabled() +
                 ", tableProps=" + tableProps +
                 ", columnFamilyDescList=" + columnFamilyDescList +
                 '}';

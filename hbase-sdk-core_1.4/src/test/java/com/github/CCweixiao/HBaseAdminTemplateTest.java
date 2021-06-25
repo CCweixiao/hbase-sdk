@@ -79,7 +79,7 @@ public class HBaseAdminTemplateTest {
                 .defaultColumnFamilyDesc("INFO2").build();
 
         HTableDesc tableDesc = new HTableDesc.Builder()
-                .defaultTableDescWithNs("default", tableName)
+                .defaultTableDesc(tableName)
                 .addTableProp("createUser", "leo")
                 .addColumnFamilyDesc(familyDesc1)
                 .addColumnFamilyDesc(familyDesc2).build();

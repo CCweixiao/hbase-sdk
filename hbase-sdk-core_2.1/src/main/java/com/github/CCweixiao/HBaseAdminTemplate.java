@@ -474,35 +474,35 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(columnDescriptor);
             boolean change = false;
 
-            if (columnDescriptor.getMinVersions() != familyDesc.getMinVersions()) {
+            if (familyDesc.getMinVersions() != null && columnDescriptor.getMinVersions() != familyDesc.getMinVersions()) {
                 columnFamilyDescriptorBuilder.setMinVersions(familyDesc.getMinVersions());
                 change = true;
             }
-            if (columnDescriptor.getMaxVersions() != familyDesc.getVersions()) {
+            if (familyDesc.getVersions() != null && columnDescriptor.getMaxVersions() != familyDesc.getVersions()) {
                 columnFamilyDescriptorBuilder.setMaxVersions(familyDesc.getVersions());
                 change = true;
             }
-            if (columnDescriptor.getTimeToLive() != familyDesc.getTimeToLive()) {
+            if (familyDesc.getTimeToLive() != null && columnDescriptor.getTimeToLive() != familyDesc.getTimeToLive()) {
                 columnFamilyDescriptorBuilder.setTimeToLive(familyDesc.getTimeToLive());
                 change = true;
             }
-            if (!columnDescriptor.getCompressionType().getName().equalsIgnoreCase(familyDesc.getCompressionType())) {
+            if (familyDesc.getCompressionType() != null && !columnDescriptor.getCompressionType().getName().equalsIgnoreCase(familyDesc.getCompressionType())) {
                 columnFamilyDescriptorBuilder.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
                 change = true;
             }
-            if (columnDescriptor.getScope() != familyDesc.getReplicationScope()) {
+            if (familyDesc.getReplicationScope() != null && columnDescriptor.getScope() != familyDesc.getReplicationScope()) {
                 columnFamilyDescriptorBuilder.setScope(familyDesc.getReplicationScope());
                 change = true;
             }
-            if (columnDescriptor.getBlocksize() != familyDesc.getBlockSize()) {
+            if (familyDesc.getBlockSize() != null && columnDescriptor.getBlocksize() != familyDesc.getBlockSize()) {
                 columnFamilyDescriptorBuilder.setBlocksize(familyDesc.getBlockSize());
                 change = true;
             }
-            if (columnDescriptor.isBlockCacheEnabled() != familyDesc.isBlockCache()) {
+            if (familyDesc.isBlockCache() != null && columnDescriptor.isBlockCacheEnabled() != familyDesc.isBlockCache()) {
                 columnFamilyDescriptorBuilder.setBlockCacheEnabled(familyDesc.isBlockCache());
                 change = true;
             }
-            if (columnDescriptor.isInMemory() != familyDesc.isInMemory()) {
+            if (familyDesc.isInMemory() != null && columnDescriptor.isInMemory() != familyDesc.isInMemory()) {
                 columnFamilyDescriptorBuilder.setInMemory(familyDesc.isInMemory());
                 change = true;
             }

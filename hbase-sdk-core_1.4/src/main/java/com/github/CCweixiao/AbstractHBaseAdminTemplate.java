@@ -1,6 +1,5 @@
 package com.github.CCweixiao;
 
-import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.model.ColumnFamilyDesc;
 import com.github.CCweixiao.model.HTableDesc;
@@ -103,14 +102,30 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseConfig imp
 
     protected HColumnDescriptor parseColumnFamilyDescToHColumnDescriptor(ColumnFamilyDesc familyDesc) {
         HColumnDescriptor columnDescriptor = new HColumnDescriptor(familyDesc.getFamilyName());
-        columnDescriptor.setScope(familyDesc.getReplicationScope());
-        columnDescriptor.setMaxVersions(familyDesc.getVersions());
-        columnDescriptor.setMinVersions(familyDesc.getMinVersions());
-        columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
-        columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
-        columnDescriptor.setBlocksize(familyDesc.getBlockSize());
-        columnDescriptor.setBlockCacheEnabled(familyDesc.isBlockCache());
-        columnDescriptor.setInMemory(familyDesc.isInMemory());
+        if (familyDesc.getReplicationScope() != null) {
+            columnDescriptor.setScope(familyDesc.getReplicationScope());
+        }
+        if (familyDesc.getVersions() != null) {
+            columnDescriptor.setMaxVersions(familyDesc.getVersions());
+        }
+        if (familyDesc.getMinVersions() != null) {
+            columnDescriptor.setMinVersions(familyDesc.getMinVersions());
+        }
+        if (familyDesc.getTimeToLive() != null) {
+            columnDescriptor.setTimeToLive(familyDesc.getTimeToLive());
+        }
+        if (familyDesc.getCompressionType() != null) {
+            columnDescriptor.setCompressionType(Compression.Algorithm.valueOf(familyDesc.getCompressionType()));
+        }
+        if (familyDesc.getBlockSize() != null) {
+            columnDescriptor.setBlocksize(familyDesc.getBlockSize());
+        }
+        if (familyDesc.isBlockCache() != null) {
+            columnDescriptor.setBlockCacheEnabled(familyDesc.isBlockCache());
+        }
+        if (familyDesc.isInMemory() != null) {
+            columnDescriptor.setInMemory(familyDesc.isInMemory());
+        }
         return columnDescriptor;
     }
 
