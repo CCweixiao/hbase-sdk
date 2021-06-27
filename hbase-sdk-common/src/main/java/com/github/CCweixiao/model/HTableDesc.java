@@ -4,10 +4,7 @@ import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.util.StrUtil;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +18,8 @@ public class HTableDesc {
     private final Boolean compactionEnabled;
     private final Map<String, String> tableProps;
     private final List<ColumnFamilyDesc> columnFamilyDescList;
+    private String state;
+    private long lastMajorCompaction;
 
     public HTableDesc(Builder builder) {
         this.tableName = builder.tableName;
@@ -121,6 +120,7 @@ public class HTableDesc {
         }
     }
 
+
     public String getNamespaceName() {
         return HMHBaseConstant.getNamespaceName(tableName);
     }
@@ -151,6 +151,26 @@ public class HTableDesc {
 
     public List<ColumnFamilyDesc> getColumnFamilyDescList() {
         return this.columnFamilyDescList;
+    }
+
+    public void setState(boolean state) {
+        if (state) {
+            this.state = HMHBaseConstant.ENABLED;
+        } else {
+            this.state = HMHBaseConstant.DISABLED;
+        }
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public long getLastMajorCompaction() {
+        return lastMajorCompaction;
+    }
+
+    public void setLastMajorCompaction(long lastMajorCompaction) {
+        this.lastMajorCompaction = lastMajorCompaction;
     }
 
     public String getFullTableName() {
@@ -201,15 +221,18 @@ public class HTableDesc {
 
     @Override
     public String toString() {
-        return "HTableDesc{" +
-                "namespaceName='" + getNamespaceName() + '\'' +
-                ", tableName='" + getTableName() + '\'' +
-                ", maxFileSize=" + getMaxFileSize() +
-                ", readOnly=" + isReadOnly() +
-                ", memStoreFlushSize=" + getMaxFileSize() +
-                ", compactionEnabled=" + isCompactionEnabled() +
-                ", tableProps=" + tableProps +
-                ", columnFamilyDescList=" + columnFamilyDescList +
-                '}';
+        StringBuilder sb = new StringBuilder();
+        sb.append("Table ").append(getTableName()).append(" is ").append(getState()).append("\n");
+        sb.append(getTableName()).append(", ");
+        if (tableProps != null && !tableProps.isEmpty()) {
+            sb.append("{TABLE_ATTRIBUTES => {METADATA => {");
+            tableProps.forEach((key, value) -> sb.append("'").append(key).append("'").append(" => ").append("'").append(value).append("'").append(", "));
+            sb.append("}}\n");
+        }
+        sb.append("COLUMN FAMILIES DESCRIPTION\n");
+        for (ColumnFamilyDesc familyDesc : columnFamilyDescList) {
+            sb.append(familyDesc.toString()).append("\n");
+        }
+        return sb.toString();
     }
 }

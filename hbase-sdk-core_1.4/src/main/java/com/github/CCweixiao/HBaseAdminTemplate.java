@@ -77,7 +77,14 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
             if (tableDescriptors == null || tableDescriptors.length == 0) {
                 return new ArrayList<>();
             }
-            return parseHTableDescriptorsToHTableDescList(tableDescriptors);
+            List<HTableDesc> tableDescList = new ArrayList<>(tableDescriptors.length);
+            for (HTableDescriptor tableDescriptor : tableDescriptors) {
+                final HTableDesc tableDesc = parseHTableDescriptorToHTableDesc(tableDescriptor);
+                tableDesc.setState(admin.isTableEnabled(tableDescriptor.getTableName()));
+                tableDesc.setLastMajorCompaction(admin.getLastMajorCompactionTimestamp(tableDescriptor.getTableName()));
+                tableDescList.add(tableDesc);
+            }
+            return tableDescList;
         });
     }
 
@@ -138,7 +145,10 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     public HTableDesc getTableDesc(String tableName) {
         return this.execute(admin -> {
             HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
-            return parseHTableDescriptorToHTableDesc(tableDescriptor);
+            final HTableDesc tableDesc = parseHTableDescriptorToHTableDesc(tableDescriptor);
+            tableDesc.setState(admin.isTableEnabled(TableName.valueOf(tableName)));
+            tableDesc.setLastMajorCompaction(admin.getLastMajorCompactionTimestamp(TableName.valueOf(tableName)));
+            return tableDesc;
         });
     }
 

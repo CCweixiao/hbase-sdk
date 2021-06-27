@@ -1,5 +1,7 @@
 package com.github.CCweixiao.model;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
+
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
@@ -126,6 +128,54 @@ public class ColumnFamilyDesc {
         return this.timeToLive;
     }
 
+    public String getTTL() {
+        return humanReadableTTL(this.timeToLive);
+    }
+
+    private static String humanReadableTTL(long interval) {
+        StringBuilder sb = new StringBuilder();
+        if (interval == HMHBaseConstant.DEFAULT_TTL) {
+            sb.append("FOREVER");
+            return sb.toString();
+        } else if (interval < 60L) {
+            sb.append(interval);
+            sb.append(" 秒");
+            return sb.toString();
+        } else {
+            int days = (int) (interval / 86400L);
+            int hours = (int) (interval - (86400L * days)) / 3600;
+            int minutes = (int) (interval - (86400L * days) - (long) (3600 * hours)) / 60;
+            int seconds = (int) (interval - (86400L * days) - (long) (3600 * hours) - (long) (60 * minutes));
+            sb.append(interval);
+            sb.append(" 秒 (");
+            if (days > 0) {
+                sb.append(days);
+                sb.append(" 天");
+            }
+
+            if (hours > 0) {
+                sb.append(days > 0 ? " " : "");
+                sb.append(hours);
+                sb.append(" 小时");
+            }
+
+            if (minutes > 0) {
+                sb.append(days + hours > 0 ? " " : "");
+                sb.append(minutes);
+                sb.append(" 分钟");
+            }
+
+            if (seconds > 0) {
+                sb.append(days + hours + minutes > 0 ? " " : "");
+                sb.append(seconds);
+                sb.append(" 秒");
+            }
+
+            sb.append(")");
+            return sb.toString();
+        }
+    }
+
     public Integer getBlockSize() {
         return this.blockSize;
     }
@@ -140,16 +190,9 @@ public class ColumnFamilyDesc {
 
     @Override
     public String toString() {
-        return "ColumnFamilyDesc{" +
-                "familyName='" + getFamilyName() + '\'' +
-                ", replicationScope=" + getReplicationScope() +
-                ", versions=" + getVersions() +
-                ", minVersions=" + getMinVersions() +
-                ", compressionType='" + getCompressionType() + '\'' +
-                ", timeToLive=" + getTimeToLive() +
-                ", blockSize=" + getBlockSize() +
-                ", blockCache=" + isBlockCache() +
-                ", inMemory=" + isInMemory() +
-                '}';
+        return String.format("{NAME => '%s', VERSIONS => '%s', TTL => '%s', MIN_VERSIONS => '%s', REPLICATION_SCOPE => '%s', " +
+                        "IN_MEMORY => '%s', COMPRESSION => '%s', BLOCK_CACHE => '%s', BLOCKSIZE => '%s'}",
+                getFamilyName(), getVersions(), getTTL(), getMinVersions(), getReplicationScope(), isInMemory(),
+                getCompressionType(), isBlockCache(), getBlockSize());
     }
 }

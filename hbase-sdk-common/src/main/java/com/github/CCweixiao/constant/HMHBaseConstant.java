@@ -19,6 +19,8 @@ public class HMHBaseConstant {
     public static final Integer DISABLE_REPLICATION_SCOPE = 0;
     public static final Integer ENABLE_REPLICATION_SCOPE = 1;
     public static final String KERBEROS_AUTH = "kerberos";
+    public static final String ENABLED = "ENABLED";
+    public static final String DISABLED = "DISABLED";
 
 
     public static String getFullTableName(String tableName) {

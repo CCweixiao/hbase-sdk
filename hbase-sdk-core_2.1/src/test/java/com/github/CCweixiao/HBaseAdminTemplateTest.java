@@ -46,7 +46,7 @@ public class HBaseAdminTemplateTest {
 
     @Test
     public void testGetTableDesc(){
-       HTableDesc tableDesc = hBaseTemplate.getTableDesc("hbase:meta");
+       HTableDesc tableDesc = hBaseTemplate.getTableDesc("TEST_LONG");
 
         System.out.println(tableDesc);
     }

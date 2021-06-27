@@ -1,6 +1,5 @@
 package com.github.CCweixiao;
 
-import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.model.ColumnFamilyDesc;
 import com.github.CCweixiao.model.HTableDesc;
