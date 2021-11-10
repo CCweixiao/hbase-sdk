@@ -246,6 +246,47 @@ public interface HBaseTableOperations {
     <T> List<T> findAllByPrefixWithFamilyAndQualifiers(String prefix, String familyName, List<String> qualifiers, int limit, Class<T> clazz);
 
     /**
+     * 根据start row 和 end row扫描数据，
+     *
+     * @param startRow 开始row
+     * @param endRow   结束row
+     * @param limit    查询结果集返回数量限制
+     * @param clazz    结果集映射的JavaBean类型
+     * @param <T>      泛型类型
+     * @return 结果数据
+     */
+    <T> List<T> findAllByStartAndEndRow(String startRow, String endRow, int limit, Class<T> clazz);
+
+
+    /**
+     * 根据start row 和 end row扫描数据，
+     *
+     * @param startRow   开始row
+     * @param endRow     结束row
+     * @param familyName 列簇
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
+     */
+    <T> List<T> findAllByStartAndEndRowWithFamily(String startRow, String endRow, String familyName, int limit, Class<T> clazz);
+
+
+    /**
+     * 根据start row 和 end row扫描数据，
+     *
+     * @param startRow   开始row
+     * @param endRow     结束row
+     * @param familyName 列簇
+     * @param qualifiers 多个字段名
+     * @param limit      查询结果集返回数量限制
+     * @param clazz      结果集映射的JavaBean类型
+     * @param <T>        泛型类型
+     * @return 结果数据
+     */
+    <T> List<T> findAllByStartAndEndRowWithFamilyAndQualifiers(String startRow, String endRow, String familyName, List<String> qualifiers, int limit, Class<T> clazz);
+
+    /**
      * scan查询数据，返回Map列表类型，例如：[{"rowName": "10001", "info:name": "leo", "info:age": 18}]
      *
      * @param tableName 表名

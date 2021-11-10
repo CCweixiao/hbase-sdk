@@ -326,6 +326,31 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
     }
 
     @Override
+    public <T> List<T> findAllByStartAndEndRow(String startRow, String endRow, int limit, Class<T> clazz) {
+        return this.findAllByStartAndEndRowWithFamilyAndQualifiers(startRow, endRow, null, null, limit, clazz);
+    }
+
+    @Override
+    public <T> List<T> findAllByStartAndEndRowWithFamily(String startRow, String endRow, String familyName, int limit, Class<T> clazz) {
+        return this.findAllByStartAndEndRowWithFamilyAndQualifiers(startRow, endRow, familyName, null, limit, clazz);
+    }
+
+    @Override
+    public <T> List<T> findAllByStartAndEndRowWithFamilyAndQualifiers(String startRow, String endRow, String familyName, List<String> qualifiers, int limit, Class<T> clazz) {
+        if (StrUtil.isBlank(startRow)) {
+            throw new HBaseOperationsException("the start row is not empty.");
+        }
+        if (StrUtil.isBlank(endRow)) {
+            throw new HBaseOperationsException("the end row is not empty.");
+        }
+        Scan scan = scan(familyName, qualifiers);
+        scan.withStartRow(Bytes.toBytes(startRow), true);
+        scan.withStopRow(Bytes.toBytes(endRow), true);
+        String tableName = ReflectUtil.getHBaseTableName(clazz);
+        return find(tableName, scan, limit, clazz);
+    }
+
+    @Override
     public <T> List<T> findAllByPrefix(String tableName, String prefix, int limit, RowMapper<T> rowMapper) {
         return this.findAllByPrefixWithFamilyAndQualifiers(tableName, prefix, null, null, limit, rowMapper);
     }
