@@ -101,6 +101,14 @@ public abstract class Pool<T> implements Closeable {
         }
     }
 
+    protected void clearInternalPool() {
+        try {
+            internalPool.clear();
+        } catch (Exception e) {
+            throw new HBaseThriftException("Could not clear the pool", e);
+        }
+    }
+
     public int getNumActive() {
         if (poolInactive()) {
             return -1;

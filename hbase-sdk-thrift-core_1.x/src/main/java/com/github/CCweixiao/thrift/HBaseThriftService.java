@@ -29,6 +29,12 @@ public class HBaseThriftService implements HBaseThriftOperations {
         pool = new HBaseThriftPool(config, host, port);
     }
 
+    /**
+     * Clear active connection objects actively in connection pool if you need.
+     */
+    public void clearThriftPool() {
+        pool.clearInternalPool();
+    }
 
     @Override
     public void save(String tableName, String rowKey, Map<String, String> data) {

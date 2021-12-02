@@ -14,7 +14,12 @@ public class HBaseThriftPoolSingleTests {
 
     @Before
     public void init() {
-        hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
+        HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
+        config.setMaxTotal(2);
+        config.setMaxIdle(2);
+        config.setTimeBetweenEvictionRunsMillis(600 * 1000);
+        config.setMinEvictableIdleTimeMillis(600 * 1000);
+        hBaseThriftService = HBaseThriftServiceHolder.getInstance("internal_dev", 9091, config);
     }
 
     @Test
@@ -42,10 +47,25 @@ public class HBaseThriftPoolSingleTests {
 
     @Test
     public void testThriftClient() {
-        HBaseThrift hBaseThrift = new HBaseThrift();
-        hBaseThrift.connect();
-        System.out.println(hBaseThrift.getTableNames());
-        hBaseThrift.close();
+//        final List<String> tableNames = hBaseThriftService.getTableNames();
+//        System.out.println(tableNames);
+        final Map<String, String> byRowKeyToMap = hBaseThriftService.getByRowKeyToMap("LEO_USER", "a10001");
+        System.out.println(byRowKeyToMap);
+
+        try {
+            hBaseThriftService.clearThriftPool();
+            Thread.sleep(10 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("------------2--------------");
+        final Map<String, String> byRowKeyToMap2 = hBaseThriftService.getByRowKeyToMap("LEO_USER", "a10001");
+        System.out.println(byRowKeyToMap2);
+        try {
+            Thread.sleep(600 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
