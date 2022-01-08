@@ -431,6 +431,13 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseConfig implemen
 
     protected Map<String, Object> resultToMap(Result result, Cell cell) {
         Map<String, Object> resultMap = new HashMap<>(4);
+        if (result == null) {
+            resultMap.put("rowKey", "");
+            resultMap.put("familyName", "");
+            resultMap.put("timestamp", -1);
+            resultMap.put("value", "");
+            return resultMap;
+        }
         if (cell == null) {
             resultMap.put("rowKey", Bytes.toString(result.getRow()));
             resultMap.put("familyName", "");
@@ -448,6 +455,9 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseConfig implemen
     }
 
     protected List<Map<String, Object>> getToResultMap(Result result) {
+        if (result == null) {
+            return new ArrayList<>();
+        }
         List<Cell> cs = result.listCells();
         List<Map<String, Object>> dataMaps = new ArrayList<>(cs.size());
         for (Cell cell : cs) {
