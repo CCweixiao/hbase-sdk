@@ -1,5 +1,6 @@
 package com.github.CCweixiao.connection;
 
+import com.github.CCweixiao.constant.HMHBaseConstant;
 import com.github.CCweixiao.exception.HBaseOperationsException;
 import com.github.CCweixiao.exception.HBaseSdkUnsupportedAuthTypeException;
 import com.github.CCweixiao.util.StrUtil;
@@ -31,14 +32,14 @@ public class ConfigurationFactory {
         String auth = properties.getProperty("hbase.security.authentication", "");
         Configuration configuration = HBaseConfiguration.create();
 
-        if (StrUtil.isBlank(auth)) {
+        if (StrUtil.isBlank(auth) || auth.trim().equalsIgnoreCase(HMHBaseConstant.SIMPLE_AUTH)) {
             final List<String> keys = properties.keySet().stream().map(Object::toString).collect(Collectors.toList());
             keys.forEach(key -> configuration.set(key, properties.getProperty(key)));
         } else {
             if (KERBEROS_AUTH.equalsIgnoreCase(auth)) {
                 System.setProperty("java.security.krb5.conf", properties.getProperty("java.security.krb5.conf"));
                 final List<String> keys = properties.keySet().stream().map(Object::toString)
-                        .filter(prop -> !prop.equals("java.security.krb5.conf"))
+                        .filter(prop -> !"java.security.krb5.conf".equals(prop))
                         .collect(Collectors.toList());
                 keys.forEach(key -> configuration.set(key, properties.getProperty(key)));
                 UserGroupInformation.setConfiguration(configuration);
