@@ -219,6 +219,11 @@ public class HTableDesc {
         });
     }
 
+    public HTableDesc updateProps(Map<String, String> tableProps) {
+        this.tableProps.putAll(tableProps);
+        return this;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
