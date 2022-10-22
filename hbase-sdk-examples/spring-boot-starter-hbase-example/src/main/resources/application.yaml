@@ -1,0 +1,11 @@
+spring:
+  data:
+    hbase:
+      hbase-adapter-version: 1.4.x
+      quorum: myhbase
+      node-parent: /hbase
+      zk-client-port: 2181
+      root-dir: /hbase
+      client-properties: hbase.client.retries.number=3
+server:
+  port: 8088
