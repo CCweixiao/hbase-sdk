@@ -1,6 +1,6 @@
 package com.github.CCwexiao.dsl.client;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.util.Util;
 
 import java.util.Date;

@@ -7,7 +7,7 @@
     <groupId>com.github.CCweixiao</groupId>
     <artifactId>hbase-sdk</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.9</version>
+    <version>3.0.0</version>
 
     <name>hbase-sdk</name>
     <url>https://github.com/CCweixiao/hbase-sdk.git</url>
@@ -46,12 +46,11 @@
         <!-- 项目模块名称 -->
         <module>hbase-sdk-common</module>
         <module>hbase-sdk-dsl</module>
-        <module>hbase-sdk-core_1.4</module>
-        <module>spring-boot-starter-hbase_1.4</module>
-        <module>hbase-sdk-core_2.1</module>
-        <module>spring-boot-starter-hbase_2.1</module>
-        <module>hbase-sdk-thrift-core_1.x</module>
-        <module>hbase-sdk-samples</module>
+        <module>spring-boot-starter-hbase</module>
+        <module>hbase-sdk-thrift</module>
+        <module>hbase-sdk-examples</module>
+        <module>hbase-sdk-adapter</module>
+        <module>hbase-sdk-template</module>
     </modules>
 
     <properties>
@@ -63,15 +62,19 @@
 <!--        <maven.deploy.skip>true</maven.deploy.skip>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot-2.version>2.1.7.RELEASE</spring-boot-2.version>
+        <hbase1.2.version>1.2.0</hbase1.2.version>
         <hbase1.4.version>1.4.3</hbase1.4.version>
-        <hbase.thrift.1.4.version>1.4.3</hbase.thrift.1.4.version>
         <hbase2.1.version>2.1.3</hbase2.1.version>
+        <hbase2.2.version>2.2.6</hbase2.2.version>
+        <hbase.thrift.1.4.version>1.4.3</hbase.thrift.1.4.version>
         <gson.version>2.8.6</gson.version>
         <commons-lang3.version>3.4</commons-lang3.version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons.pool2.version>2.6.2</commons.pool2.version>
         <junit.version>4.9</junit.version>
         <antlr4.version>4.5.1</antlr4.version>
+        <sofa.ark.version>1.1.6</sofa.ark.version>
+        <guava.version>20.0</guava.version>
     </properties>
 
     <repositories>
@@ -89,6 +92,11 @@
         <repository>
             <id>cloudera</id>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+        <repository>
+            <id>central-repos</id>
+            <name>Central Repository</name>
+            <url>http://repo.maven.apache.org/maven2</url>
         </repository>
         <repository>
             <id>snapshot</id>
@@ -132,29 +140,20 @@
             </dependency>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
-                <artifactId>hbase-sdk-core_1.4</artifactId>
+                <artifactId>hbase-sdk-template</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
-                <artifactId>hbase-sdk-thrift-core_1.x</artifactId>
+                <artifactId>hbase-sdk-thrift</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
-                <artifactId>spring-boot-starter-hbase_1.4</artifactId>
+                <artifactId>spring-boot-starter-hbase</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.github.CCweixiao</groupId>
-                <artifactId>hbase-sdk-core_2.1</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.CCweixiao</groupId>
-                <artifactId>spring-boot-starter-hbase_2.1</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
@@ -175,6 +174,16 @@
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
                 <version>1.7.25</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

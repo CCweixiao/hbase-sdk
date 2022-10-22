@@ -1,6 +1,6 @@
 package com.github.CCwexiao.dsl.util;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 
 /**
  * @author leojie 2020/11/28 12:00 下午

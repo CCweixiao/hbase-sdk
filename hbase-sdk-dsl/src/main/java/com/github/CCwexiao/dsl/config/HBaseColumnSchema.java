@@ -1,7 +1,7 @@
 package com.github.CCwexiao.dsl.config;
 
 
-import com.github.CCweixiao.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 import com.github.CCwexiao.dsl.type.TypeHandler;
 import com.github.CCwexiao.dsl.type.TypeHandlerHolder;
 import com.github.CCwexiao.dsl.type.TypeHandlers;

@@ -1,6 +1,6 @@
 package com.github.CCwexiao.dsl.util;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 
 import java.util.Date;
 import java.util.HashMap;

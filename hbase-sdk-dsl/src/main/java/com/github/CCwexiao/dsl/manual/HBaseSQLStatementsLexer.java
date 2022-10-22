@@ -1,6 +1,6 @@
 package com.github.CCwexiao.dsl.manual;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.auto.HBaseSQLLexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;

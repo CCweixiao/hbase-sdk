@@ -1,6 +1,6 @@
 package com.github.CCwexiao.dsl.manual.visitor;
 
-import com.github.CCweixiao.constant.HMHBaseConstant;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCwexiao.dsl.auto.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.config.HBaseColumnSchema;
@@ -44,7 +44,7 @@ public class SelectCidListVisitor extends HBaseSQLBaseVisitor<List<HBaseColumnSc
         for (int i = list.size() - 1; i >= 0; i--) {
             HBaseColumnSchema hBaseColumnSchema = list.get(i);
             String s = hBaseColumnSchema.getFamily()
-                    + HMHBaseConstant.FAMILY_QUALIFIER_SEPARATOR
+                    + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
                     + hBaseColumnSchema.getQualifier();
             Matcher matcher = p.matcher(s);
             if (!matcher.matches()) {

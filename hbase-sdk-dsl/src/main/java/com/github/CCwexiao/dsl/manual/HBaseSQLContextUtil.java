@@ -1,7 +1,7 @@
 package com.github.CCwexiao.dsl.manual;
 
-import com.github.CCweixiao.constant.HMHBaseConstant;
-import com.github.CCweixiao.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser.*;
 import com.github.CCwexiao.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.dsl.client.RowKey;
@@ -36,7 +36,7 @@ public class HBaseSQLContextUtil {
 
         String cid = cidContext.TEXT().getText();
 
-        String[] parts = cid.split(HMHBaseConstant.FAMILY_QUALIFIER_SEPARATOR);
+        String[] parts = cid.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
 
         if (parts.length == 1) {
             return hbaseTableConfig.gethBaseTableSchema().findColumnSchema(parts[0]);

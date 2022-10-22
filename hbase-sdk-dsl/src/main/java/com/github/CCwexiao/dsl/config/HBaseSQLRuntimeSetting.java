@@ -1,7 +1,7 @@
 package com.github.CCwexiao.dsl.config;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
-import com.github.CCweixiao.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 import com.github.CCwexiao.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.dsl.literal.LiteralInterpreter;
 import com.github.CCwexiao.dsl.literal.interpreter.*;

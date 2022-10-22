@@ -1,10 +1,9 @@
 package com.github.CCwexiao.dsl.util;
 
-import com.github.CCweixiao.exception.HBaseOperationsException;
-import com.github.CCweixiao.model.HQLType;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser;
 import com.github.CCwexiao.dsl.auto.HBaseSQLParser.*;
-import com.github.CCwexiao.dsl.manual.HBaseSQLContextUtil;
 import com.github.CCwexiao.dsl.manual.HBaseSQLErrorStrategy;
 import com.github.CCwexiao.dsl.manual.HBaseSQLStatementsLexer;
 import org.antlr.v4.runtime.ANTLRInputStream;

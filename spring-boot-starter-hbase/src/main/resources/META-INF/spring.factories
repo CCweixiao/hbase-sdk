@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+ com.github.CCweixiao.hbase.sdk.starter.boot.HBaseAutoConfiguration
