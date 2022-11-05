@@ -40,26 +40,26 @@
     <build>
         <plugins>
             <!--用于提交MR任务的Jar包-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.0</version>
-                <configuration>
-                    <transformers>
-                        <transformer
-                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                    </transformers>
-                    <outputFile>target/${project.artifactId}-shade.jar</outputFile>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-shade-plugin</artifactId>-->
+<!--                <version>3.2.0</version>-->
+<!--                <configuration>-->
+<!--                    <transformers>-->
+<!--                        <transformer-->
+<!--                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>-->
+<!--                    </transformers>-->
+<!--                    <outputFile>target/${project.artifactId}-shade.jar</outputFile>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>shade</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <!--用于执行的Jar包-->
             <plugin>
                 <groupId>com.alipay.sofa</groupId>
@@ -72,6 +72,7 @@
                             <goal>ark-plugin</goal>
                         </goals>
                         <configuration>
+                            <classifier>ark-plugin</classifier>
                             <!-- configure exported class -->
                             <exported>
                                 <!-- configure package-level exported class-->

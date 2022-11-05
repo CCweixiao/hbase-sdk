@@ -19,18 +19,49 @@
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-adapter-1.2</artifactId>
             <version>${project.version}</version>
+            <classifier>ark-plugin</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-adapter-1.2</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-adapter-1.4</artifactId>
             <version>${project.version}</version>
+            <classifier>ark-plugin</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-adapter-1.4</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-adapter-2.2</artifactId>
             <version>${project.version}</version>
+            <classifier>ark-plugin</classifier>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-adapter-2.2</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>sofa-ark-springboot-starter</artifactId>
+            <version>${sofa.ark.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

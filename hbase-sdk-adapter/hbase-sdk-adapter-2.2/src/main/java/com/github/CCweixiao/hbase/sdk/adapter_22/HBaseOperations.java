@@ -1,13 +1,16 @@
 package com.github.CCweixiao.hbase.sdk.adapter_22;
 
+import com.github.CCweixiao.hbase.sdk.common.callback.AdminCallback;
+import com.github.CCweixiao.hbase.sdk.common.callback.MutatorCallback;
+import com.github.CCweixiao.hbase.sdk.common.callback.TableCallback;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 
-import java.io.IOException;
+import java.util.Optional;
 
 /**
- * <p>此接口做一些默认初始化的工作，被{@link AbstractHBaseTemplate} 和 {@link AbstractHBaseAdminTemplate}实现。</p>
+ * <p>初始化连接，并对admin 和 table的一些操作进行一层封装</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
@@ -26,21 +29,11 @@ public interface HBaseOperations {
      * @param <T>    泛型类型
      * @return 操作结果
      */
-    default <T> T execute(AdminCallback<T> action) {
-        Admin admin = null;
-        try {
-            admin = this.getConnection().getAdmin();
+    default <T> T execute(AdminCallback<T, Admin> action) {
+        try (Admin admin = this.getConnection().getAdmin()) {
             return action.doInAdmin(admin);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != admin) {
-                try {
-                    admin.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
@@ -52,21 +45,11 @@ public interface HBaseOperations {
      * @param <T>       泛型类型
      * @return 结果
      */
-    default <T> T execute(String tableName, TableCallback<T> action) {
-        Table table = null;
-        try {
-            table = this.getConnection().getTable(TableName.valueOf(tableName));
-            return action.doInTable(table);
+    default <T> Optional<T> execute(String tableName, TableCallback<T, Table> action) {
+        try (Table table = this.getConnection().getTable(TableName.valueOf(tableName))) {
+            return Optional.ofNullable(action.doInTable(table));
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != table) {
-                try {
-                    table.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 
@@ -76,23 +59,12 @@ public interface HBaseOperations {
      * @param tableName 表名
      * @param action    批量读写类型操作的回调
      */
-    default void execute(String tableName, MutatorCallback action) {
-        BufferedMutator mutator = null;
-        try {
-            BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-            mutator = this.getConnection().getBufferedMutator(mutatorParams.writeBufferSize(4 * 1024 * 1024));
+    default void execute(String tableName, MutatorCallback<BufferedMutator> action) {
+        BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
+        try (BufferedMutator mutator = this.getConnection().getBufferedMutator(mutatorParams.writeBufferSize(4 * 1024 * 1024))) {
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
-        } finally {
-            if (null != mutator) {
-                try {
-                    mutator.flush();
-                    mutator.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
     }
 }

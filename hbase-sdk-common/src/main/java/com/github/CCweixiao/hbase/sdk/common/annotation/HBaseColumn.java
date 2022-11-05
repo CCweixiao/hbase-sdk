@@ -19,14 +19,14 @@ public @interface HBaseColumn {
      *
      * @return 字段名
      */
-    String name() default "";
+    String columnName() default "";
 
     /**
      * 忽略通用列簇名，为该字段特指一个列簇名
      *
      * @return 列簇名
      */
-    String family() default "";
+    String familyName() default "";
 
     /**
      * 是否为字段名转大写

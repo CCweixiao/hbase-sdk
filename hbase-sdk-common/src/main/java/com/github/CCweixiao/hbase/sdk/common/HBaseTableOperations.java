@@ -1,7 +1,13 @@
 package com.github.CCweixiao.hbase.sdk.common;
 
+import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * 定义HBase的数据操作接口
@@ -15,18 +21,9 @@ public interface HBaseTableOperations {
      *
      * @param tableName 表名
      * @param rowKey    rowKey
-     * @param data      需要保存的数据. 例如： {"INFO:NAME":"leo"}
+     * @param data      需要保存的数据. 如样例格式数据
      */
     void save(String tableName, String rowKey, Map<String, Object> data);
-
-    /**
-     * 批量保存数据，构造Map类型结构的列表数据参数，例如：
-     * {"row1": {"INFO:NAME": "leo1", "INFO:AGE": 18}, "row2": {"INFO:NAME": "leo2", "INFO:AGE": 17}}
-     *
-     * @param tableName 表名
-     * @param data      需要保存的数据. 例如： {"row1": {"INFO:NAME": "leo1"}, "row2": {"INFO:NAME": "leo2"}}
-     */
-    void saveBatch(String tableName, Map<String, Map<String, Object>> data);
 
     /**
      * 保存数据，构造一个Java数据实体映射
@@ -39,35 +36,45 @@ public interface HBaseTableOperations {
     <T> T save(T t) throws Exception;
 
     /**
+     * 批量保存数据，构造Map类型结构的列表数据参数，例如：
+     * {"row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, "row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17}}
+     *
+     * @param tableName 表名
+     * @param data      需要保存的数据. 如样例格式数据
+     * @return 成功保存数据的条数
+     */
+    int saveBatch(String tableName, Map<String, Map<String, Object>> data);
+
+    /**
      * 批量保存数据，构造一个Java数据实体映射列表
      *
-     * @param lst Java数据实体对象列表.
-     * @param <T> 泛型数据类型.
-     * @return 保存成功的数据列表中的第一条数据对象.
+     * @param list Java数据实体对象列表.
+     * @param <T>  泛型数据类型.
+     * @return 成功保存数据的条数
      * @throws Exception 抛出异常
      */
-    <T> T saveBatch(List<T> lst) throws Exception;
+    <T> int saveBatch(List<T> list) throws Exception;
 
     /**
      * 根据rowKey查询数据，查询结果映射为一个Java Bean数据实体.
      *
      * @param rowKey rowKey
-     * @param clazz  Java Bean
+     * @param clazz  java bean class type
      * @param <T>    泛型类型
      * @return 结果数据
      */
-    <T> T getByRowKey(String rowKey, Class<T> clazz);
+    <T> Optional<T> getRow(String rowKey, Class<T> clazz);
 
     /**
      * 根据rowKey查询某一个所属列簇的数据，查询结果映射为一个Java Bean数据实体.
      *
      * @param rowKey     rowKey
      * @param familyName 列簇名
-     * @param clazz      Java Bean
+     * @param clazz      java bean class type
      * @param <T>        泛型类型
      * @return 结果数据
      */
-    <T> T getByRowKeyWithFamily(String rowKey, String familyName, Class<T> clazz);
+    <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz);
 
     /**
      * 根据rowKey查询某一个所属列簇以及某些字段的数据，查询结果映射为一个Java Bean.
@@ -75,319 +82,214 @@ public interface HBaseTableOperations {
      * @param rowKey     rowKey
      * @param familyName 列簇名
      * @param qualifiers 需要筛选的字段名列表
-     * @param clazz      Java Bean
+     * @param clazz      java bean class type
      * @param <T>        泛型类型
      * @return 结果数据
      */
-    <T> T getByRowKeyWithFamilyAndQualifiers(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz);
+    <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz);
 
     /**
-     * 根据RowKey查询数据，返回Map结构的数据
-     * 返回的数据格式为：{"INFO:NAME": "leo", "INFO:AGE": 18}
+     * get查询数据，可以指定自定义的Row Mapper
      *
      * @param tableName 表名
      * @param rowKey    rowKey
-     * @return 结果数据
+     * @param rowMapper 自定义的RowMapper
+     * @param <T>       泛型类型
+     * @return get查询结果
      */
-    Map<String, String> getByRowKey(String tableName, String rowKey);
+    <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper);
 
     /**
-     * 根据RowKey和列簇查询数据，返回Map结构的数据
-     * 返回的数据格式为：{"INFO:NAME": "leo", "INFO:AGE": 18}
+     * get查询某一列簇下的数据，可以指定自定义的Row Mapper
      *
      * @param tableName  表名
      * @param rowKey     rowKey
      * @param familyName 列簇名
-     * @return 结果数据
+     * @param rowMapper  自定义的RowMapper
+     * @param <T>        泛型类型
+     * @return get查询结果
      */
-    Map<String, String> getByRowKeyWithFamily(String tableName, String rowKey, String familyName);
+    <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper);
 
     /**
-     * 根据RowKey和列簇以及字段名查询数据，返回Map结构的数据
-     * 返回的数据格式为：{"INFO:NAME": "leo", "INFO:AGE": 18}
+     * get查询某一列簇下的数据，可以指定多个字段，可以指定自定义的Row Mapper
      *
      * @param tableName  表名
      * @param rowKey     rowKey
      * @param familyName 列簇名
-     * @param qualifiers 字段名列表
-     * @return 结果数据
+     * @param qualifiers 需要筛选的字段列表
+     * @param rowMapper  自定义的RowMapper
+     * @param <T>        泛型类型
+     * @return get查询结果
      */
-    Map<String, String> getByRowKeyWithFamilyAndQualifiers(String tableName, String rowKey, String familyName, List<String> qualifiers);
+    <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
 
     /**
-     * get查询数据，返回Map数据类型，例如：{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
      *
-     * @param tableName 表名
-     * @param rowKey    rowKey
+     * @param tableName     表名
+     * @param rowKey        rowKey
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
      * @return 获取查询结果
      */
-    Map<String, Object> getToMap(String tableName, String rowKey);
-
+    Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp);
 
     /**
-     * get查询数据，返回Map数据类型，例如：{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
      *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
+     * @param tableName     表名
+     * @param rowKey        rowKey
+     * @param familyName    列簇名
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
      * @return 获取查询结果
      */
-    Map<String, Object> getToMapWithFamily(String tableName, String rowKey, String familyName);
+    Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp);
 
     /**
-     * get查询数据，返回Map数据类型，例如：{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
      *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名
+     * @param tableName     表名
+     * @param rowKey        rowKey
+     * @param familyName    列簇名
+     * @param qualifiers    需要筛选的字段名
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
      * @return 获取查询结果
      */
-    Map<String, Object> getToMapWithFamilyAndQualifier(String tableName, String rowKey, String familyName, List<String> qualifiers);
-
+    Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp);
 
     /**
-     * get查询数据，返回Map列表结构，例如：[{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}]
+     * 根据一批RowKey查询所有列簇和字段下的数据，查询结果映射为一个Java Bean列表.
+     *
+     * @param rowKeys row key list
+     * @param clazz   java bean class type
+     * @param <T>     泛型类型
+     * @return 范型结果集合
+     */
+    <T> List<T> getRows(List<String> rowKeys, Class<T> clazz);
+
+    /**
+     * 根据一批RowKey查询某一个所属列簇的数据，查询结果映射为一个Java Bean列表.
+     *
+     * @param rowKeys    row key list
+     * @param familyName family name
+     * @param clazz      java bean class type
+     * @param <T>        泛型类型
+     * @return 范型结果集合
+     */
+    <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz);
+
+    /**
+     * 根据一批RowKey查询某一个所属列簇以及某些字段的数据，查询结果映射为一个Java Bean列表.
+     *
+     * @param rowKeys    row key list
+     * @param familyName family name
+     * @param qualifiers qualifiers
+     * @param clazz      java bean class type
+     * @param <T>        泛型类型
+     * @return 范型结果集合
+     */
+    <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz);
+
+    /**
+     * get查询数据，可以指定自定义的Row Mapper
      *
      * @param tableName 表名
-     * @param rowKey    rowKey
-     * @return 查询结果
+     * @param rowKeys   rowKey列表
+     * @param rowMapper 自定义的RowMapper
+     * @param <T>       泛型类型
+     * @return get查询结果
      */
-    List<Map<String, Object>> getToListMap(String tableName, String rowKey);
+    <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper);
 
     /**
-     * get查询数据，可以指定列簇，返回Map列表结构，例如：[{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}]
+     * get查询某一列簇下的数据，可以指定自定义的Row Mapper
      *
      * @param tableName  表名
-     * @param rowKey     rowKey
+     * @param rowKeys    rowKey列表
      * @param familyName 列簇名
-     * @return 查询结果
-     */
-    List<Map<String, Object>> getToListMapWithFamily(String tableName, String rowKey, String familyName);
-
-    /**
-     * get查询数据，可以指定列簇以及需要筛选的字段名，返回Map列表结构，例如：[{"rowKey" : "10001", "familyName": "INFO:NAME", "timestamp": 1232234234242, "value": "leo"}]
-     *
-     * @param tableName  表名
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名
-     * @return 查询结果
-     */
-    List<Map<String, Object>> getToListMapWithFamilyAndQualifier(String tableName, String rowKey, String familyName, List<String> qualifiers);
-
-    /**
-     * scan 所有数据，查询结果集映射为JavaBean
-     *
-     * @param limit 查询结果集返回数量限制
-     * @param clazz 结果集映射的JavaBean类型
-     * @param <T>   泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAll(int limit, Class<T> clazz);
-
-    /**
-     * scan 所有数据，可以指定列簇，查询结果集映射为JavaBean
-     *
-     * @param familyName 列簇名
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
+     * @param rowMapper  自定义的RowMapper
      * @param <T>        泛型类型
-     * @return 结果数据
+     * @return get查询结果
      */
-    <T> List<T> findAllWithFamily(String familyName, int limit, Class<T> clazz);
+    <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper);
 
     /**
-     * scan 所有数据，可以指定列簇和多个字段名，查询结果集映射为JavaBean
+     * get查询某一列簇下的数据，可以指定多个字段，可以指定自定义的Row Mapper
      *
+     * @param tableName  表名
+     * @param rowKeys    rowKey列表
      * @param familyName 列簇名
-     * @param qualifiers 字段名列表
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
+     * @param qualifiers 需要筛选的字段列表
+     * @param rowMapper  自定义的RowMapper
      * @param <T>        泛型类型
+     * @return get查询结果
+     */
+    <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
+
+    /**
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
+     *
+     * @param tableName     表名
+     * @param rowKeys       rowKey列表
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
+     * @return 获取查询结果
+     */
+    Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp);
+
+    /**
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
+     *
+     * @param tableName     表名
+     * @param rowKeys       rowKey列表
+     * @param familyName    列簇名
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
+     * @return 获取查询结果
+     */
+    Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp);
+
+    /**
+     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
+     *
+     * @param tableName     表名
+     * @param rowKeys       rowKey列表
+     * @param familyName    列簇名
+     * @param qualifiers    需要筛选的字段名
+     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
+     * @return 获取查询结果
+     */
+    Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp);
+
+
+    /**
+     * scan HBase表数据，查询结果集映射为JavaBean列表
+     *
+     * @param scanQueryParams scan查询参数
+     * @param clazz           结果集映射的JavaBean类型
+     * @param <T>             泛型类型
      * @return 结果数据
      */
-    <T> List<T> findAllWithFamilyAndQualifiers(String familyName, List<String> qualifiers, int limit, Class<T> clazz);
+    <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz);
 
     /**
-     * 根据前缀scan数据，查询结果集映射为JavaBean
+     * scan 所有数据
      *
-     * @param prefix scan的前缀
-     * @param limit  查询结果集返回数量限制
-     * @param clazz  结果集映射的JavaBean类型
-     * @param <T>    泛型类型
-     * @return 结果数据
+     * @param tableName       表名
+     * @param scanQueryParams scan查询参数
+     * @param rowMapper       自定义的RowMapper
+     * @param <T>             泛型类型
+     * @return 查询结果集
      */
-    <T> List<T> findAllByPrefix(String prefix, int limit, Class<T> clazz);
-
-    /**
-     * 根据前缀scan数据，可以指定列簇，查询结果集映射为JavaBean
-     *
-     * @param prefix     scan的前缀
-     * @param familyName 列簇
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
-     * @param <T>        泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAllByPrefixWithFamily(String prefix, String familyName, int limit, Class<T> clazz);
-
-    /**
-     * 根据前缀scan数据，可以指定列簇和多个字段名，查询结果集映射为JavaBean
-     *
-     * @param prefix     scan的前缀
-     * @param familyName 列簇
-     * @param qualifiers 多个字段名
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
-     * @param <T>        泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAllByPrefixWithFamilyAndQualifiers(String prefix, String familyName, List<String> qualifiers, int limit, Class<T> clazz);
-
-    /**
-     * 根据start row 和 end row扫描数据，
-     *
-     * @param startRow 开始row
-     * @param endRow   结束row
-     * @param limit    查询结果集返回数量限制
-     * @param clazz    结果集映射的JavaBean类型
-     * @param <T>      泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAllByStartAndEndRow(String startRow, String endRow, int limit, Class<T> clazz);
+    <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper);
 
 
     /**
-     * 根据start row 和 end row扫描数据，
+     * scan查询数据，返回Map列表类型，例如：["1001": {"info:name": "leo", "info:age": 18}]
      *
-     * @param startRow   开始row
-     * @param endRow     结束row
-     * @param familyName 列簇
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
-     * @param <T>        泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAllByStartAndEndRowWithFamily(String startRow, String endRow, String familyName, int limit, Class<T> clazz);
-
-
-    /**
-     * 根据start row 和 end row扫描数据，
-     *
-     * @param startRow   开始row
-     * @param endRow     结束row
-     * @param familyName 列簇
-     * @param qualifiers 多个字段名
-     * @param limit      查询结果集返回数量限制
-     * @param clazz      结果集映射的JavaBean类型
-     * @param <T>        泛型类型
-     * @return 结果数据
-     */
-    <T> List<T> findAllByStartAndEndRowWithFamilyAndQualifiers(String startRow, String endRow, String familyName, List<String> qualifiers, int limit, Class<T> clazz);
-
-    /**
-     * scan查询数据，返回Map列表类型，例如：[{"rowName": "10001", "info:name": "leo", "info:age": 18}]
-     *
-     * @param tableName 表名
-     * @param limit     限制的返回行数
+     * @param tableName       表名
+     * @param scanQueryParams scan查询参数
      * @return 查询结果
      */
-    List<Map<String, String>> findToMapList(String tableName, int limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称，返回Map列表类型，例如：[{"rowName": "10001", "info:name": "leo", "info:age": 18}]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<Map<String, String>> findToMapListWithFamily(String tableName, String familyName, int limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称以及需要筛选的字段列表，返回Map列表类型，例如：[{"rowName": "10001", "info:name": "leo", "info:age": 18}]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<Map<String, String>> findToMapListWithFamilyAndQualifier(String tableName, String familyName, List<String> qualifiers, int limit);
-
-
-    /**
-     * scan查询数据，返回Map列表类型，例如：[[{"rowName": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName 表名
-     * @param limit     限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMap(String tableName, Integer limit);
-
-
-    /**
-     * scan查询数据，可以指定列簇名称，返回Map列表类型，例如：[[{"rowKey": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMapWithFamily(String tableName, String familyName, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称以及需要筛选的字段列表，返回Map列表类型
-     * 例如：[[{"rowKey": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMapWithFamilyAndQualifier(String tableName, String familyName, List<String> qualifiers, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称以及开始的RowKey，返回Map列表类型
-     * 例如：[[{"rowKey": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param startKey   起始RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, String startKey, Integer limit);
-
-    /**
-     * scan查询数据，可以指定列簇名称和需要筛选的字段名以及开始的RowKey，返回Map列表类型
-     * 例如：[[{"rowKey": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param startKey   起始RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, Integer limit);
-
-
-    /**
-     * scan查询数据，可以指定列簇名称和需要筛选的字段名以及开始的RowKey和结束的RowKey，返回Map列表类型
-     * 例如：[[{"rowKey": "10001", "info:name": "leo", "timestamp": 10000, "value": "leo"}]]
-     *
-     * @param tableName  表名
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @param startKey   起始RowKey
-     * @param endKey     结束RowKey
-     * @param limit      限制的返回行数
-     * @return 查询结果
-     */
-    List<List<Map<String, Object>>> findToListMap(String tableName, String familyName, List<String> qualifiers, String startKey, String endKey, Integer limit);
+    List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams);
 
     /**
      * 根据RowKey删除数据
@@ -464,5 +366,36 @@ public interface HBaseTableOperations {
      */
     void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers);
 
+    /**
+     * 创建随机的RowKey name
+     *
+     * @return 随机RowKey
+     */
+    default String createRandomRowKeyName() {
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        return "row_key_" + uuid;
+    }
+
+    /**
+     * 判断列簇名满足条件，需要筛选的字段列表未指定
+     *
+     * @param familyName 列簇名
+     * @param qualifiers 需要筛选的字段列表
+     * @return 最终数据
+     */
+    default boolean familyNameOnly(String familyName, List<String> qualifiers) {
+        return StrUtil.isNotBlank(familyName) && (qualifiers == null || qualifiers.isEmpty());
+    }
+
+    /**
+     * 判断列簇名和需要筛选的字段列表同时成立
+     *
+     * @param familyName 列簇名
+     * @param qualifiers 需要筛选的字段列表
+     * @return 最终数据
+     */
+    default boolean familyAndColumnNames(String familyName, List<String> qualifiers) {
+        return StrUtil.isNotBlank(familyName) && (qualifiers != null && !qualifiers.isEmpty());
+    }
 
 }

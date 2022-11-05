@@ -121,7 +121,7 @@ public class ReflectUtil {
 
     public static String getUniqueTableFamily(Class<?> clazz) {
         if (clazz.isAnnotationPresent(HBaseTable.class)) {
-            return clazz.getAnnotation(HBaseTable.class).uniqueFamily();
+            return clazz.getAnnotation(HBaseTable.class).defaultFamilyName();
         }
         return "";
     }
@@ -138,10 +138,10 @@ public class ReflectUtil {
         String tableName = FieldOrTableNameUtil.underscoreName(className);
         if (clazz.isAnnotationPresent(HBaseTable.class)) {
             HBaseTable table = clazz.getAnnotation(HBaseTable.class);
-            if (!"".equals(table.name())) {
-                tableName = table.name();
+            if (!"".equals(table.tableName())) {
+                tableName = table.tableName();
             }
-            return "".equals(table.schema()) ? "default:" + tableName : table.schema() + ":" + tableName;
+            return "".equals(table.namespaceName()) ? "default:" + tableName : table.namespaceName() + ":" + tableName;
         } else {
             return "default:" + tableName;
         }
@@ -163,14 +163,14 @@ public class ReflectUtil {
         String columnFamily = null;
         if (field.isAnnotationPresent(HBaseColumn.class)) {
             HBaseColumn column = field.getAnnotation(HBaseColumn.class);
-            if (!"".equals(column.name())) {
-                fieldName = column.name();
+            if (!"".equals(column.columnName())) {
+                fieldName = column.columnName();
             }
             if (column.toUpperCase()) {
                 fieldName = fieldName.toUpperCase();
             }
-            if (!"".equals(column.family())) {
-                columnFamily = column.family();
+            if (!"".equals(column.familyName())) {
+                columnFamily = column.familyName();
             }
         }
 

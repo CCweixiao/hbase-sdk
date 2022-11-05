@@ -4,8 +4,6 @@ import com.github.CCweixiao.hbase.sdk.common.util.JsonUtil;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <p>HBase bytes 类型转换工具类</p>
@@ -19,53 +17,65 @@ public class HBytesUtil {
             return null;
         }
         String valClassName = val.getClass().getName();
-        if (valClassName.equals(String.class.getName())) {
-            return Bytes.toBytes(val.toString());
+        switch (valClassName) {
+            case "java.lang.String":
+                return Bytes.toBytes(val.toString());
+            case "boolean":
+            case "java.lang.Boolean":
+                return Bytes.toBytes(Boolean.parseBoolean(val.toString()));
+            case "long":
+            case "java.lang.Long":
+                return Bytes.toBytes(Long.parseLong(val.toString()));
+            case "float":
+            case "java.lang.Float":
+                return Bytes.toBytes(Float.parseFloat(val.toString()));
+            case "double":
+            case "java.lang.Double":
+                return Bytes.toBytes(Double.parseDouble(val.toString()));
+            case "int":
+            case "java.lang.Integer":
+                return Bytes.toBytes(Integer.parseInt(val.toString()));
+            case "short":
+            case "java.lang.Short":
+                return Bytes.toBytes(Short.parseShort(val.toString()));
+            case "java.math.BigDecimal":
+                return Bytes.toBytes(BigDecimal.valueOf(Long.parseLong(val.toString())));
+            default:
+                return Bytes.toBytes(JsonUtil.toJson(val));
         }
-        return Bytes.toBytes(JsonUtil.toJson(val));
     }
 
     public static Object toObject(byte[] val, Class<?> classType) {
+        if (val == null) {
+            return null;
+        }
         final String className = classType.getName();
-        String value = Bytes.toString(val);
-
         switch (className) {
             case "java.lang.String":
-                return value;
+                return Bytes.toString(val);
             case "boolean":
             case "java.lang.Boolean":
-                return Boolean.parseBoolean(value);
+                return Bytes.toBoolean(val);
             case "long":
             case "java.lang.Long":
-                return Long.parseLong(value);
+                return Bytes.toLong(val);
             case "float":
             case "java.lang.Float":
-                return Float.parseFloat(value);
+                return Bytes.toFloat(val);
             case "double":
             case "java.lang.Double":
-                return Double.parseDouble(value);
+                return Bytes.toDouble(val);
             case "int":
             case "java.lang.Integer":
-                return Integer.parseInt(value);
+                return Bytes.toInt(val);
             case "short":
             case "java.lang.Short":
-                return Short.parseShort(value);
+                return Bytes.toShort(val);
             case "java.math.BigDecimal":
-                return BigDecimal.valueOf(Long.parseLong(value));
+                return Bytes.toBigDecimal(val);
             default:
                 return JsonUtil.fromJson(Bytes.toString(val), classType);
         }
-    }
-
-    public static <T> List<T> toList(Object obj, Class<T> clazz) {
-        List<T> result = new ArrayList<>();
-        if (obj instanceof List<?>) {
-            for (Object o : (List<?>) obj) {
-                result.add(clazz.cast(o));
-            }
-            return result;
-        }
-        return null;
     }
 
 
@@ -80,6 +90,4 @@ public class HBytesUtil {
         System.out.println(BigDecimal.class.getName());
         System.out.println(int.class.getName());
     }
-
-
 }
