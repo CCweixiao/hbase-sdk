@@ -31,6 +31,8 @@ public interface HBaseAdminOperations {
     List<HTableDesc> listTableDesc();
 
     /**
+     * 获取所有的HBase表及其描述
+     *
      * @param includeSysTables 是否包含系统表
      * @return 所有的HBase表及其描述
      */
@@ -87,7 +89,7 @@ public interface HBaseAdminOperations {
 
     /**
      * 获取某张表所有的列簇信息
-     *
+     * @param tableName HBase表名
      * @return 所有的列簇信息
      */
     List<ColumnFamilyDesc> listFamilyDesc(String tableName);
@@ -544,7 +546,7 @@ public interface HBaseAdminOperations {
     /**
      * 根据正则批量删除快照
      *
-     * @param regex   正则
+     * @param regex 正则
      * @return 删除快照是否成功
      */
     boolean deleteSnapshots(final String regex);
@@ -574,6 +576,7 @@ public interface HBaseAdminOperations {
      * @param tableName       表名
      * @param limitRegionsNum 限制参与合并的region数，例如，总的region数是1000，此值设置为100，那么每次只有100个region参与合并
      * @param limitRegionSize 限制参与合并的region大小，单位是M，例如，如果每个region的大小设置为20G，那么只有小于10G的region的进行合并（此阈值可以调整）
+     * @return 合并表的小region是否成功
      */
     boolean mergeTableSmallRegions(final String tableName, int limitRegionsNum, int limitRegionSize);
 

@@ -1,6 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.adapter_12;
-
-import org.apache.hadoop.hbase.client.Result;
+package com.github.CCweixiao.hbase.sdk.common.mapper;
 
 /**
  * <p>结果集映射POJO</p>
@@ -11,10 +9,10 @@ public interface RowMapper<T> {
     /**
      * Result 结果映射实体字段
      *
-     * @param result 查询结果的Result对象
+     * @param r 查询结果的Result对象
      * @param rowNum 行数
      * @return 实体对象
      * @throws Exception 异常抛出
      */
-    T mapRow(Result result, int rowNum) throws Exception;
+    <R> T mapRow(R r, int rowNum) throws Exception;
 }

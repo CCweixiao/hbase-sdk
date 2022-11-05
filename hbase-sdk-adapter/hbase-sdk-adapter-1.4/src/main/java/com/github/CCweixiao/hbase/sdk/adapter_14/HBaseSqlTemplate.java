@@ -84,7 +84,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                     }
                 }
                 return resultList;
-            });
+            }).orElse(new ArrayList<>(0));
         }
 
         Util.checkRowKey(startRowKey);
@@ -137,7 +137,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
                     return resultList;
                 }
-            });
+            }).orElse(new ArrayList<>(0));
         } catch (Exception e) {
             throw new HBaseOperationsException("select. hql=" + hql, e);
         }

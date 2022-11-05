@@ -16,19 +16,19 @@ public @interface HBaseTable {
      *
      * @return namespace name
      */
-    String schema() default "default";
+    String namespaceName() default "default";
 
     /**
      * HBase table name, default value is ""
      *
      * @return the name of HBase table
      */
-    String name() default "";
+    String tableName() default "";
 
     /**
      * if your HBase table just has one family, you can set a unified family by set the value.
      *
      * @return family name
      */
-    String uniqueFamily() default "";
+    String defaultFamilyName() default "";
 }

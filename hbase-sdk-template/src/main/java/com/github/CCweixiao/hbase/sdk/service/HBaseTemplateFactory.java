@@ -3,61 +3,56 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.github.CCweixiao.hbase.sdk.common.HBaseAdminOperations;
 import com.github.CCweixiao.hbase.sdk.common.HBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedVersionException;
-import com.github.CCweixiao.hbase.sdk.common.version.HBaseSdkVersionEnum;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 /**
  * @author leojie 2022/10/22 14:28
  */
 public class HBaseTemplateFactory {
-    public HBaseAdminOperations getHBaseAdminOperations(String hbaseAdapterVersion, Properties prop) {
-        HBaseSdkVersionEnum versionEnum = getHBaseSdkVersionEnum(hbaseAdapterVersion);
-        HBaseAdminOperations operations = null;
-        switch (versionEnum) {
-            case HBASE_ADAPTER_12:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_12.HBaseAdminTemplate(prop);
-                break;
-            case HBASE_ADAPTER_14:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_14.HBaseAdminTemplate(prop);
-                break;
-            case HBASE_ADAPTER_22:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_22.HBaseAdminTemplate(prop);
-                break;
-            default:
-                break;
+
+    public static HBaseAdminOperations getHBaseAdminOperations(String hbaseAdapterVersion, Properties prop) {
+        if (StrUtil.isBlank(hbaseAdapterVersion)) {
+            throw new HBaseSdkUnsupportedVersionException("The version of hbase client adapter is not empty.");
         }
-        return operations;
+        String className = HBaseClientAdapterVersionEnum.getHBaseAdminTemplateAdapterClassNameByVersion(hbaseAdapterVersion);
+        if (StrUtil.isBlank(className)) {
+            throw new HBaseSdkUnsupportedVersionException(String.format("The version %s of hbase client adapter passed in is not in the support list %s",
+                    hbaseAdapterVersion, HBaseClientAdapterVersionEnum.toShowString()));
+        }
+        try {
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getDeclaredConstructor(Properties.class);
+            return (HBaseAdminOperations) constructor.newInstance(prop);
+        } catch (ClassNotFoundException e) {
+            throw new HBaseSdkUnsupportedVersionException("The class " + className + " of hbase client adapter is not found.");
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException |
+                 InstantiationException e) {
+            throw new HBaseSdkUnsupportedVersionException(e);
+        }
     }
 
-    public HBaseTableOperations getHBaseTableOperations(String hbaseAdapterVersion, Properties prop) {
-        HBaseSdkVersionEnum versionEnum = getHBaseSdkVersionEnum(hbaseAdapterVersion);
-        HBaseTableOperations operations = null;
-        switch (versionEnum) {
-            case HBASE_ADAPTER_12:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_12.HBaseTemplate(prop);
-                break;
-            case HBASE_ADAPTER_14:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_14.HBaseTemplate(prop);
-                break;
-            case HBASE_ADAPTER_22:
-                operations = new com.github.CCweixiao.hbase.sdk.adapter_22.HBaseTemplate(prop);
-                break;
-            default:
-                break;
+    public static HBaseTableOperations getHBaseTableOperations(String hbaseAdapterVersion, Properties prop) {
+        if (StrUtil.isBlank(hbaseAdapterVersion)) {
+            throw new HBaseSdkUnsupportedVersionException("The version of hbase client adapter is not empty.");
         }
-        return operations;
-    }
-
-    private HBaseSdkVersionEnum getHBaseSdkVersionEnum(String supportVersion) {
-        if (supportVersion == null || supportVersion.trim().length() == 0) {
-            throw new HBaseSdkUnsupportedVersionException("The version of hbase adapter is not empty.");
+        String className = HBaseClientAdapterVersionEnum.getHBaseTemplateAdapterClassNameByVersion(hbaseAdapterVersion);
+        if (StrUtil.isBlank(className)) {
+            throw new HBaseSdkUnsupportedVersionException(String.format("The version %s of hbase client adapter passed in is not in the support list %s",
+                    hbaseAdapterVersion, HBaseClientAdapterVersionEnum.toShowString()));
         }
-        for (HBaseSdkVersionEnum value : HBaseSdkVersionEnum.values()) {
-            if (supportVersion.equals(value.getSupportVersion())) {
-                return value;
-            }
+        try {
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getDeclaredConstructor(Properties.class);
+            return (HBaseTableOperations) constructor.newInstance(prop);
+        } catch (ClassNotFoundException e) {
+            throw new HBaseSdkUnsupportedVersionException("The class " + className + " of hbase client adapter is not found.");
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException |
+                 InstantiationException e) {
+            throw new HBaseSdkUnsupportedVersionException(e);
         }
-        throw new HBaseSdkUnsupportedVersionException("The version " + supportVersion + "  of hbase adapter is not supported.");
     }
 }

@@ -1,13 +1,11 @@
-package com.github.CCweixiao.hbase.sdk.adapter_12;
-
-import org.apache.hadoop.hbase.client.Table;
+package com.github.CCweixiao.hbase.sdk.common.callback;
 
 /**
  * <p>用于表级别的操作。</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
-public interface TableCallback<T> {
+public interface TableCallback<T, HT> {
     /**
      * <p>表级别操作的回调</p>
      *
@@ -15,5 +13,5 @@ public interface TableCallback<T> {
      * @return 返回结果
      * @throws Throwable 异常抛出
      */
-    T doInTable(Table table) throws Throwable;
+    T doInTable(HT table) throws Throwable;
 }
