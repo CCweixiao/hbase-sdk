@@ -25,13 +25,14 @@ public class HBaseServiceExample {
         new com.github.CCweixiao.hbase.sdk.adapter_12.VersionInfoImpl().version();
         new com.github.CCweixiao.hbase.sdk.adapter_14.VersionInfoImpl().version();
         new com.github.CCweixiao.hbase.sdk.adapter_22.VersionInfoImpl().version();
-        com.github.CCweixiao.hbase.sdk.adapter_14.HBaseTemplate tableOperations = new com.github.CCweixiao.hbase.sdk.adapter_14.HBaseTemplate(getProperties());
+        HBaseTableOperations tableOperations = new com.github.CCweixiao.hbase.sdk.adapter_22.HBaseTemplate(getProperties());
         ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .startRow("a10001")
                 .stopRow("a10002")
                 .build();
+        System.out.println(tableOperations.scan("t2", scanQueryParamsBuilder));
 
     }
     public static Properties getProperties() {
