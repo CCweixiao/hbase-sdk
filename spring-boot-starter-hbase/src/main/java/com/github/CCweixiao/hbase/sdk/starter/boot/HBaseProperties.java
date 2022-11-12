@@ -9,7 +9,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "spring.data.hbase")
 public class HBaseProperties {
-    private String hbaseAdapterVersion;
     private String quorum="localhost";
     private String zkClientPort = "2181";
     private String rootDir="/hbase";
@@ -19,14 +18,6 @@ public class HBaseProperties {
     private int corePoolSize=2;
     private int maximumPoolSize=4;
     private long keepAliveTime=60000;
-
-    public String getHbaseAdapterVersion() {
-        return hbaseAdapterVersion;
-    }
-
-    public void setHbaseAdapterVersion(String hbaseAdapterVersion) {
-        this.hbaseAdapterVersion = hbaseAdapterVersion;
-    }
 
     public String getThreadPoolName() {
         return threadPoolName;

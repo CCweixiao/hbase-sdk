@@ -1,13 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.service;
 
-import com.alipay.sofa.ark.support.listener.TestNGOnArk;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
-import com.github.CCweixiao.hbase.sdk.service.impl.HBaseAdminTemplateBuilder;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCweixiao.hbase.sdk.service.util.MapBuilder;
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.shaded.com.google.common.reflect.TypeToken;
@@ -20,7 +17,6 @@ import java.util.*;
 /**
  * @author leojie 2022/11/4 20:52
  */
-@TestNGOnArk
 public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Before

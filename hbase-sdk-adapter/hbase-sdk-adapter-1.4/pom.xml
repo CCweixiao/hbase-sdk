@@ -10,95 +10,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>hbase-sdk-adapter-1.4</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-adapter-common</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-shaded-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-shaded-client</artifactId>
             <version>${hbase1.4.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-dsl</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <!--用于提交MR任务的Jar包-->
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-shade-plugin</artifactId>-->
-<!--                <version>3.2.0</version>-->
-<!--                <configuration>-->
-<!--                    <transformers>-->
-<!--                        <transformer-->
-<!--                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>-->
-<!--                    </transformers>-->
-<!--                    <outputFile>target/${project.artifactId}-shade.jar</outputFile>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>shade</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
-            <!--用于执行的Jar包-->
-            <plugin>
-                <groupId>com.alipay.sofa</groupId>
-                <artifactId>sofa-ark-plugin-maven-plugin</artifactId>
-                <version>${sofa.ark.version}</version>
-                <executions>
-                    <execution>
-                        <id>default-cli</id>
-                        <goals>
-                            <goal>ark-plugin</goal>
-                        </goals>
-                        <configuration>
-                            <classifier>ark-plugin</classifier>
-                            <!-- configure exported class -->
-                            <exported>
-                                <!-- configure package-level exported class-->
-                                <packages>
-                                    <package>
-                                        com.github.CCweixiao.hbase.sdk.adapter_14.*
-                                    </package>
-                                </packages>
-                            </exported>
-                            <imported>
-                                <packages>
-                                    <package>
-                                        com.github.CCweixiao.hbase.sdk.common.*
-                                    </package>
-                                    <package>
-                                        com.github.CCwexiao.dsl.*
-                                    </package>
-                                </packages>
-                                <resources>
-                                    <resource>log4j.properties</resource>
-                                    <resource>jaas/zk-jaas.conf</resource>
-                                </resources>
-                            </imported>
-                            <outputDirectory>../target</outputDirectory>
-                            <shades>
-                                <shade>${project.groupId}:hbase-sdk-dsl:${project.version}</shade>
-                            </shades>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+
 
 </project>

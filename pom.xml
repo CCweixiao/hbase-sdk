@@ -46,11 +46,11 @@
         <!-- 项目模块名称 -->
         <module>hbase-sdk-common</module>
         <module>hbase-sdk-dsl</module>
-        <module>spring-boot-starter-hbase</module>
-        <module>hbase-sdk-thrift</module>
-        <module>hbase-sdk-examples</module>
         <module>hbase-sdk-adapter</module>
+        <module>hbase-sdk-thrift</module>
         <module>hbase-sdk-template</module>
+        <module>spring-boot-starter-hbase</module>
+        <module>hbase-sdk-examples</module>
     </modules>
 
     <properties>
@@ -58,8 +58,6 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <!-- 会跳过发布的 -->
-<!--        <maven.deploy.skip>true</maven.deploy.skip>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-boot-2.version>2.1.7.RELEASE</spring-boot-2.version>
         <hbase1.2.version>1.2.0</hbase1.2.version>
@@ -67,14 +65,13 @@
         <hbase2.1.version>2.1.3</hbase2.1.version>
         <hbase2.2.version>2.2.6</hbase2.2.version>
         <hbase.thrift.1.4.version>1.4.3</hbase.thrift.1.4.version>
-        <gson.version>2.8.6</gson.version>
-        <commons-lang3.version>3.4</commons-lang3.version>
+        <gson.version>2.10</gson.version>
+        <commons-lang3.version>3.12.0</commons-lang3.version>
         <commons-lang.version>2.6</commons-lang.version>
         <commons.pool2.version>2.6.2</commons.pool2.version>
-        <junit.version>4.9</junit.version>
-        <antlr4.version>4.5.1</antlr4.version>
-        <sofa.ark.version>1.1.1</sofa.ark.version>
-        <guava.version>20.0</guava.version>
+        <junit.version>4.13.2</junit.version>
+        <antlr4.version>4.11.1</antlr4.version>
+        <guava.version>30.0-jre</guava.version>
     </properties>
 
     <repositories>
@@ -126,6 +123,30 @@
         </repository>
     </repositories>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+    </dependencies>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -152,38 +173,6 @@
                 <groupId>com.github.CCweixiao</groupId>
                 <artifactId>spring-boot-starter-hbase</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.25</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-simple</artifactId>
-                <version>1.7.25</version>
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>1.7.25</version>
-            </dependency>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${guava.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>commons-lang</groupId>
-                <artifactId>commons-lang</artifactId>
-                <version>${commons-lang.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -256,37 +245,32 @@
             </resource>
         </resources>
 
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <!-- The Compiler Plugin is used to compile the sources of your project -->
-                    <version>3.5.1</version>
-                    <configuration>
-                        <source>${java.version}</source>
-                        <target>${java.version}</target>
-                        <compilerVersion>${java.version}</compilerVersion>
-                        <encoding>${project.build.sourceEncoding}</encoding>
-                        <optimize>true</optimize>
-                        <maxmem>1024m</maxmem>
-                        <fork>true</fork>
-                        <compilerArgs>
-                            <arg>-Xlint:all,-serial,-path</arg>
-                        </compilerArgs>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <phase>compile</phase>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <compilerVersion>${java.version}</compilerVersion>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <optimize>true</optimize>
+                    <maxmem>1024m</maxmem>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <arg>-Xlint:all,-serial,-path</arg>
+                    </compilerArgs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>

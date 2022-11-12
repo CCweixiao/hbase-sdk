@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.common.HBaseThriftOperations;
+import com.github.CCweixiao.hbase.sdk.common.IHBaseThriftOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  *
  * @author leojie 2020/12/27 2:46 下午
  */
-public class HBaseThriftClient extends HBaseThriftConnection implements HBaseThriftOperations {
+public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseThriftOperations {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseThriftClient.class);
 
     private Hbase.Client hbaseClient;

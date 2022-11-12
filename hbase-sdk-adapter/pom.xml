@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>hbase-sdk-adapter-common</module>
         <module>hbase-sdk-adapter-1.2</module>
         <module>hbase-sdk-adapter-1.4</module>
         <module>hbase-sdk-adapter-2.2</module>
