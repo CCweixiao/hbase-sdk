@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.common.HBaseThriftOperations;
+import com.github.CCweixiao.hbase.sdk.common.IHBaseThriftOperations;
 
 import java.util.List;
 import java.util.Map;
@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * @author leojie 2020/12/27 11:41 下午
  */
-public class HBaseThriftService implements HBaseThriftOperations {
+public class HBaseThriftService implements IHBaseThriftOperations {
 
     private final HBaseThriftPool pool;
 

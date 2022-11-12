@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.common.HBaseThriftOperations;
+import com.github.CCweixiao.hbase.sdk.common.IHBaseThriftOperations;
 
 import java.io.Closeable;
 import java.util.List;
@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * @author leojie 2020/12/27 2:48 下午
  */
-public class HBaseThrift implements Closeable, HBaseThriftOperations {
+public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     protected HBaseThriftClient hBaseThriftClient;
     protected HBaseThriftPoolAbstract dataSource = null;
 

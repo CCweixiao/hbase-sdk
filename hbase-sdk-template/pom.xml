@@ -9,40 +9,52 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-
-
     <artifactId>hbase-sdk-template</artifactId>
 
-    <dependencies>
+    <profiles>
+        <profile>
+            <id>hbase-1.2</id>
+            <properties>
+                <profiles.active>hbase-1.2</profiles.active>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.CCweixiao</groupId>
+                    <artifactId>hbase-sdk-adapter-1.2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
 
-        <dependency>
-            <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-adapter-1.2</artifactId>
-            <version>${project.version}</version>
-            <classifier>ark-plugin</classifier>
-        </dependency>
+        <profile>
+            <id>hbase-1.4</id>
+            <properties>
+                <profiles.active>hbase-1.2</profiles.active>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.CCweixiao</groupId>
+                    <artifactId>hbase-sdk-adapter-1.4</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
 
-        <dependency>
-            <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-adapter-1.4</artifactId>
-            <version>${project.version}</version>
-            <classifier>ark-plugin</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-adapter-2.2</artifactId>
-            <version>${project.version}</version>
-            <classifier>ark-plugin</classifier>
-        </dependency>
-
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>sofa-ark-springboot-starter</artifactId>
-            <version>${sofa.ark.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
-
+        <profile>
+            <id>hbase-2.2</id>
+            <properties>
+                <profiles.active>hbase-2.2</profiles.active>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.CCweixiao</groupId>
+                    <artifactId>hbase-sdk-adapter-2.2</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

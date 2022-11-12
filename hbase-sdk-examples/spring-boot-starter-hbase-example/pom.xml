@@ -33,6 +33,16 @@
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>spring-boot-starter-hbase</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -62,12 +72,10 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot-2.version}</version>
                 <configuration>
-                    <outputDirectory>target</outputDirectory>
-                    <classifier>ark-biz</classifier>
+                    <mainClass>com.github.CCweixiao.hbase.sdk.boot.example.SpringBootHBaseExampleApp</mainClass>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>package</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>

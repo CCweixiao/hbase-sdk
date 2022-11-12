@@ -2,8 +2,10 @@ package com.github.CCweixiao.hbase.sdk.service;
 
 import com.github.CCweixiao.hbase.sdk.common.model.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.HTableDesc;
-import com.github.CCweixiao.hbase.sdk.service.impl.HBaseAdminTemplateBuilder;
-import com.github.CCweixiao.hbase.sdk.service.impl.HBaseTableTemplateBuilder;
+import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
+import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
+import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 
@@ -21,15 +23,13 @@ public abstract class AbstractHBaseTemplateTest {
     protected IHBaseTableTemplate tableTemplate;
 
     protected void initIHBaseAdminTemplate() {
-        adminTemplate = new HBaseAdminTemplateBuilder.Builder()
-                .properties(getProperties())
-                .sdkAdapterVersion("1.4.x").build();
+        adminTemplate = new HBaseAdminTemplateImpl.Builder()
+                .properties(getProperties()).build();
     }
 
     protected void initIHBaseTableTemplate() {
-        tableTemplate = new HBaseTableTemplateBuilder.Builder()
-                .properties(getProperties())
-                .sdkAdapterVersion("1.4.x").build();
+        tableTemplate = new HBaseTableTemplateImpl.Builder()
+                .properties(getProperties()).build();
     }
 
     protected Properties getProperties() {
