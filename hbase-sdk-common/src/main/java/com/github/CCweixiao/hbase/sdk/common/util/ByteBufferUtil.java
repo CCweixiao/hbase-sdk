@@ -1,5 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
+
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -9,12 +11,7 @@ import java.nio.charset.CharsetDecoder;
  * @author leojie 2020/12/27 2:36 下午
  */
 public class ByteBufferUtil {
-    /**
-     * 字节数组数组转字符串
-     *
-     * @param buffer 字节数组
-     * @return 字符串
-     */
+
     public static String byteBufferToString(ByteBuffer buffer) {
         CharBuffer charBuffer;
         try {
@@ -29,11 +26,12 @@ public class ByteBufferUtil {
         }
     }
 
-    public static ByteBuffer getByteBufferFromString(String str) {
-        if (str == null) {
-            str = "";
-        }
-        return ByteBuffer.wrap(str.getBytes());
+    public static Object byteBufferToObj(Class<?> type, ByteBuffer buffer) {
+        return TypeHandlerFactory.toObject(type, buffer);
+    }
+
+    public static ByteBuffer toByteBuffer(Object val) {
+        return TypeHandlerFactory.toByteBuffer(val);
     }
 
     public static String bytesIncrement(String str) {

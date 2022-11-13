@@ -6,7 +6,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
 public class HBaseThriftException extends RuntimeException{
 
 
-    private static final long serialVersionUID = -8868799879462992551L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseThriftException(String message) {
         super(message);

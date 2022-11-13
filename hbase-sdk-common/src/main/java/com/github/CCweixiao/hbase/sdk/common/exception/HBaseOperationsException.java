@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.exception;
 
 /**
- * <p>自定义HBase数据库操作的异常</p>
+ * <p>Exceptions for custom HBase database operations.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */

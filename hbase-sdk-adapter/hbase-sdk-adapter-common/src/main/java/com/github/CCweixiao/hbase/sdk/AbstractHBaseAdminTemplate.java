@@ -318,19 +318,19 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseOperations
 
     protected void tableIsNotExistsThrowError(Admin admin, String tableName) throws IOException {
         if (!admin.tableExists(TableName.valueOf(tableName))) {
-            throw new HBaseOperationsException("表[" + tableName + "]不存在");
+            throw new HBaseOperationsException(String.format("The table of %s is not exists.", tableName));
         }
     }
 
     protected void tableIsExistsThrowError(Admin admin, String tableName) throws IOException {
         if (admin.tableExists(TableName.valueOf(tableName))) {
-            throw new HBaseOperationsException("表[" + tableName + "]已经存在");
+            throw new HBaseOperationsException(String.format("The table of %s is exists.", tableName));
         }
     }
 
     protected void tableIsNotDisableThrowError(Admin admin, String tableName) throws IOException {
         if (!admin.isTableDisabled(TableName.valueOf(tableName))) {
-            throw new HBaseOperationsException("非禁用状态的表不可被操作");
+            throw new HBaseOperationsException("Tables in a non-disabled state cannot be manipulated.");
         }
     }
 

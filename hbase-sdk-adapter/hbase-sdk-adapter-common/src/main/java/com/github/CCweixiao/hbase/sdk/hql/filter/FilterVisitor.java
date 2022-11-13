@@ -1,6 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.hql.filter;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser.*;
@@ -8,7 +10,6 @@ import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.BytesUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -247,7 +248,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     private static Filter constructFilter(HBaseColumnSchema hBaseColumnSchema,
                                           CompareFilter.CompareOp compareOp, Object object) {
-        Util.checkNull(hBaseColumnSchema);
+        ObjUtil.checkIsNull(hBaseColumnSchema);
 
         byte[] value = hBaseColumnSchema.getTypeHandler().toBytes(hBaseColumnSchema.getType(), object);
         return constructFilter(hBaseColumnSchema, compareOp, value, true);
@@ -257,9 +258,9 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
                                           CompareFilter.CompareOp compareOp,
                                           byte[] value,
                                           boolean filterIfMissing) {
-        Util.checkNull(hBaseColumnSchema);
-        Util.checkNull(compareOp);
-        Util.checkNull(value);
+        ObjUtil.checkIsNull(hBaseColumnSchema);
+        ObjUtil.checkIsNull(compareOp);
+        ObjUtil.checkIsNull(value);
 
         byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
         byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getQualifier());
@@ -329,9 +330,9 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     private static Filter constructFilterWithRegex(
             HBaseColumnSchema hbaseColumnSchema, CompareFilter.CompareOp compareOp,
             Object object) {
-        Util.checkNull(hbaseColumnSchema);
-        Util.checkNull(compareOp);
-        Util.checkNull(object);
+        ObjUtil.checkIsNull(hbaseColumnSchema);
+        ObjUtil.checkIsNull(compareOp);
+        ObjUtil.checkIsNull(object);
 
         if (compareOp != CompareFilter.CompareOp.EQUAL && compareOp != CompareFilter.CompareOp.NOT_EQUAL) {
             throw new HBaseOperationsException("only EQUAL or NOT_EQUAL can use regex match. compareOp = "
@@ -419,10 +420,10 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     private static Filter constructFilterForContain(
             HBaseColumnSchema hbaseColumnSchema, CompareFilter.CompareOp compareOp,
             List<Object> list, FilterList.Operator operator) {
-        Util.checkNull(hbaseColumnSchema);
-        Util.checkNull(compareOp);
-        Util.checkNull(list);
-        Util.checkNull(operator);
+        ObjUtil.checkIsNull(hbaseColumnSchema);
+        ObjUtil.checkIsNull(compareOp);
+        ObjUtil.checkIsNull(list);
+        ObjUtil.checkIsNull(operator);
 
         List<Filter> filters = new ArrayList<>();
         for (Object obj : list) {

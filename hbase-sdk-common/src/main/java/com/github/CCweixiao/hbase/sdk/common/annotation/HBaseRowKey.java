@@ -11,5 +11,10 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface HBaseRowKey {
+    /**
+     * Defines whether a property is a row key
+     *
+     * @return Is row key or not.
+     */
     boolean rowKey() default true;
 }

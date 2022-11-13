@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.HBaseCellResult;
@@ -71,10 +72,10 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
     @Override
     public List<List<HBaseCellResult>> select(String hql) {
-        Util.checkEmptyString(hql);
+        ObjUtil.checkEmptyString(hql);
         HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(hql);
         HBaseSQLParser.SelecthqlcContext context = HBaseSQLContextUtil.parseSelecthqlcContext(progContext);
-        Util.checkNull(context);
+        ObjUtil.checkIsNull(context);
 
         String tableName = TreeUtil.parseTableName(progContext);
         checkTableName(tableName);
@@ -82,7 +83,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         // cid List
         HBaseSQLParser.SelectCidListContext selectCidListContext = context.selectCidList();
         final List<HBaseColumnSchema> queryHBaseColumnSchemaList = HBaseSQLContextUtil.parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
-        Util.check(!queryHBaseColumnSchemaList.isEmpty());
+        ObjUtil.check(!queryHBaseColumnSchemaList.isEmpty());
 
         // filter
         Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(), hBaseTableConfig, runtimeSetting);
@@ -176,12 +177,12 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
     @Override
     public void insert(String hql) {
-        Util.checkEmptyString(hql);
+        ObjUtil.checkEmptyString(hql);
 
         HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(hql);
         HBaseSQLParser.InserthqlcContext context = HBaseSQLContextUtil.parseInserthqlcContext(progContext);
 
-        Util.checkNull(context);
+        ObjUtil.checkIsNull(context);
 
         String tableName = TreeUtil.parseTableName(progContext);
         checkTableName(tableName);
@@ -191,7 +192,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         final List<HBaseSQLParser.InsertValueContext> insertValueContextList = context.insertValueList().insertValue();
 
-        Util.check(insertHbaseColumnSchemaList.size() == insertValueContextList.size());
+        ObjUtil.check(insertHbaseColumnSchemaList.size() == insertValueContextList.size());
 
         final HBaseSQLParser.RowKeyExpContext rowKeyExpContext = context.rowKeyExp();
         RowKey rowKey = HBaseSQLContextUtil.parseRowKey(rowKeyExpContext, runtimeSetting);
@@ -229,11 +230,11 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
     @Override
     public void delete(String hql) {
-        Util.checkEmptyString(hql);
+        ObjUtil.checkEmptyString(hql);
 
         HBaseSQLParser.ProgContext progContext = TreeUtil.parseProgContext(hql);
         HBaseSQLParser.DeletehqlcContext context = HBaseSQLContextUtil.parseDeletehqlcContext(progContext);
-        Util.checkNull(context);
+        ObjUtil.checkIsNull(context);
 
         String tableName = TreeUtil.parseTableName(progContext);
         checkTableName(tableName);
@@ -243,7 +244,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         List<HBaseColumnSchema> deleteHbaseColumnSchemaList = HBaseSQLContextUtil
                 .parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
 
-        Util.check(!deleteHbaseColumnSchemaList.isEmpty());
+        ObjUtil.check(!deleteHbaseColumnSchemaList.isEmpty());
 
         //filter
         Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(), hBaseTableConfig, runtimeSetting);

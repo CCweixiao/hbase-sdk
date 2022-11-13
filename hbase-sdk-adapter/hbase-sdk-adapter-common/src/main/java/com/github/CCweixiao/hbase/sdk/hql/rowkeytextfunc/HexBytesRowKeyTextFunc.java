@@ -1,9 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.hql.rowkeytextfunc;
 
+import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.BytesRowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
-import com.github.CCwexiao.hbase.sdk.dsl.util.EncodingUtil;
 
 /**
  * @author leojie 2020/11/28 12:50 下午

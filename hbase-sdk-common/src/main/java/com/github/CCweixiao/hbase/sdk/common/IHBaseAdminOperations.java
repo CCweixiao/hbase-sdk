@@ -10,16 +10,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * <p>该接口用于定义管理员操作的API</p>
+ * <p>该接口对管理员操作的API进行了统一的定义</p>
  *
  * @author leojie 2020/9/25 10:44 下午
  */
 public interface IHBaseAdminOperations {
     /**
-     * 判断HBase表是否存在
+     * 判断表是否存在
      *
-     * @param tableName HBase表名
-     * @return HBase表是否存在
+     * @param tableName 表名
+     * @return 是否存在
      */
     boolean tableExists(String tableName);
 
@@ -89,6 +89,7 @@ public interface IHBaseAdminOperations {
 
     /**
      * 获取某张表所有的列簇信息
+     *
      * @param tableName HBase表名
      * @return 所有的列簇信息
      */

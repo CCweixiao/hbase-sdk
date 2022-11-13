@@ -5,7 +5,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
  */
 public class HBaseSdkConnectionException extends HBaseSdkException {
 
-    private static final long serialVersionUID = -1226550815682955571L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseSdkConnectionException(String message) {
         super(message);

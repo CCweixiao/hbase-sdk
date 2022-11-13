@@ -2,13 +2,10 @@ package com.github.CCweixiao.hbase.sdk.common;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
-
 /**
  * 定义HBase的数据操作接口
  *

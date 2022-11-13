@@ -1,12 +1,12 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 
+import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.ClassUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandler;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandlerHolder;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandlers;
-import com.github.CCwexiao.hbase.sdk.dsl.util.ClassUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 
 /**
  * @author leojie 2020/11/27 10:45 下午
@@ -40,26 +40,26 @@ public class HBaseColumnSchema {
     /**
      * type handler 的实现
      */
-    private TypeHandler typeHandler;
+    private AbstractTypeHandler typeHandler;
 
 
-    public void init(TypeHandlers typeHandlers) {
-        Util.checkEmptyFamilyName(family);
-        Util.checkEmptyQualifierName(qualifier);
-        Util.checkEmptyCTypeName(typeName);
+    public void init() {
+        ObjUtil.checkEmptyFamilyName(family);
+        ObjUtil.checkEmptyQualifierName(qualifier);
+        ObjUtil.checkEmptyCTypeName(typeName);
 
         type = ClassUtil.forName(typeName);
-        Util.checkNull(type);
+        ObjUtil.checkIsNull(type);
 
         if (StrUtil.isBlank(typeHandlerName)) {
-            typeHandler = typeHandlers.findDefaultTypeHandler(type);
+            typeHandler = TypeHandlerFactory.findTypeHandler(type);
             typeHandlerName = typeHandler.getClass().getName();
         } else {
-            typeHandler = TypeHandlerHolder.findTypeHandler(typeHandlerName);
+            typeHandler = TypeHandlerFactory.findTypeHandler(typeHandlerName);
         }
 
-        Util.checkNull(typeHandlerName);
-        Util.checkNull(typeHandler);
+        ObjUtil.checkIsNull(typeHandlerName);
+        ObjUtil.checkIsNull(typeHandler);
 
     }
 

@@ -47,7 +47,7 @@ public abstract class AbstractHBaseOperations implements IHBaseOperations {
     }
 
     public Configuration getConfiguration() {
-        return ConnectionFactory.getConfiguration(properties);
+        return ConnectionFactory.getConfiguration(this.properties);
     }
 
     public void setProperties(Properties properties) {

@@ -5,9 +5,9 @@ package com.github.CCweixiao.hbase.sdk.common.query;
  */
 public interface IHBaseFilter {
     /**
-     * 构建过滤器的接口
-     * @return 过滤器
-     * @param <F> 范型过滤器
+     * Build a method interface for filtering HBase data queries
+     * @return Filter
+     * @param <F> Filter type.
      */
     <F> F customFilter();
 }

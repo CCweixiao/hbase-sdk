@@ -1,8 +1,8 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 
-import com.github.CCwexiao.hbase.sdk.dsl.util.EncodingUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -13,7 +13,7 @@ public class BytesRowKey implements RowKey {
     private final byte[] key;
 
     public BytesRowKey(byte[] key) {
-        Util.checkNull(key);
+        ObjUtil.checkIsNull(key);
 
         this.key = key;
     }

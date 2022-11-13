@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 
 import java.util.Date;
 
@@ -37,8 +37,8 @@ public class QueryExtInfo {
     }
 
     public void setTimeRange(Date minStamp, Date maxStamp) {
-        Util.checkNull(minStamp);
-        Util.checkNull(maxStamp);
+        ObjUtil.checkIsNull(minStamp);
+        ObjUtil.checkIsNull(maxStamp);
         setTimeRange(minStamp.getTime(), maxStamp.getTime());
 
     }

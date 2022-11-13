@@ -6,7 +6,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
 public class HBaseThriftExhaustedPoolException extends HBaseThriftException {
 
 
-    private static final long serialVersionUID = -27732580586572850L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseThriftExhaustedPoolException(String message) {
         super(message);

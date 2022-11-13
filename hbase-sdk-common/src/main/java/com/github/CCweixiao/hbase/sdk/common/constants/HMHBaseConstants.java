@@ -26,7 +26,7 @@ public class HMHBaseConstants {
 
     public static String getFullTableName(String tableName) {
         if (StrUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("表名不能为空");
+            throw new HBaseOperationsException("The table name is not empty.");
         }
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;
@@ -53,7 +53,7 @@ public class HMHBaseConstants {
 
     public static String getFullTableName(String namespaceName, String tableName) {
         if (StrUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("表名不能为空");
+            throw new HBaseOperationsException("The table name is not empty.");
         }
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;

@@ -1,12 +1,12 @@
 package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -36,7 +36,7 @@ public class SelectCidListVisitor extends HBaseSQLBaseVisitor<List<HBaseColumnSc
     @Override
     public List<HBaseColumnSchema> visitCidList_Regx(HBaseSQLParser.CidList_RegxContext ctx) {
         String regx = ctx.TEXT().getText();
-        Util.checkEmptyString(regx);
+        ObjUtil.checkEmptyString(regx);
 
         List<HBaseColumnSchema> list = hbaseTableConfig.gethBaseTableSchema().findAllColumnSchemas();
         Pattern p = Pattern.compile(regx);

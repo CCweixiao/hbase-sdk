@@ -1,7 +1,7 @@
-package com.github.CCwexiao.hbase.sdk.dsl.type;
+package com.github.CCweixiao.hbase.sdk.common.type.handler.ext;
 
-import com.github.CCwexiao.hbase.sdk.dsl.util.EncodingUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
+import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -12,12 +12,12 @@ public class HexBytes {
     private final byte[] data;
 
     public HexBytes(byte[] data) {
-        Util.checkNull(data);
+        ObjUtil.checkIsNull(data);
         this.data = data;
     }
 
     public HexBytes(String hexStr) {
-        Util.checkNull(hexStr);
+        ObjUtil.checkIsNull(hexStr);
         this.data = EncodingUtil.parseBytesFromHexString(hexStr);
     }
 

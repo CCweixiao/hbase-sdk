@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.literal.interpreter;
 
+import com.github.CCweixiao.hbase.sdk.common.util.DateUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.literal.AbstractLiteralInterpreter;
-import com.github.CCwexiao.hbase.sdk.dsl.util.DateUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,19 +11,19 @@ import java.util.List;
  * @author leojie 2020/11/28 6:03 下午
  */
 public class DateInterpreter extends AbstractLiteralInterpreter {
-    private static List<String> dateFormats = new ArrayList<>();
+    private static final List<String> DATE_FORMATS = new ArrayList<>();
 
     static {
-        dateFormats.add(DateUtil.MSFormat);
-        dateFormats.add(DateUtil.SecondFormat);
-        dateFormats.add(DateUtil.MinuteFormat);
-        dateFormats.add(DateUtil.HourFormat);
-        dateFormats.add(DateUtil.DayFormat);
+        DATE_FORMATS.add(DateUtil.MS_FORMAT);
+        DATE_FORMATS.add(DateUtil.SECOND_FORMAT);
+        DATE_FORMATS.add(DateUtil.MINUTE_FORMAT);
+        DATE_FORMATS.add(DateUtil.HOUR_FORMAT);
+        DATE_FORMATS.add(DateUtil.DAY_FORMAT);
     }
 
     @Override
     protected Object interpretInternal(String literalValue) {
-        for (String s : dateFormats) {
+        for (String s : DATE_FORMATS) {
             Date date = DateUtil.parse(literalValue, s);
             if (date != null) {
                 return date;

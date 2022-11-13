@@ -2,6 +2,8 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.config.DefaultHBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.client.HBaseCellResult;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
@@ -10,7 +12,6 @@ import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandler;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -186,7 +187,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
     }
 
     protected void checkTableName(String tableName) {
-        Util.checkEquals(tableName, hBaseTableConfig.gethBaseTableSchema().getTableName());
+        ObjUtil.checkEquals(tableName, hBaseTableConfig.gethBaseTableSchema().getTableName());
     }
 
     protected byte[] convertValueToBytes(Object value, HBaseColumnSchema hbaseColumnSchema) {

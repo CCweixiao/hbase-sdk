@@ -1,10 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.hql.config;
 
-import com.github.CCweixiao.hbase.sdk.hql.type.DefaultTypeHandlers;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableSchema;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandlers;
 
 import java.util.List;
 
@@ -28,10 +26,5 @@ public class DefaultHBaseTableConfig extends HBaseTableConfig {
     @Override
     protected List<HBaseColumnSchema> providedAllHBaseColumnSchema() {
         return this.hBaseColumnSchemaList;
-    }
-
-    @Override
-    protected TypeHandlers providedColumnTypeHandlers() {
-        return new DefaultTypeHandlers();
     }
 }

@@ -3,7 +3,7 @@ package com.github.CCweixiao.hbase.sdk.common.annotation;
 import java.lang.annotation.*;
 
 /**
- * 该注解用于定义一个HBase的表信息
+ * This annotation is used to define the table information for an HBase.
  *
  * @author leo
  */
@@ -12,23 +12,23 @@ import java.lang.annotation.*;
 @Documented
 public @interface HBaseTable {
     /**
-     * 该表所属的命名空间，默认是default
+     * Define namespace name for HBaseTable, and the default namespace name is 'default'.
      *
      * @return namespace name
      */
     String namespaceName() default "default";
 
     /**
-     * HBase table name, default value is ""
+     * Define table name for HBaseTable.
      *
-     * @return the name of HBase table
+     * @return table name
      */
     String tableName() default "";
 
     /**
-     * if your HBase table just has one family, you can set a unified family by set the value.
+     * If your table just has one family, you can set a default family by this value.
      *
-     * @return family name
+     * @return default family name
      */
     String defaultFamilyName() default "";
 }
