@@ -1,9 +1,8 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandlers;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 
 import java.util.*;
 
@@ -27,8 +26,8 @@ public class HBaseTableSchema {
     private final Map<String, Map<String, HBaseColumnSchema>> columnSchemas = new TreeMap<>();
 
 
-    public void init(List<HBaseColumnSchema> hBaseColumnSchemas, TypeHandlers typeHandlers) {
-        Util.checkEmptyString(tableName);
+    public void init(List<HBaseColumnSchema> hBaseColumnSchemas) {
+        ObjUtil.checkEmptyString(tableName);
 
         if (hBaseColumnSchemas.isEmpty()) {
             throw new HBaseOperationsException("no HBaseColumnSchema.");
@@ -39,7 +38,7 @@ public class HBaseTableSchema {
                 columnSchema.setFamily(defaultFamily);
             }
 
-            columnSchema.init(typeHandlers);
+            columnSchema.init();
 
             Map<String, HBaseColumnSchema> tempMap = columnSchemas.computeIfAbsent(columnSchema.getQualifier(), k -> new TreeMap<>());
 
@@ -57,8 +56,8 @@ public class HBaseTableSchema {
      * @return HBaseColumnSchema
      */
     public HBaseColumnSchema findColumnSchema(String family, String qualifier) {
-        Util.checkEmptyString(family);
-        Util.checkEmptyString(qualifier);
+        ObjUtil.checkEmptyString(family);
+        ObjUtil.checkEmptyString(qualifier);
 
         HBaseColumnSchema result = columnSchemas.get(qualifier).get(family);
 
@@ -75,7 +74,7 @@ public class HBaseTableSchema {
      * @return HBaseColumnSchema
      */
     public HBaseColumnSchema findColumnSchema(String qualifier) {
-        Util.checkEmptyString(qualifier);
+        ObjUtil.checkEmptyString(qualifier);
 
         final Map<String, HBaseColumnSchema> tempMap = columnSchemas.get(qualifier);
         if (tempMap.size() == 1) {
@@ -134,11 +133,11 @@ public class HBaseTableSchema {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("---------------table--------------------------\n");
-        Util.append(sb, "tableName", tableName);
-        Util.append(sb, "defaultFamily", defaultFamily);
+        ObjUtil.append(sb, "tableName", tableName);
+        ObjUtil.append(sb, "defaultFamily", defaultFamily);
         for (Map<String, HBaseColumnSchema> tem : columnSchemas.values()) {
             for (HBaseColumnSchema columnSchema : tem.values()) {
-                Util.append(sb, "columnSchema", columnSchema);
+                ObjUtil.append(sb, "columnSchema", columnSchema);
             }
         }
         sb.append("---------------table--------------------------\n");

@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.literal.interpreter;
 
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.literal.AbstractLiteralInterpreter;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 
 /**
  * @author leojie 2020/11/28 6:06 下午
@@ -9,7 +9,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 public class CharInterpreter extends AbstractLiteralInterpreter {
     @Override
     protected Object interpretInternal(String literalValue) {
-        Util.checkLength(literalValue, 1);
+        ObjUtil.checkLength(literalValue, 1);
         return literalValue.charAt(0);
     }
 

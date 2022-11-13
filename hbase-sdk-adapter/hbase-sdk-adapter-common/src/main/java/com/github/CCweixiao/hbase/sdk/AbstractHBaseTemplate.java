@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseRowKey;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
@@ -16,6 +17,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,46 +50,17 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
     public <T> T save(T t) throws Exception {
         final Class<?> clazz = t.getClass();
         final String tableName = ReflectUtil.getHBaseTableName(clazz);
-        String rowKeyK = createRandomRowKeyName();
-        final String uniqueFamily = ReflectUtil.getUniqueTableFamily(clazz);
-        Field[] fields = ReflectUtil.getAllFields(clazz);
-        Map<String, Method> methodMap = ReflectUtil.getAllMethodsMap(clazz);
-        if (fields == null || fields.length == 0) {
-            throw new HBaseOperationsException("please assign values for " + clazz.getSimpleName() + ".");
-        }
-        if (methodMap == null || methodMap.isEmpty()) {
-            throw new HBaseOperationsException("please assign getter and setter for " + clazz.getSimpleName() + ".");
-        }
-        Map<String, Object> data = new HashMap<>(fields.length);
-        for (Field field : fields) {
-            if (ReflectUtil.isNotGeneralProperty(field)) {
-                continue;
-            }
-            Method getMethod = methodMap.getOrDefault(ReflectUtil.getGetterName(field), null);
-            if (ReflectUtil.isNotGeneralGetterMethod(getMethod)) {
-                throw new HBaseOperationsException("please assign a standard getter method for " + clazz.getSimpleName() + ".");
-            }
-            Object fieldValue = getMethod.invoke(t);
-            if (fieldValue == null) {
-                continue;
-            }
-            if (field.isAnnotationPresent(HBaseRowKey.class)) {
-                HBaseRowKey rowKey = field.getAnnotation(HBaseRowKey.class);
-                if (rowKey.rowKey()) {
-                    data.put(rowKeyK, fieldValue);
-                }
-            } else {
-                String fieldName = ReflectUtil.getHBaseColumnName(uniqueFamily, field);
-                data.put(fieldName, fieldValue);
-            }
-        }
-        if (!data.containsKey(rowKeyK) || data.get(rowKeyK) == null) {
-            throw new HBaseOperationsException("please provided a rowKey.");
-        }
-        Put put = new Put(Bytes.toBytes(String.valueOf(data.get(rowKeyK))));
-        data.remove(rowKeyK);
-        data.forEach((fieldName, fieldValue) -> put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(":"))),
-                Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(":") + 1)), HBytesUtil.toBytes(fieldValue)));
+        String randomRowKeyName = createRandomRowKeyName();
+        final String defaultFamilyName = ReflectUtil.getTableDefaultFamilyName(clazz);
+        Field[] fields = getFieldArr(clazz);
+        Map<String, Method> methodMap = getMethodMap(clazz);
+        Map<String, Object> data = createPutData(fields, methodMap, t, randomRowKeyName, defaultFamilyName);
+        Put put = new Put(Bytes.toBytes(String.valueOf(data.get(randomRowKeyName))));
+        data.remove(randomRowKeyName);
+        data.forEach((fieldName, fieldValue) ->
+                put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR))),
+                Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR) + 1)),
+                        HBytesUtil.toBytes(fieldValue)));
         this.save(tableName, put);
         return t;
     }
@@ -114,51 +87,20 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         }
         final Class<?> clazz0 = list.get(0).getClass();
         final String tableName = ReflectUtil.getHBaseTableName(clazz0);
-
-        final String uniqueFamily = ReflectUtil.getUniqueTableFamily(clazz0);
-        Field[] fields = ReflectUtil.getAllFields(clazz0);
-        Map<String, Method> methodMap = ReflectUtil.getAllMethodsMap(clazz0);
-
-        if (fields == null || fields.length == 0) {
-            throw new HBaseOperationsException("Please assign values for " + clazz0.getSimpleName() + ".");
-        }
-        if (methodMap == null || methodMap.isEmpty()) {
-            throw new HBaseOperationsException("Please assign getter and setter for " + clazz0.getSimpleName() + ".");
-        }
+        final String defaultFamilyName = ReflectUtil.getTableDefaultFamilyName(clazz0);
+        Field[] fields = getFieldArr(clazz0);
+        Map<String, Method> methodMap = getMethodMap(clazz0);
         List<Mutation> putList = new ArrayList<>(list.size());
 
         for (T t : list) {
-            String rowKeyK = createRandomRowKeyName();
-            Map<String, Object> data = new HashMap<>(fields.length);
-            for (Field field : fields) {
-                if (ReflectUtil.isNotGeneralProperty(field)) {
-                    continue;
-                }
-                Method getMethod = methodMap.getOrDefault(ReflectUtil.getGetterName(field), null);
-                if (ReflectUtil.isNotGeneralGetterMethod(getMethod)) {
-                    throw new HBaseOperationsException("Please assign a standard getter method for " + field.getName() + ".");
-                }
-                Object fieldValue = getMethod.invoke(t);
-                if (fieldValue == null) {
-                    continue;
-                }
-                if (field.isAnnotationPresent(HBaseRowKey.class)) {
-                    HBaseRowKey rowKey = field.getAnnotation(HBaseRowKey.class);
-                    if (rowKey.rowKey()) {
-                        data.put(rowKeyK, fieldValue);
-                    }
-                } else {
-                    String fieldName = ReflectUtil.getHBaseColumnName(uniqueFamily, field);
-                    data.put(fieldName, fieldValue);
-                }
-            }
-            if (!data.containsKey(rowKeyK) || data.get(rowKeyK) == null) {
-                throw new HBaseOperationsException("please provided a rowKey.");
-            }
-            Put put = new Put(HBytesUtil.toBytes(data.get(rowKeyK)));
-            data.remove(rowKeyK);
-            data.forEach((fieldName, fieldValue) -> put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(":"))),
-                    Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(":") + 1)), HBytesUtil.toBytes(fieldValue)));
+            String randomRowKeyName = createRandomRowKeyName();
+            Map<String, Object> data = createPutData(fields, methodMap, t, randomRowKeyName, defaultFamilyName);
+            Put put = new Put(HBytesUtil.toBytes(data.get(randomRowKeyName)));
+            data.remove(randomRowKeyName);
+            data.forEach((fieldName, fieldValue) ->
+                    put.addColumn(Bytes.toBytes(fieldName.substring(0, fieldName.lastIndexOf(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR))),
+                    Bytes.toBytes(fieldName.substring(fieldName.lastIndexOf(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR) + 1)),
+                            HBytesUtil.toBytes(fieldValue)));
             putList.add(put);
         }
         this.saveBatch(tableName, putList);
@@ -532,11 +474,12 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         }
         Map<String, String> data = new HashMap<>(cells.size());
         for (Cell cell : cells) {
-            String field = Bytes.toString(CellUtil.cloneFamily(cell)) + ":" + Bytes.toString(CellUtil.cloneQualifier(cell));
+            String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
+                    + Bytes.toString(CellUtil.cloneQualifier(cell));
             String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
-            data.put(field, value);
+            data.put(fieldName, value);
             if (withTimestamp) {
-                data.put(field + ":timestamp", String.valueOf(cell.getTimestamp()));
+                data.put(fieldName + ":timestamp", String.valueOf(cell.getTimestamp()));
             }
         }
         return data;
@@ -618,7 +561,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
                 Object[] args = new Object[]{rowKey};
                 setMethod.invoke(t, args);
             } else {
-                String columnName = ReflectUtil.getHBaseColumnName(ReflectUtil.getUniqueTableFamily(clazz), field);
+                String columnName = ReflectUtil.getHBaseColumnName(ReflectUtil.getTableDefaultFamilyName(clazz), field);
                 if (resultMap.containsKey(columnName)) {
                     byte[] byteArrValue = resultMap.get(columnName);
                     getMethod = allMethodMap.getOrDefault(ReflectUtil.getGetterName(field), null);
@@ -635,6 +578,53 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
 
         }
         return t;
+    }
+
+    private Field[] getFieldArr(Class<?> clazz) {
+        Field[] fields = ReflectUtil.getAllFields(clazz);
+        if (fields == null || fields.length == 0) {
+            throw new HBaseOperationsException("Please assign values for " + clazz.getSimpleName() + ".");
+        }
+        return fields;
+    }
+
+    private Map<String, Method> getMethodMap(Class<?> clazz) {
+        Map<String, Method> methodMap = ReflectUtil.getAllMethodsMap(clazz);
+        if (methodMap == null || methodMap.isEmpty()) {
+            throw new HBaseOperationsException("Please assign getter and setter for " + clazz.getSimpleName() + ".");
+        }
+        return methodMap;
+    }
+
+    private <T> Map<String, Object> createPutData(Field[] fields, Map<String, Method> methodMap, T t, String randomRowKeyName, String defaultFamilyName)
+            throws InvocationTargetException, IllegalAccessException {
+        Map<String, Object> data = new HashMap<>(fields.length);
+        for (Field field : fields) {
+            if (ReflectUtil.isNotGeneralProperty(field)) {
+                continue;
+            }
+            Method getMethod = methodMap.getOrDefault(ReflectUtil.getGetterName(field), null);
+            if (ReflectUtil.isNotGeneralGetterMethod(getMethod)) {
+                throw new HBaseOperationsException("Please assign a standard getter method for " + field.getName() + ".");
+            }
+            Object fieldValue = getMethod.invoke(t);
+            if (fieldValue == null) {
+                continue;
+            }
+            if (field.isAnnotationPresent(HBaseRowKey.class)) {
+                HBaseRowKey rowKey = field.getAnnotation(HBaseRowKey.class);
+                if (rowKey.rowKey()) {
+                    data.put(randomRowKeyName, fieldValue);
+                }
+            } else {
+                String fieldName = ReflectUtil.getHBaseColumnName(defaultFamilyName, field);
+                data.put(fieldName, fieldValue);
+            }
+        }
+        if (!data.containsKey(randomRowKeyName) || data.get(randomRowKeyName) == null) {
+            throw new HBaseOperationsException("Please provided a rowKey.");
+        }
+        return data;
     }
 
     /**

@@ -2,13 +2,13 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.visitor.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -31,8 +31,8 @@ public class HBaseSQLContextUtil {
      * @return HBaseColumnSchema
      */
     public static HBaseColumnSchema parseHBaseColumnSchema(HBaseTableConfig hbaseTableConfig, HBaseSQLParser.CidContext cidContext) {
-        Util.checkNull(hbaseTableConfig);
-        Util.checkNull(cidContext);
+        ObjUtil.checkIsNull(hbaseTableConfig);
+        ObjUtil.checkIsNull(cidContext);
 
         String cid = cidContext.TEXT().getText();
 
@@ -55,8 +55,8 @@ public class HBaseSQLContextUtil {
      * @return HBaseColumnSchema列表
      */
     public static List<HBaseColumnSchema> parseHBaseColumnSchemaList(HBaseTableConfig hBaseTableConfig, HBaseSQLParser.CidListContext cidListContext) {
-        Util.checkNull(hBaseTableConfig);
-        Util.checkNull(cidListContext);
+        ObjUtil.checkIsNull(hBaseTableConfig);
+        ObjUtil.checkIsNull(cidListContext);
 
         List<HBaseColumnSchema> result = new ArrayList<>();
 
@@ -75,8 +75,8 @@ public class HBaseSQLContextUtil {
      * @return HBaseColumnSchema列表
      */
     public static List<HBaseColumnSchema> parseHBaseColumnSchemaList(HBaseTableConfig hBaseTableConfig, HBaseSQLParser.SelectCidListContext selectCidListContext) {
-        Util.checkNull(hBaseTableConfig);
-        Util.checkNull(selectCidListContext);
+        ObjUtil.checkIsNull(hBaseTableConfig);
+        ObjUtil.checkIsNull(selectCidListContext);
 
         SelectCidListVisitor visitor = new SelectCidListVisitor(hBaseTableConfig);
         return selectCidListContext.accept(visitor);
@@ -91,14 +91,14 @@ public class HBaseSQLContextUtil {
      */
     public static Object parsePara(HBaseSQLParser.VarContext varContext,
                                    Map<String, Object> para) {
-        Util.checkNull(varContext);
-        Util.checkNull(para);
+        ObjUtil.checkIsNull(varContext);
+        ObjUtil.checkIsNull(para);
 
         String var = varContext.TEXT().getText();
-        Util.checkEmptyString(var);
+        ObjUtil.checkEmptyString(var);
 
         Object obj = para.get(var);
-        Util.checkNull(obj);
+        ObjUtil.checkIsNull(obj);
 
         return obj;
     }
@@ -111,11 +111,11 @@ public class HBaseSQLContextUtil {
      * @return select 语法上下文
      */
     public static HBaseSQLParser.SelecthqlcContext parseSelecthqlcContext(HBaseSQLParser.ProgContext progContext) {
-        Util.checkNull(progContext);
+        ObjUtil.checkIsNull(progContext);
 
         HBaseSQLParser.SelectHqlClContext selectHqlClContext = (HBaseSQLParser.SelectHqlClContext) progContext;
         HBaseSQLParser.SelecthqlcContext result = selectHqlClContext.selecthqlc();
-        Util.checkNull(result);
+        ObjUtil.checkIsNull(result);
 
         return result;
     }
@@ -127,12 +127,12 @@ public class HBaseSQLContextUtil {
      * @return insert 语法上下文
      */
     public static HBaseSQLParser.InserthqlcContext parseInserthqlcContext(HBaseSQLParser.ProgContext progContext) {
-        Util.checkNull(progContext);
+        ObjUtil.checkIsNull(progContext);
 
         HBaseSQLParser.InsertHqlClContext insertHqlClContext = (HBaseSQLParser.InsertHqlClContext) progContext;
         HBaseSQLParser.InserthqlcContext result = insertHqlClContext.inserthqlc();
 
-        Util.checkNull(result);
+        ObjUtil.checkIsNull(result);
 
         return result;
     }
@@ -145,12 +145,12 @@ public class HBaseSQLContextUtil {
      * @return delete 语法上下文
      */
     public static HBaseSQLParser.DeletehqlcContext parseDeletehqlcContext(HBaseSQLParser.ProgContext progContext) {
-        Util.checkNull(progContext);
+        ObjUtil.checkIsNull(progContext);
 
         HBaseSQLParser.DeleteHqlClContext deleteHqlClContext = (HBaseSQLParser.DeleteHqlClContext) progContext;
         HBaseSQLParser.DeletehqlcContext result = deleteHqlClContext.deletehqlc();
 
-        Util.checkNull(progContext);
+        ObjUtil.checkIsNull(progContext);
 
         return result;
     }
@@ -162,21 +162,21 @@ public class HBaseSQLContextUtil {
      * @return long型时间戳
      */
     public static long parseTimeStamp(HBaseSQLParser.TsexpContext tsexpContext) {
-        Util.checkNull(tsexpContext);
+        ObjUtil.checkIsNull(tsexpContext);
 
         String constant = tsexpContext.constant().TEXT().getText();
-        Util.checkEmptyTimestamp(constant);
+        ObjUtil.checkEmptyTimestamp(constant);
         return Long.parseLong(constant);
     }
 
     public static Date parseTimeStampDate(HBaseSQLParser.TsexpContext tsexpContext, HBaseSQLRuntimeSetting runtimeSetting) {
-        Util.checkNull(tsexpContext);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(tsexpContext);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         try {
             long timestamp = parseTimeStamp(tsexpContext);
             Date date = new Date(timestamp);
-            Util.checkNull(date);
+            ObjUtil.checkIsNull(date);
             return date;
 
         } catch (Exception e) {
@@ -191,12 +191,12 @@ public class HBaseSQLContextUtil {
      * @return 时间戳范围
      */
     public static TimeStampRange parseTimeStampRange(HBaseSQLParser.TsrangeContext tsrangeContext) {
-        Util.checkNull(tsrangeContext);
+        ObjUtil.checkIsNull(tsrangeContext);
 
         TimeStampRangeVisitor visitor = new TimeStampRangeVisitor();
         TimeStampRange timeStampRange = tsrangeContext.accept(visitor);
 
-        Util.checkNull(timeStampRange);
+        ObjUtil.checkIsNull(timeStampRange);
 
         return timeStampRange;
     }
@@ -209,11 +209,11 @@ public class HBaseSQLContextUtil {
      * @return rowKey
      */
     public static RowKey parseRowKey(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
-        Util.checkNull(rowKeyExpContext);
-        Util.checkNull(hBaseSQLRuntimeSetting);
+        ObjUtil.checkIsNull(rowKeyExpContext);
+        ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         RowKeyConstantVisitor visitor = new RowKeyConstantVisitor(hBaseSQLRuntimeSetting);
         RowKey rowKey = rowKeyExpContext.accept(visitor);
-        Util.checkNull(rowKey);
+        ObjUtil.checkIsNull(rowKey);
         return rowKey;
     }
 
@@ -224,8 +224,8 @@ public class HBaseSQLContextUtil {
      * @return rowKey列表
      */
     public static List<RowKey> parseRowKeyList(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
-        Util.checkNull(rowKeyExpContext);
-        Util.checkNull(hBaseSQLRuntimeSetting);
+        ObjUtil.checkIsNull(rowKeyExpContext);
+        ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         //RowKeyInSomeKeysVisitor visitor = new RowKeyInSomeKeysVisitor(hBaseSQLRuntimeSetting);
         RowKeyListConstantVisitor visitor = new RowKeyListConstantVisitor(hBaseSQLRuntimeSetting);
         final List<RowKey> rowKeyList = rowKeyExpContext.accept(visitor);
@@ -242,11 +242,11 @@ public class HBaseSQLContextUtil {
      * @return RowKeyTextFunc
      */
     public static RowKeyTextFunc parseRowKeyFunction(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
-        Util.checkNull(rowKeyExpContext);
-        Util.checkNull(hBaseSQLRuntimeSetting);
+        ObjUtil.checkIsNull(rowKeyExpContext);
+        ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         RowKeyFunctionVisitor visitor = new RowKeyFunctionVisitor(hBaseSQLRuntimeSetting);
         final RowKeyTextFunc rowKeyTextFunc = rowKeyExpContext.accept(visitor);
-        Util.checkNull(rowKeyTextFunc);
+        ObjUtil.checkIsNull(rowKeyTextFunc);
         return rowKeyTextFunc;
     }
 
@@ -258,26 +258,26 @@ public class HBaseSQLContextUtil {
      * @return rowKeyRange
      */
     public static RowKeyRange parseRowKeyRange(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
-        Util.checkNull(rowKeyRangeContext);
-        Util.checkNull(hBaseSQLRuntimeSetting);
+        ObjUtil.checkIsNull(rowKeyRangeContext);
+        ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
 
         RowKeyRangeVisitor visitor = new RowKeyRangeVisitor(hBaseSQLRuntimeSetting);
         RowKeyRange rowKeyRange = rowKeyRangeContext.accept(visitor);
 
-        Util.checkNull(rowKeyRange);
+        ObjUtil.checkIsNull(rowKeyRange);
 
         return rowKeyRange;
 
     }
 
     public static RowKeyRange parseRowKeyRange2(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
-        Util.checkNull(rowKeyRangeContext);
-        Util.checkNull(hBaseSQLRuntimeSetting);
+        ObjUtil.checkIsNull(rowKeyRangeContext);
+        ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
 
         RowKeyRangeVisitor visitor = new RowKeyRangeVisitor(hBaseSQLRuntimeSetting);
         RowKeyRange rowKeyRange = rowKeyRangeContext.accept(visitor);
 
-        Util.checkNull(rowKeyRange);
+        ObjUtil.checkIsNull(rowKeyRange);
 
         return rowKeyRange;
     }
@@ -285,9 +285,9 @@ public class HBaseSQLContextUtil {
     public static Object parseInsertConstantValue(HBaseColumnSchema hbaseColumnSchema,
                                                   HBaseSQLParser.InsertValueContext insertValueContext,
                                                   HBaseSQLRuntimeSetting runtimeSetting) {
-        Util.checkNull(hbaseColumnSchema);
-        Util.checkNull(insertValueContext);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(hbaseColumnSchema);
+        ObjUtil.checkIsNull(insertValueContext);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         InsertValueVisitor visitor = new InsertValueVisitor(hbaseColumnSchema, runtimeSetting);
         return insertValueContext.accept(visitor);
@@ -304,15 +304,15 @@ public class HBaseSQLContextUtil {
     public static Object parseConstant(HBaseColumnSchema hBaseColumnSchema,
                                        HBaseSQLParser.ConstantContext constantContext,
                                        HBaseSQLRuntimeSetting runtimeSetting) {
-        Util.checkNull(hBaseColumnSchema);
-        Util.checkNull(constantContext);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(hBaseColumnSchema);
+        ObjUtil.checkIsNull(constantContext);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         String constant = constantContext.TEXT().getText();
-        Util.checkEmptyString(constant);
+        ObjUtil.checkEmptyString(constant);
 
         Object obj = runtimeSetting.interpret(hBaseColumnSchema.getType(), constant);
-        Util.checkNull(obj);
+        ObjUtil.checkIsNull(obj);
         return obj;
     }
 
@@ -324,8 +324,8 @@ public class HBaseSQLContextUtil {
      * @return 获取参数值
      */
     public static List<Object> parseParaList(List<HBaseSQLParser.VarContext> varContextList, Map<String, Object> para) {
-        Util.checkNull(varContextList);
-        Util.checkNull(para);
+        ObjUtil.checkIsNull(varContextList);
+        ObjUtil.checkIsNull(para);
 
         List<Object> result = new ArrayList<>();
         for (HBaseSQLParser.VarContext varContext : varContextList) {
@@ -337,9 +337,9 @@ public class HBaseSQLContextUtil {
     public static List<Object> parseConstantList(HBaseColumnSchema hBaseColumnSchema,
                                                  List<HBaseSQLParser.ConstantContext> constantContextList,
                                                  HBaseSQLRuntimeSetting runtimeSetting) {
-        Util.checkNull(hBaseColumnSchema);
-        Util.checkNull(constantContextList);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(hBaseColumnSchema);
+        ObjUtil.checkIsNull(constantContextList);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         List<Object> result = new ArrayList<>();
         for (HBaseSQLParser.ConstantContext constantContext : constantContextList) {
@@ -350,7 +350,7 @@ public class HBaseSQLContextUtil {
 
 
     public static QueryExtInfo parseQueryExtInfo(HBaseSQLParser.SelecthqlcContext selecthqlcContext) {
-        Util.checkNull(selecthqlcContext);
+        ObjUtil.checkIsNull(selecthqlcContext);
 
         QueryExtInfo queryExtInfo = new QueryExtInfo();
 
@@ -371,7 +371,7 @@ public class HBaseSQLContextUtil {
         HBaseSQLParser.LimitExpContext limitExpContext = selecthqlcContext.limitExp();
         if (limitExpContext != null) {
             final List<TerminalNode> terminalNodeList = limitExpContext.TEXT();
-            Util.checkLimitIsValid(terminalNodeList.size() == 1 || terminalNodeList.size() == 2);
+            ObjUtil.checkLimitIsValid(terminalNodeList.size() == 1 || terminalNodeList.size() == 2);
 
             if (terminalNodeList.size() == 1) {
                 queryExtInfo.setLimit(0L, Long.parseLong(terminalNodeList.get(0).getText()));

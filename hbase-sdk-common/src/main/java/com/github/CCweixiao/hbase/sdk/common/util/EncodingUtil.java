@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.util;
+package com.github.CCweixiao.hbase.sdk.common.util;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 
@@ -13,7 +13,7 @@ public class EncodingUtil {
      * Convert bytes to hex string.
      * */
     public static String toHexString(byte[] bytes) {
-        Util.checkNull(bytes);
+        ObjUtil.checkIsNull(bytes);
 
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -40,7 +40,7 @@ public class EncodingUtil {
      * Convert hex string to bytes.
      * */
     public static byte[] parseBytesFromHexString(String hexStr) {
-        Util.checkNull(hexStr);
+        ObjUtil.checkIsNull(hexStr);
 
         StringBuilder sb = new StringBuilder();
 
@@ -67,7 +67,7 @@ public class EncodingUtil {
     }
 
     private static byte[] parseBytesFromHexString_0(String hexStr) {
-        Util.checkNull(hexStr);
+        ObjUtil.checkIsNull(hexStr);
 
         if (hexStr.length() % 2 != 0) {
             throw new HBaseOperationsException("error. hexStr=" + hexStr);

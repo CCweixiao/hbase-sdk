@@ -39,9 +39,9 @@ public class StrUtil {
             if (!p.contains("=")) {
                 continue;
             }
-            String[] p_s = p.split("=");
-            if (p_s.length == 2) {
-                property.put(p_s[0], p_s[1]);
+            String[] ps = p.split("=");
+            if (ps.length == 2) {
+                property.put(ps[0], ps[1]);
             }
         }
         return property;

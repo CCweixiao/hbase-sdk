@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.hql.rowkey;
 
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,7 +14,7 @@ public class StringRowKey implements RowKey {
     private final String key;
 
     public StringRowKey(String key) {
-        Util.checkNull(key);
+        ObjUtil.checkIsNull(key);
         this.key = key;
     }
 

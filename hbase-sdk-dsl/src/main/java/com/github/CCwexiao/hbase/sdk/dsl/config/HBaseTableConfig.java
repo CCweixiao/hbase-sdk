@@ -1,7 +1,6 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
-import com.github.CCwexiao.hbase.sdk.dsl.type.TypeHandlers;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 
 import java.util.List;
 
@@ -26,23 +25,12 @@ public abstract class HBaseTableConfig {
      */
     protected abstract List<HBaseColumnSchema> providedAllHBaseColumnSchema();
 
-    /**
-     * 提供字段类型转换函数
-     *
-     * @return 字段数据类型转换函数
-     */
-    protected abstract TypeHandlers providedColumnTypeHandlers();
 
     protected void init() {
         List<HBaseColumnSchema> hBaseColumnSchemas = providedAllHBaseColumnSchema();
-        TypeHandlers typeHandlers = providedColumnTypeHandlers();
-
-        Util.checkNull(hBaseColumnSchemas);
-        Util.checkNull(typeHandlers);
-
+        ObjUtil.checkIsNull(hBaseColumnSchemas);
         HBaseTableSchema hBaseTableSchema = providedHBaseTableSchema();
-        hBaseTableSchema.init(hBaseColumnSchemas, typeHandlers);
-
+        hBaseTableSchema.init(hBaseColumnSchemas);
     }
 
     public HBaseTableSchema gethBaseTableSchema() {

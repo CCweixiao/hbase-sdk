@@ -1,10 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.hql;
 
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.filter.FilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.hbase.filter.Filter;
 
 import java.util.Map;
@@ -17,8 +17,8 @@ public class HBaseSQLExtendContextUtil {
     public static Filter parseFilter(HBaseSQLParser.WherecContext wherecContext,
                                      HBaseTableConfig hBaseTableConfig,
                                      HBaseSQLRuntimeSetting runtimeSetting){
-        Util.checkNull(hBaseTableConfig);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(hBaseTableConfig);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         return parseFilter(wherecContext, hBaseTableConfig, null, runtimeSetting);
     }
@@ -27,8 +27,8 @@ public class HBaseSQLExtendContextUtil {
                                       HBaseTableConfig hBaseTableConfig,
                                       Map<String, Object> para,
                                       HBaseSQLRuntimeSetting runtimeSetting) {
-        Util.checkNull(hBaseTableConfig);
-        Util.checkNull(runtimeSetting);
+        ObjUtil.checkIsNull(hBaseTableConfig);
+        ObjUtil.checkIsNull(runtimeSetting);
 
         if (wherecContext == null) {
             return null;

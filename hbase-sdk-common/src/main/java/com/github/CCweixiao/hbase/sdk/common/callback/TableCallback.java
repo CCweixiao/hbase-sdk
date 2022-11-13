@@ -1,17 +1,17 @@
 package com.github.CCweixiao.hbase.sdk.common.callback;
 
 /**
- * <p>用于表级别的操作。</p>
+ * <p>A functional interface for defining table data operations.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
 public interface TableCallback<T, HT> {
     /**
-     * <p>表级别操作的回调</p>
+     * <p>do action in table.</p>
      *
-     * @param table HTable的对象
-     * @return 返回结果
-     * @throws Throwable 异常抛出
+     * @param table The object of HTable
+     * @return result
+     * @throws Throwable throw error
      */
     T doInTable(HT table) throws Throwable;
 }

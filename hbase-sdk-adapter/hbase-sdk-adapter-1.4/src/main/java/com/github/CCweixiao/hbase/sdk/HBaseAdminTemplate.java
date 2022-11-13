@@ -90,38 +90,6 @@ public class HBaseAdminTemplate extends AbstractHBaseAdminTemplate implements HB
     }
 
     @Override
-    public List<String> listTableNames() {
-        return listTableNames("", false);
-    }
-
-    @Override
-    public List<String> listTableNames(boolean includeSysTables) {
-        return listTableNames("", includeSysTables);
-    }
-
-    @Override
-    public List<String> listTableNames(String regex, boolean includeSysTables) {
-        return this.execute(admin -> {
-            TableName[] tableNames;
-            if (StrUtil.isBlank(regex)) {
-                tableNames = admin.listTableNames((Pattern) null, includeSysTables);
-            } else {
-                tableNames = admin.listTableNames(regex, includeSysTables);
-            }
-            if (tableNames == null || tableNames.length == 0) {
-                return new ArrayList<>();
-            }
-            return Arrays.stream(tableNames).map(TableName::getNameAsString).collect(Collectors.toList());
-        });
-    }
-
-    @Override
-    public List<String> listTableNamesByNamespace(String namespaceName) {
-        List<HTableDesc> tableDescList = listTableDescByNamespace(namespaceName);
-        return tableDescList.stream().map(HTableDesc::getTableName).collect(Collectors.toList());
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     protected HTableDescriptor convertToTableDescriptor(HTableDesc tableDesc) {
         HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(tableDesc.getTableName()));

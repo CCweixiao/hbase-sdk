@@ -5,7 +5,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
  */
 public class HBaseSdkUnsupportedAuthTypeException extends HBaseSdkException {
 
-    private static final long serialVersionUID = -1226550815682955571L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseSdkUnsupportedAuthTypeException(String message) {
         super(message);

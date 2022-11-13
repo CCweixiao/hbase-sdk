@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * <p>HBase连接线程池初始化</p>
+ * <p>The HBase connection thread pool is initialized.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */

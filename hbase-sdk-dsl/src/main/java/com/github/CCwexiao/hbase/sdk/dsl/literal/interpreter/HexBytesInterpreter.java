@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.literal.interpreter;
 
+import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytes;
 import com.github.CCwexiao.hbase.sdk.dsl.literal.AbstractLiteralInterpreter;
-import com.github.CCwexiao.hbase.sdk.dsl.type.HexBytes;
 
 /**
  * @author leojie 2020/11/28 6:08 下午

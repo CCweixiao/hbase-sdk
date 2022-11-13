@@ -5,7 +5,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
  */
 public class HBaseThriftTSocketException extends HBaseThriftException {
 
-    private static final long serialVersionUID = 4550472462147193078L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseThriftTSocketException(String message) {
         super(message);

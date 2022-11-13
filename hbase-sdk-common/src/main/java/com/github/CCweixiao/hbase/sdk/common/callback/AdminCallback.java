@@ -1,17 +1,17 @@
 package com.github.CCweixiao.hbase.sdk.common.callback;
 
 /**
- * <p>管理员类型的操作回调.</p>
+ * <p>A functional interface for defining administrator actions.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
 public interface AdminCallback<T, A> {
     /**
-     * 管理员类型的操作回调
+     * do action in admin
      *
-     * @param admin Admin的对象
-     * @return 操作结果
-     * @throws Throwable 异常抛出
+     * @param admin admin
+     * @return result
+     * @throws Throwable throw error
      */
     T doInAdmin(A admin) throws Throwable;
 }

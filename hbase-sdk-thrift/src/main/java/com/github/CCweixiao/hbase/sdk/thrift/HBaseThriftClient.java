@@ -73,11 +73,11 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             return;
         }
         List<Mutation> mutations = new ArrayList<>(data.size());
-        data.forEach((key, value) -> mutations.add(new Mutation(false, ByteBufferUtil.getByteBufferFromString(key),
-                ByteBufferUtil.getByteBufferFromString(value), true)));
+        data.forEach((key, value) -> mutations.add(new Mutation(false, ByteBufferUtil.toByteBuffer(key),
+                ByteBufferUtil.toByteBuffer(value), true)));
         try {
-            hbaseClient.mutateRow(ByteBufferUtil.getByteBufferFromString(tableName),
-                    ByteBufferUtil.getByteBufferFromString(rowKey), mutations, getAttributesMap(new HashMap<>()));
+            hbaseClient.mutateRow(ByteBufferUtil.toByteBuffer(tableName),
+                    ByteBufferUtil.toByteBuffer(rowKey), mutations, getAttributesMap(new HashMap<>()));
         } catch (TException e) {
             throw new HBaseThriftException(e);
         }
@@ -96,14 +96,14 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             if (null != columnData && !columnData.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>();
                 columnData.forEach((col, value) -> mutations.add(new Mutation(false,
-                        ByteBufferUtil.getByteBufferFromString(col),
-                        ByteBufferUtil.getByteBufferFromString(value), true)));
+                        ByteBufferUtil.toByteBuffer(col),
+                        ByteBufferUtil.toByteBuffer(value), true)));
 
-                rowBatches.add(new BatchMutation(ByteBufferUtil.getByteBufferFromString(rowKey), mutations));
+                rowBatches.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
             }
         });
         try {
-            hbaseClient.mutateRows(ByteBufferUtil.getByteBufferFromString(tableName), rowBatches, wrappedAttributes);
+            hbaseClient.mutateRows(ByteBufferUtil.toByteBuffer(tableName), rowBatches, wrappedAttributes);
         } catch (TException e) {
             throw new HBaseThriftException(e);
         }
@@ -159,19 +159,19 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             if (StrUtil.isNotBlank(familyName)) {
                 if (qualifiers != null && !qualifiers.isEmpty()) {
                     List<ByteBuffer> colNames = new ArrayList<>(qualifiers.size());
-                    qualifiers.forEach(qualifier -> colNames.add(ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier)));
-                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.getByteBufferFromString(tableName),
-                            Collections.singletonList(ByteBufferUtil.getByteBufferFromString(rowKey)), colNames,
+                    qualifiers.forEach(qualifier -> colNames.add(ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier)));
+                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
+                            Collections.singletonList(ByteBufferUtil.toByteBuffer(rowKey)), colNames,
                             getAttributesMap(new HashMap<>()));
                 } else {
-                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.getByteBufferFromString(tableName),
-                            Collections.singletonList(ByteBufferUtil.getByteBufferFromString(rowKey)),
-                            Collections.singletonList(ByteBufferUtil.getByteBufferFromString(familyName)),
+                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
+                            Collections.singletonList(ByteBufferUtil.toByteBuffer(rowKey)),
+                            Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName)),
                             getAttributesMap(new HashMap<>()));
                 }
             } else {
-                results = hbaseClient.getRow(ByteBufferUtil.getByteBufferFromString(tableName),
-                        ByteBufferUtil.getByteBufferFromString(rowKey), getAttributesMap(new HashMap<>()));
+                results = hbaseClient.getRow(ByteBufferUtil.toByteBuffer(tableName),
+                        ByteBufferUtil.toByteBuffer(rowKey), getAttributesMap(new HashMap<>()));
             }
 
             if (results == null || results.isEmpty()) {
@@ -216,7 +216,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         if (rowKeyList == null || rowKeyList.isEmpty()) {
             throw new HBaseThriftException("row keys are empty");
         }
-        final List<ByteBuffer> rows = rowKeyList.stream().map(ByteBufferUtil::getByteBufferFromString)
+        final List<ByteBuffer> rows = rowKeyList.stream().map(ByteBufferUtil::toByteBuffer)
                 .collect(Collectors.toList());
         Map<String, Map<String, String>> resMap = new HashMap<>(rowKeyList.size());
 
@@ -224,21 +224,21 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         if (StrUtil.isNotBlank(familyName)) {
             final List<ByteBuffer> cols;
             if (qualifiers != null && !qualifiers.isEmpty()) {
-                cols = qualifiers.stream().map(qualifier -> ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier))
+                cols = qualifiers.stream().map(qualifier -> ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier))
                         .collect(Collectors.toList());
 
             } else {
-                cols = Collections.singletonList(ByteBufferUtil.getByteBufferFromString(familyName));
+                cols = Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName));
             }
             try {
-                results = hbaseClient.getRowsWithColumns(ByteBufferUtil.getByteBufferFromString(tableName),
+                results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
                         rows, cols, getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
             }
         } else {
             try {
-                results = hbaseClient.getRows(ByteBufferUtil.getByteBufferFromString(tableName), rows, getAttributesMap(new HashMap<>()));
+                results = hbaseClient.getRows(ByteBufferUtil.toByteBuffer(tableName), rows, getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
             }
@@ -291,21 +291,21 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(qualifiers.size());
                 for (String qualifier : qualifiers) {
-                    mutations.add(new Mutation(true, ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier),
+                    mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier),
                             null, true));
                 }
                 try {
-                    hbaseClient.mutateRow(ByteBufferUtil.getByteBufferFromString(tableName),
-                            ByteBufferUtil.getByteBufferFromString(rowKey),
+                    hbaseClient.mutateRow(ByteBufferUtil.toByteBuffer(tableName),
+                            ByteBufferUtil.toByteBuffer(rowKey),
                             mutations, getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
                 }
             } else {
                 try {
-                    hbaseClient.deleteAll(ByteBufferUtil.getByteBufferFromString(tableName),
-                            ByteBufferUtil.getByteBufferFromString(rowKey),
-                            ByteBufferUtil.getByteBufferFromString(familyName),
+                    hbaseClient.deleteAll(ByteBufferUtil.toByteBuffer(tableName),
+                            ByteBufferUtil.toByteBuffer(rowKey),
+                            ByteBufferUtil.toByteBuffer(familyName),
                             getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
@@ -314,8 +314,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             }
         } else {
             try {
-                hbaseClient.deleteAllRow(ByteBufferUtil.getByteBufferFromString(tableName),
-                        ByteBufferUtil.getByteBufferFromString(rowKey),
+                hbaseClient.deleteAllRow(ByteBufferUtil.toByteBuffer(tableName),
+                        ByteBufferUtil.toByteBuffer(rowKey),
                         getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
@@ -358,30 +358,30 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
                 rowKeys.forEach(rowKey -> {
                     List<Mutation> mutations = new ArrayList<>(rowKeys.size());
                     for (String qualifier : qualifiers) {
-                        mutations.add(new Mutation(true, ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier),
+                        mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier),
                                 null, true));
                     }
-                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.getByteBufferFromString(rowKey), mutations);
+                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations);
                     rowBatches.add(batchMutation);
                 });
             } else {
                 rowKeys.forEach(rowKey -> {
                     List<Mutation> mutations = new ArrayList<>(rowKeys.size());
-                    mutations.add(new Mutation(true, ByteBufferUtil.getByteBufferFromString(familyName), null, true));
-                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.getByteBufferFromString(rowKey), mutations);
+                    mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName), null, true));
+                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations);
                     rowBatches.add(batchMutation);
                 });
             }
             try {
-                hbaseClient.mutateRows(ByteBufferUtil.getByteBufferFromString(tableName), rowBatches, getAttributesMap(new HashMap<>()));
+                hbaseClient.mutateRows(ByteBufferUtil.toByteBuffer(tableName), rowBatches, getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
             }
         } else {
             rowKeys.forEach(rowKey -> {
                 try {
-                    hbaseClient.deleteAllRow(ByteBufferUtil.getByteBufferFromString(tableName),
-                            ByteBufferUtil.getByteBufferFromString(rowKey), getAttributesMap(new HashMap<>()));
+                    hbaseClient.deleteAllRow(ByteBufferUtil.toByteBuffer(tableName),
+                            ByteBufferUtil.toByteBuffer(rowKey), getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     e.printStackTrace();
                 }
@@ -573,21 +573,21 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
         TScan scan = new TScan();
         if (StrUtil.isNotBlank(startRow)) {
-            scan.setStartRow(ByteBufferUtil.getByteBufferFromString(startRow));
+            scan.setStartRow(ByteBufferUtil.toByteBuffer(startRow));
         }
         if (StrUtil.isNotBlank(stopRow)) {
-            scan.setStopRow(ByteBufferUtil.getByteBufferFromString(stopRow));
+            scan.setStopRow(ByteBufferUtil.toByteBuffer(stopRow));
         }
 
         if (StrUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 final List<ByteBuffer> columns = qualifiers.stream()
                         .filter(StrUtil::isNotBlank)
-                        .map(qualifier -> ByteBufferUtil.getByteBufferFromString(familyName + ":" + qualifier))
+                        .map(qualifier -> ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier))
                         .collect(Collectors.toList());
                 scan.setColumns(columns);
             } else {
-                scan.setColumns(Collections.singletonList(ByteBufferUtil.getByteBufferFromString(familyName)));
+                scan.setColumns(Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName)));
             }
         }
 
@@ -596,7 +596,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         }
 
         if (StrUtil.isNotBlank(filterStr)) {
-            scan.setFilterString(ByteBufferUtil.getByteBufferFromString(filterStr));
+            scan.setFilterString(ByteBufferUtil.toByteBuffer(filterStr));
         }
 
         if (batchSize != null) {
@@ -609,7 +609,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
         scan.setReversed(reverse);
 
-        ByteBuffer tableNameByte = ByteBufferUtil.getByteBufferFromString(tableName);
+        ByteBuffer tableNameByte = ByteBufferUtil.toByteBuffer(tableName);
         try {
             return hbaseClient.scannerOpenWithScan(tableNameByte, scan, getAttributesMap(attributes));
         } catch (TException e) {
@@ -620,8 +620,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
     private Map<ByteBuffer, ByteBuffer> getAttributesMap(Map<String, String> attributes) {
         Map<ByteBuffer, ByteBuffer> attributesMap = new HashMap<>();
         if (attributes != null && !attributes.isEmpty()) {
-            attributes.forEach((key, value) -> attributesMap.put(ByteBufferUtil.getByteBufferFromString(key),
-                    ByteBufferUtil.getByteBufferFromString(value)));
+            attributes.forEach((key, value) -> attributesMap.put(ByteBufferUtil.toByteBuffer(key),
+                    ByteBufferUtil.toByteBuffer(value)));
         }
         return attributesMap;
     }

@@ -1,12 +1,12 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.util.ClassUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.literal.LiteralInterpreter;
 import com.github.CCwexiao.hbase.sdk.dsl.literal.interpreter.*;
-import com.github.CCwexiao.hbase.sdk.dsl.util.ClassUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,8 +89,8 @@ public abstract class HBaseSQLRuntimeSetting {
     }
 
     public Object interpret(Class type, String literalValue){
-        Util.checkNull(type);
-        Util.checkNull(literalValue);
+        ObjUtil.checkIsNull(type);
+        ObjUtil.checkIsNull(literalValue);
         Class<?> tempType = ClassUtil.tryConvertToBoxClass(type);
 
         if(literalInterpreterCache.containsKey(tempType)){
@@ -105,7 +105,7 @@ public abstract class HBaseSQLRuntimeSetting {
         if(tempType.isEnum()){
             result = Enum.valueOf(type, literalValue);
         }
-        Util.checkNull(result);
+        ObjUtil.checkIsNull(result);
 
         return result;
     }

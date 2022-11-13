@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.common.util;
 
 import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseColumn;
 import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 
 import java.lang.reflect.Field;
@@ -13,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * <p>反射工具类</p>
+ * <p>Reflection tool class.</p>
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
@@ -119,11 +120,15 @@ public class ReflectUtil {
         return c;
     }
 
-    public static String getUniqueTableFamily(Class<?> clazz) {
+    public static String getTableDefaultFamilyName(Class<?> clazz) {
+        String familyName = "";
         if (clazz.isAnnotationPresent(HBaseTable.class)) {
-            return clazz.getAnnotation(HBaseTable.class).defaultFamilyName();
+            familyName = clazz.getAnnotation(HBaseTable.class).defaultFamilyName();
         }
-        return "";
+        if (familyName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
+            throw new HBaseOperationsException("The family name cannot contain ':'.");
+        }
+        return familyName;
     }
 
     /**
@@ -154,33 +159,38 @@ public class ReflectUtil {
      * 如果没有指定全局列簇名，则必须为每一个字段指定列簇名，每一个字段注解中指定的列簇名的优先级最高。
      * 通过上述注解，你可以设置字段名大写或者小写
      *
-     * @param uniqueFamily 唯一列簇
+     * @param defaultFamilyName 唯一列簇
      * @param field        字段名
      * @return 最终的字段名，例如：info:name, info:is_vip ......
      */
-    public static String getHBaseColumnName(String uniqueFamily, Field field) {
+    public static String getHBaseColumnName(String defaultFamilyName, Field field) {
         String fieldName = FieldOrTableNameUtil.underscoreName(field.getName());
-        String columnFamily = null;
+        String columnFamilyName = "";
         if (field.isAnnotationPresent(HBaseColumn.class)) {
             HBaseColumn column = field.getAnnotation(HBaseColumn.class);
-            if (!"".equals(column.columnName())) {
+            if (StrUtil.isNotBlank(column.columnName())) {
                 fieldName = column.columnName();
             }
             if (column.toUpperCase()) {
                 fieldName = fieldName.toUpperCase();
             }
-            if (!"".equals(column.familyName())) {
-                columnFamily = column.familyName();
+            if (StrUtil.isNotBlank(column.familyName())) {
+                columnFamilyName = column.familyName();
             }
         }
-
-        if (columnFamily != null && !"".equals(columnFamily)) {
-            return columnFamily + ":" + fieldName;
+        if (columnFamilyName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
+            throw new HBaseOperationsException("The column family name cannot contain ':'.");
+        }
+        if (fieldName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
+            throw new HBaseOperationsException("The column qualifier name cannot contain ':'.");
+        }
+        if (StrUtil.isNotBlank(columnFamilyName)) {
+            return columnFamilyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + fieldName;
         } else {
-            if (uniqueFamily == null || "".equals(uniqueFamily)) {
+            if (StrUtil.isBlank(defaultFamilyName)) {
                 throw new HBaseOperationsException("the family should be assigned in the field of " + field.getName());
             } else {
-                return uniqueFamily + ":" + fieldName;
+                return defaultFamilyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR  + fieldName;
             }
         }
     }

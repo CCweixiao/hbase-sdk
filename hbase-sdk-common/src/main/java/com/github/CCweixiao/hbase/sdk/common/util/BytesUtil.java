@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.util;
+package com.github.CCweixiao.hbase.sdk.common.util;
 
 
 import java.util.ArrayList;
@@ -21,10 +21,10 @@ public class BytesUtil {
      * Sub bytes.
      * */
     public static byte[] subBytes(byte[] bytes, int index, int length) {
-        Util.checkNull(bytes);
-        Util.check(index >= 0);
-        Util.check(length >= 0);
-        Util.check(index + length <= bytes.length);
+        ObjUtil.checkIsNull(bytes);
+        ObjUtil.check(index >= 0);
+        ObjUtil.check(length >= 0);
+        ObjUtil.check(index + length <= bytes.length);
 
         byte[] result = new byte[length];
         System.arraycopy(bytes, index, result, 0, length);
@@ -35,10 +35,10 @@ public class BytesUtil {
      * p's index of bytes.
      * */
     public static int index(byte[] bytes, byte[] p) {
-        Util.checkNull(bytes);
-        Util.checkNull(p);
-        Util.check(bytes.length > 0);
-        Util.check(p.length > 0);
+        ObjUtil.checkIsNull(bytes);
+        ObjUtil.checkIsNull(p);
+        ObjUtil.check(bytes.length > 0);
+        ObjUtil.check(p.length > 0);
 
         for (int i = 0; i + p.length <= bytes.length; i++) {
 
@@ -64,10 +64,10 @@ public class BytesUtil {
      * Split bytes on pattern p.
      * */
     public static List<byte[]> split(byte[] bytes, byte[] p) {
-        Util.checkNull(bytes);
-        Util.checkNull(p);
-        Util.check(bytes.length > 0);
-        Util.check(p.length > 0);
+        ObjUtil.checkIsNull(bytes);
+        ObjUtil.checkIsNull(p);
+        ObjUtil.check(bytes.length > 0);
+        ObjUtil.check(p.length > 0);
 
         List<byte[]> result = new ArrayList<byte[]>();
         byte[] tem = bytes;
