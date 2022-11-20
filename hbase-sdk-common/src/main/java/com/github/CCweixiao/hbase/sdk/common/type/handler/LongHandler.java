@@ -1,10 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * @author leojie 2020/11/28 7:50 下午
@@ -17,23 +14,36 @@ public class LongHandler extends AbstractTypeHandler {
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        byte[] bytes;
-        if (value != null) {
-            ByteBuffer buffer = ByteBuffer.allocate(8);
-            buffer.order(ByteOrder.BIG_ENDIAN);
-            buffer.putLong((Long) value);
-            bytes = buffer.array();
-        } else {
-            bytes = new byte[0];
+        return long2Bytes((Long) value);
+    }
+
+    protected byte[] long2Bytes(long longValue) {
+        byte[] result = new byte[Long.BYTES];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (byte) (longValue & 0xFF);
+            longValue >>= Byte.SIZE;
         }
-        return bytes;
+        return result;
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        buffer.put(bytes);
-        return buffer.getLong(0);
+        return bytes2Long(bytes);
+    }
+
+    protected long bytes2Long(byte[] bytes) {
+        long values = 0;
+        for (int i = (Long.BYTES - 1); i >= 0; i--) {
+            values <<= Byte.SIZE;
+            values |= (bytes[i] & 0xff);
+        }
+        return values;
+    }
+
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Long or long.");
+        return val.toString();
     }
 }

@@ -1,6 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
@@ -49,7 +50,7 @@ public class HBaseColumnSchema {
         ObjUtil.checkEmptyCTypeName(typeName);
 
         type = ClassUtil.forName(typeName);
-        ObjUtil.checkIsNull(type);
+        Assert.notNull(type);
 
         if (StrUtil.isBlank(typeHandlerName)) {
             typeHandler = TypeHandlerFactory.findTypeHandler(type);
@@ -58,8 +59,8 @@ public class HBaseColumnSchema {
             typeHandler = TypeHandlerFactory.findTypeHandler(typeHandlerName);
         }
 
-        ObjUtil.checkIsNull(typeHandlerName);
-        ObjUtil.checkIsNull(typeHandler);
+        Assert.notNull(typeHandlerName);
+        Assert.notNull(typeHandler);
 
     }
 

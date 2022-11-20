@@ -1,7 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytes;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,7 +12,8 @@ import java.util.Map;
 /**
  * @author leojie 2022/11/13 14:27
  */
-public class ClassUtil {
+@Deprecated
+public final class ClassUtil {
     private static final Map<String, Class<?>> NATIVE_CLASS_MAP = new HashMap<>();
     private static final Map<String, Class<?>> STRING_CLASS_MAP = new HashMap<>();
     private static final Map<Class<?>, Class<?>> BOX_TYPE_MAP = new HashMap<>();
@@ -32,20 +36,35 @@ public class ClassUtil {
         STRING_CLASS_MAP.put("Float", Float.class);
         STRING_CLASS_MAP.put("Double", Double.class);
         STRING_CLASS_MAP.put("Boolean", Boolean.class);
-
+        STRING_CLASS_MAP.put("Enum", Enum.class);
         STRING_CLASS_MAP.put("string", String.class);
         STRING_CLASS_MAP.put("String", String.class);
         STRING_CLASS_MAP.put("date", Date.class);
         STRING_CLASS_MAP.put("Date", Date.class);
+        STRING_CLASS_MAP.put("HexBytes", HexBytes.class);
+        STRING_CLASS_MAP.put("BigDecimal", BigDecimal.class);
+        STRING_CLASS_MAP.put("BigInteger", BigInteger.class);
 
         BOX_TYPE_MAP.put(byte.class, Byte.class);
+        BOX_TYPE_MAP.put(Byte.class, Byte.class);
         BOX_TYPE_MAP.put(short.class, Short.class);
+        BOX_TYPE_MAP.put(Short.class, Short.class);
         BOX_TYPE_MAP.put(int.class, Integer.class);
+        BOX_TYPE_MAP.put(Integer.class, Integer.class);
         BOX_TYPE_MAP.put(long.class, Long.class);
+        BOX_TYPE_MAP.put(Long.class, Long.class);
         BOX_TYPE_MAP.put(char.class, Character.class);
+        BOX_TYPE_MAP.put(Character.class, Character.class);
         BOX_TYPE_MAP.put(float.class, Float.class);
+        BOX_TYPE_MAP.put(Float.class, Float.class);
         BOX_TYPE_MAP.put(double.class, Double.class);
+        BOX_TYPE_MAP.put(Double.class, Double.class);
         BOX_TYPE_MAP.put(boolean.class, Boolean.class);
+        BOX_TYPE_MAP.put(Boolean.class, Boolean.class);
+        BOX_TYPE_MAP.put(Enum.class, Enum.class);
+        BOX_TYPE_MAP.put(HexBytes.class, HexBytes.class);
+        BOX_TYPE_MAP.put(BigDecimal.class, BigDecimal.class);
+        BOX_TYPE_MAP.put(BigInteger.class, BigInteger.class);
     }
 
     /**

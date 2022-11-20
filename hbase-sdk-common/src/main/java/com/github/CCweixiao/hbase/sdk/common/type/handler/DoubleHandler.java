@@ -1,14 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 
 /**
  * @author leojie 2020/11/28 7:53 下午
  */
-public class DoubleHandler extends AbstractTypeHandler {
+public class DoubleHandler extends LongHandler {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == double.class || type == Double.class;
@@ -16,23 +13,25 @@ public class DoubleHandler extends AbstractTypeHandler {
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        byte[] bytes;
-        if (value != null) {
-            ByteBuffer buffer = ByteBuffer.allocate(8);
-            buffer.order(ByteOrder.BIG_ENDIAN);
-            buffer.putDouble((Double) value);
-            bytes = buffer.array();
-        } else {
-            bytes = new byte[0];
-        }
-        return bytes;
+        return double2Bytes((Double) value);
+    }
+
+    protected byte[] double2Bytes(double longValue) {
+        return long2Bytes(Double.doubleToLongBits(longValue));
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        buffer.put(bytes);
-        return buffer.getDouble(0);
+        return bytes2Double(bytes);
+    }
+
+    protected double bytes2Double(byte[] bytes) {
+        return Double.longBitsToDouble(bytes2Long(bytes));
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Double or double.");
+        return val.toString();
     }
 }

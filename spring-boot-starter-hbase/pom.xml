@@ -5,12 +5,12 @@
     <parent>
         <artifactId>hbase-sdk</artifactId>
         <groupId>com.github.CCweixiao</groupId>
-        <version>3.0.0</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <packaging>jar</packaging>
-    <artifactId>spring-boot-starter-hbase</artifactId>
+    <artifactId>spring-boot-starter-hbase_${hbase.sdk.adapter.version}</artifactId>
 
     <dependencyManagement>
         <dependencies>
@@ -23,6 +23,8 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+
 
     <dependencies>
         <!--封装Starter核心依赖  -->
@@ -41,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
-            <artifactId>hbase-sdk-template</artifactId>
+            <artifactId>hbase-sdk-template_${hbase.sdk.adapter.version}</artifactId>
         </dependency>
     </dependencies>
 
@@ -51,6 +53,101 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <executions>
+                    <execution>
+                        <id>copy-pom</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/${hbase.sdk.adapter.version}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}</directory>
+                                    <includes>
+                                        <include>pom.xml</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <id>replace-artifactId</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <configuration>
+                            <ignoreMissingFile>false</ignoreMissingFile>
+                            <file>${project.build.directory}/${hbase.sdk.adapter.version}/pom.xml</file>
+                            <replacements>
+                                <replacement>
+                                    <token>${project.artifactId}</token>
+                                    <!-- Replace to -->
+                                    <value>${project.artifactId}</value>
+                                </replacement>
+                            </replacements>
+                            <outputDir>${project.build.directory}/${hbase.sdk.adapter.version}/replacer</outputDir>
+                            <outputFile>pom.xml</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+                <executions>
+                    <execution>
+                        <id>default-install</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>install-scala-version</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>${project.artifactId}</artifactId>
+                            <version>${project.version}</version>
+                            <packaging>${project.packaging}</packaging>
+                            <file>
+                                ${project.build.directory}/${project.artifactId}-${project.version}.jar
+                            </file>
+                            <pomFile>${project.build.directory}/${hbase.sdk.adapter.version}/replacer/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,11 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.hql.rowkey;
 
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.hadoop.hbase.util.Bytes;
+
+import java.util.Objects;
 
 /**
  * @author leojie 2020/11/28 12:42 下午
@@ -14,7 +13,7 @@ public class StringRowKey implements RowKey {
     private final String key;
 
     public StringRowKey(String key) {
-        ObjUtil.checkIsNull(key);
+        Assert.notNull(key);
         this.key = key;
     }
 
@@ -28,20 +27,15 @@ public class StringRowKey implements RowKey {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof StringRowKey)) {
             return false;
         }
         StringRowKey that = (StringRowKey) o;
-        return new EqualsBuilder().append(key, that.key).isEquals();
+        return key.equals(that.key);
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(key).toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+        return Objects.hash(key);
     }
 }

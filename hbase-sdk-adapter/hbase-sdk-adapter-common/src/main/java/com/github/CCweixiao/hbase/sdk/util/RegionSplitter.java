@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.util;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.util.Bytes;
 import com.google.common.base.Preconditions;
@@ -17,10 +16,8 @@ public class RegionSplitter {
         /**
          * Split a pre-existing region into 2 regions.
          *
-         * @param start
-         *          first row (inclusive)
-         * @param end
-         *          last row (exclusive)
+         * @param start first row (inclusive)
+         * @param end   last row (exclusive)
          * @return the split row to use
          */
         byte[] split(byte[] start, byte[] end);
@@ -28,14 +25,11 @@ public class RegionSplitter {
         /**
          * Split an entire table.
          *
-         * @param numRegions
-         *          number of regions to split the table into
-         *
-         * @throws RuntimeException
-         *           user input is validated at this time. may throw a runtime
-         *           exception in response to a parse failure
+         * @param numRegions number of regions to split the table into
          * @return array of split keys for the initial regions of the table. The
-         *         length of the returned array should be numRegions-1.
+         * length of the returned array should be numRegions-1.
+         * @throws RuntimeException user input is validated at this time. may throw a runtime
+         *                          exception in response to a parse failure
          */
         byte[][] split(int numRegions);
 
@@ -43,8 +37,8 @@ public class RegionSplitter {
          * Some MapReduce jobs may want to run multiple mappers per region,
          * this is intended for such usecase.
          *
-         * @param start first row (inclusive)
-         * @param end last row (exclusive)
+         * @param start     first row (inclusive)
+         * @param end       last row (exclusive)
          * @param numSplits number of splits to generate
          * @param inclusive whether start and end are returned as split points
          * @return split结果
@@ -74,8 +68,7 @@ public class RegionSplitter {
          * value to help the split code understand how to evenly divide the first
          * region.
          *
-         * @param userInput
-         *          raw user input (may throw RuntimeException on parse failure)
+         * @param userInput raw user input (may throw RuntimeException on parse failure)
          */
         void setFirstRow(String userInput);
 
@@ -85,21 +78,18 @@ public class RegionSplitter {
          * region. Note that this last row is inclusive for all rows sharing the
          * same prefix.
          *
-         * @param userInput
-         *          raw user input (may throw RuntimeException on parse failure)
+         * @param userInput raw user input (may throw RuntimeException on parse failure)
          */
         void setLastRow(String userInput);
 
         /**
-         * @param input
-         *          user or file input for row
+         * @param input user or file input for row
          * @return byte array representation of this row for HBase
          */
         byte[] strToRow(String input);
 
         /**
-         * @param row
-         *          byte array representing a row in HBase
+         * @param row byte array representing a row in HBase
          * @return String to use for debug &amp; file printing
          */
         String rowToStr(byte[] row);
@@ -111,12 +101,14 @@ public class RegionSplitter {
 
         /**
          * Set the first row
+         *
          * @param userInput byte array of the row key.
          */
         void setFirstRow(byte[] userInput);
 
         /**
          * Set the last row
+         *
          * @param userInput byte array of the row key.
          */
         void setLastRow(byte[] userInput);
@@ -302,12 +294,12 @@ public class RegionSplitter {
          * Returns the bytes corresponding to the BigInteger
          *
          * @param bigInteger number to convert
-         * @param pad padding length
+         * @param pad        padding length
          * @return byte corresponding to input BigInteger
          */
         public byte[] convertToByte(BigInteger bigInteger, int pad) {
             String bigIntegerString = bigInteger.toString(radix);
-            bigIntegerString = StringUtils.leftPad(bigIntegerString, pad, '0');
+            bigIntegerString = StrUtil.leftPad(bigIntegerString, pad, '0');
             return Bytes.toBytes(bigIntegerString);
         }
 
@@ -341,9 +333,10 @@ public class RegionSplitter {
 
     public static class UniformSplit implements SplitAlgorithm {
         static final byte xFF = (byte) 0xFF;
-        byte[] firstRowBytes = ArrayUtils.EMPTY_BYTE_ARRAY;
+        byte[] firstRowBytes = new byte[0];
         byte[] lastRowBytes =
-                new byte[] {xFF, xFF, xFF, xFF, xFF, xFF, xFF, xFF};
+                new byte[]{xFF, xFF, xFF, xFF, xFF, xFF, xFF, xFF};
+
         @Override
         public byte[] split(byte[] start, byte[] end) {
             return Bytes.split(start, end, 1)[1];
@@ -364,7 +357,7 @@ public class RegionSplitter {
 
             // remove endpoints, which are included in the splits list
 
-            return splits == null? null: Arrays.copyOfRange(splits, 1, splits.length - 1);
+            return splits == null ? null : Arrays.copyOfRange(splits, 1, splits.length - 1);
         }
 
         @Override

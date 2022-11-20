@@ -1,13 +1,13 @@
 package com.github.CCweixiao.hbase.sdk.service;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCweixiao.hbase.sdk.service.util.MapBuilder;
-import com.google.gson.Gson;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.shaded.com.google.common.reflect.TypeToken;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,9 +82,11 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
                 c.setCityArea(Bytes.toInt(result.getValue(Bytes.toBytes("detail"), Bytes.toBytes("city_area"))));
                 c.setTotalPopulation(Bytes.toInt(result.getValue(Bytes.toBytes("detail"), Bytes.toBytes("TOTAL_POPULATION"))));
                 String value = Bytes.toString(result.getValue(Bytes.toBytes("detail"), Bytes.toBytes("cityTagList")));
-                Gson gson = new Gson();
-                List<CityTag> tags = gson.fromJson(value, new TypeToken<List<CityTag>>() {
-                }.getType());
+                JSONArray jsonArray = JSON.parseArray(value);
+                List<CityTag> tags = new ArrayList<>(jsonArray.size());
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    tags.add(jsonArray.getObject(i, CityTag.class));
+                }
                 c.setCityTagList(tags);
                 return c;
             }
@@ -94,12 +96,15 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testSaveBatchMapData() {
+        List<String> tags = new ArrayList<>();
+        tags.add("boy");
         Map<String, Map<String, Object>> data = new HashMap<>(4);
         data.put("1001", new MapBuilder.Builder<String, Object>()
                 .put("f1:name", "leo_1001")
                 .put("f2:name", "leo_1001")
                 .put("f2:address", "上海市浦东新区")
                 .put("f3:age", 18)
+                .put("f3:tags", tags)
                 .build());
         data.put("1002", new MapBuilder.Builder<String, Object>()
                 .put("f1:name", "leo_1002")
@@ -125,6 +130,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     @Test
     public void testGetRow() {
         Map<String, String> d1 = tableTemplate.getRowToMap("t1", "1001", true);
+        JSONArray objects = JSON.parseArray(d1.get("f3:tags"));
         Map<String, String> d2 = tableTemplate.getRowToMap("t1", "1002", false);
         List<String> rows = new ArrayList<>(2);
         rows.add("1001");

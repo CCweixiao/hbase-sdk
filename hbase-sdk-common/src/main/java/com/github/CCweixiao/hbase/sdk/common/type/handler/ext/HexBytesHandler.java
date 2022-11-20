@@ -1,8 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler.ext;
 
 
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 
 /**
  * @author leojie 2020/11/28 7:58 下午
@@ -10,60 +12,72 @@ import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 public class HexBytesHandler extends AbstractTypeHandler {
     private static final char[] HEX_CHARS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
-
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
-        return type.getClass().getSimpleName().equalsIgnoreCase("HexBytes");
+        return "HexBytes".equalsIgnoreCase(type.getSimpleName());
     }
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        String hexString = (String) value;
-        return fromHex(hexString);
+        return decode((String) value);
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        return toHex(bytes, 0, bytes.length);
+        return new String(encode(bytes));
     }
 
-    private int hexCharToNibble(char ch) {
-        if (ch <= '9' && ch >= '0') {
-            return ch - 48;
-        } else if (ch >= 'a' && ch <= 'f') {
-            return ch - 97 + 10;
-        } else if (ch >= 'A' && ch <= 'F') {
-            return ch - 65 + 10;
-        } else {
-            throw new IllegalArgumentException("Invalid hex char: " + ch);
+    public char[] encode(byte[] data) {
+        final int len = data.length;
+        final char[] out = new char[len << 1];
+        // two characters from the hex value.
+        for (int i = 0, j = 0; i < len; i++) {
+            out[j++] = HEX_CHARS[(0xF0 & data[i]) >>> 4];
+            out[j++] = HEX_CHARS[0x0F & data[i]];
         }
+        return out;
     }
 
-    private byte hexCharsToByte(char c1, char c2) {
-        return (byte)(hexCharToNibble(c1) << 4 | hexCharToNibble(c2));
-    }
 
-    public byte[] fromHex(String hex) {
-        ObjUtil.checkArgument(hex.length() % 2 == 0, "length must be a multiple of 2");
-        int len = hex.length();
-        byte[] b = new byte[len / 2];
-        for(int i = 0; i < len; i += 2) {
-            b[i / 2] = hexCharsToByte(hex.charAt(i), hex.charAt(i + 1));
-        }
-        return b;
-    }
-
-    public static String toHex(byte[] b, int offset, int length) {
-        ObjUtil.checkArgument(length <= 1073741823);
-        int numChars = length * 2;
-        char[] ch = new char[numChars];
-
-        for(int i = 0; i < numChars; i += 2) {
-            byte d = b[offset + i / 2];
-            ch[i] = HEX_CHARS[d >> 4 & 15];
-            ch[i + 1] = HEX_CHARS[d & 15];
+    public byte[] decode(CharSequence encoded) {
+        if (StrUtil.isEmpty(encoded)) {
+            return null;
         }
 
-        return new String(ch);
+        encoded = StrUtil.cleanBlank(encoded);
+        int len = encoded.length();
+
+        if ((len & 0x01) != 0) {
+            // 如果提供的数据是奇数长度，则前面补0凑偶数
+            encoded = "0" + encoded;
+            len = encoded.length();
+        }
+
+        final byte[] out = new byte[len >> 1];
+
+        // two characters form the hex value.
+        for (int i = 0, j = 0; j < len; i++) {
+            int f = toDigit(encoded.charAt(j), j) << 4;
+            j++;
+            f = f | toDigit(encoded.charAt(j), j);
+            j++;
+            out[i] = (byte) (f & 0xFF);
+        }
+
+        return out;
+    }
+
+    private int toDigit(char ch, int index) {
+        int digit = Character.digit(ch, 16);
+        if (digit < 0) {
+            throw new HBaseTypeHandlerException(String.format("Illegal hexadecimal character %s at index %s", ch, index));
+        }
+        return digit;
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not HexBytes.");
+        return val.toString();
     }
 }

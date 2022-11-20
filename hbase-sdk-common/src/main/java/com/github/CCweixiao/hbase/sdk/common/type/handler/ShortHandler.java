@@ -1,9 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * @author leojie 2020/11/28 7:49 下午
@@ -16,23 +14,21 @@ public class ShortHandler extends AbstractTypeHandler {
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        byte[] bytes;
-        if (value != null) {
-            ByteBuffer buffer = ByteBuffer.allocate(2);
-            buffer.order(ByteOrder.BIG_ENDIAN);
-            buffer.putShort((Short) value);
-            bytes = buffer.array();
-        } else {
-            bytes = new byte[0];
-        }
-        return bytes;
+        short shortValue = (Short) value;
+        byte[] b = new byte[Short.BYTES];
+        b[0] = (byte) (shortValue & 0xff);
+        b[1] = (byte) ((shortValue >> Byte.SIZE) & 0xff);
+        return b;
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        buffer.put(bytes);
-        return buffer.getShort(0);
+        return (short) (bytes[0] & 0xff | (bytes[1] & 0xff) << Byte.SIZE);
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Short or short.");
+        return val.toString();
     }
 }

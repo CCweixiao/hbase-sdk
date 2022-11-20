@@ -1,10 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.hql.rowkey;
 
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.hadoop.hbase.util.Bytes;
+
+import java.util.Objects;
 
 /**
  * @author leojie 2020/11/28 12:44 下午
@@ -26,23 +25,15 @@ public class LongRowKey implements RowKey {
         if (this == o) {
             return true;
         }
-
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         LongRowKey that = (LongRowKey) o;
-
-        return new EqualsBuilder().append(key, that.key).isEquals();
+        return key == that.key;
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(key).toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+        return Objects.hash(key);
     }
 }

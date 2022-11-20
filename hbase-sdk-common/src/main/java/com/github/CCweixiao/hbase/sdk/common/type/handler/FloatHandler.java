@@ -1,14 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 
 /**
  * @author leojie 2020/11/28 7:52 下午
  */
-public class FloatHandler extends AbstractTypeHandler {
+public class FloatHandler extends IntegerHandler {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == float.class || type == Float.class;
@@ -16,23 +13,17 @@ public class FloatHandler extends AbstractTypeHandler {
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        byte[] bytes;
-        if (value != null) {
-            ByteBuffer buffer = ByteBuffer.allocate(4);
-            buffer.order(ByteOrder.BIG_ENDIAN);
-            buffer.putFloat((Float) value);
-            bytes = buffer.array();
-        } else {
-            bytes = new byte[0];
-        }
-        return bytes;
+        return int2Bytes(Float.floatToIntBits((Float) value));
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
-        buffer.order(ByteOrder.BIG_ENDIAN);
-        buffer.put(bytes);
-        return buffer.getFloat(0);
+        return Float.intBitsToFloat(bytes2Int(bytes));
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Float or float.");
+        return val.toString();
     }
 }
