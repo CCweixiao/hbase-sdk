@@ -3,8 +3,6 @@ package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * @author leojie 2020/11/28 11:58 上午
@@ -23,7 +21,7 @@ public class BytesRowKey implements RowKey {
         return key;
     }
 
-    @Override
+/*    @Override
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
     }
@@ -31,7 +29,7 @@ public class BytesRowKey implements RowKey {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
-    }
+    }*/
 
     @Override
     public String toString() {

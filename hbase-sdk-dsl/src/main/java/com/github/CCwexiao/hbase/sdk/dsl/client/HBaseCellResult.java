@@ -1,9 +1,5 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import java.util.Date;
 
 /**
@@ -66,7 +62,7 @@ public class HBaseCellResult {
         return tsDate;
     }
 
-    @Override
+ /*   @Override
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
     }
@@ -79,5 +75,5 @@ public class HBaseCellResult {
     @Override
     public String toString() {
         return ToStringBuilder.reflectionToString(this);
-    }
+    }*/
 }

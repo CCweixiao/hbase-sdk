@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 
 import java.nio.ByteBuffer;
 
@@ -22,7 +22,7 @@ public abstract class AbstractTypeHandler implements TypeHandler {
     protected abstract Object convertToObject(Class<?> type, byte[] bytes);
 
     public byte[] toBytes(Class<?> type, Object value) {
-        ObjUtil.checkIsNull(type, "The type of data is not null.");
+        Assert.notNull(type, "The type of value must be not null.");
         if (value == null) {
             return null;
         }
@@ -55,7 +55,7 @@ public abstract class AbstractTypeHandler implements TypeHandler {
     }
 
     public Object toObject(Class<?> type, byte[] bytes) {
-        ObjUtil.checkIsNull(type);
+        Assert.notNull(type, "The type of value must be not null.");
         if (!matchTypeHandler(type)) {
             throw new HBaseTypeHandlerException(String.format("Wrong type %s to handle.", type.getName()));
         }

@@ -1,2 +1,2 @@
 #!/bin/bash
-mvn clean deploy -Dmaven.test.skip=true -Pdeploy
+mvn clean deploy -Dmaven.test.skip=true -Pdeploy -P$1

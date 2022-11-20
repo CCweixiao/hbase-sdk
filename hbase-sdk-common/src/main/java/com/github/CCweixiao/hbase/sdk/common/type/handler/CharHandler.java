@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 
 /**
  * @author leojie 2020/11/28 7:54 下午
@@ -23,11 +23,18 @@ public class CharHandler extends AbstractTypeHandler {
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ObjUtil.checkLength(bytes, 2);
         int c = 0;
         c ^= (bytes[0] & 0xFF);
         c = c << 8;
         c ^= (bytes[1] & 0xFF);
         return (char) c;
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Character or char.");
+
+        char c = (char) val;
+        return String.valueOf(c);
     }
 }

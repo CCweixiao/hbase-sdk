@@ -6,7 +6,7 @@ package com.github.CCweixiao.hbase.sdk.common.exception;
  * @author leo.jie (leojie1314@gmail.com)
  */
 public class HBaseOperationsException extends RuntimeException {
-    private static final long serialVersionUID = 0L;
+    private static final long serialVersionUID = 1L;
 
     public HBaseOperationsException() {
         super();

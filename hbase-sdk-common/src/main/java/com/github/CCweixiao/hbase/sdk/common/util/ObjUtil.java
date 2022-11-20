@@ -2,7 +2,6 @@ package com.github.CCweixiao.hbase.sdk.common.util;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -16,12 +15,14 @@ public final class ObjUtil {
         }
     }
 
+    @Deprecated
     public static void checkIsNull(Object obj, String message) {
         if (obj == null) {
             throw new HBaseOperationsException(message);
         }
     }
 
+    @Deprecated
     public static void checkIsNull(Object obj) {
         checkIsNull(obj, "The object is null.");
     }
@@ -34,7 +35,7 @@ public final class ObjUtil {
         }
     }
 
-    public static void checkArgument(boolean expression, @Nullable Object errorMessage) {
+    public static void checkArgument(boolean expression, Object errorMessage) {
         if (!expression) {
             throw new HBaseOperationsException(String.valueOf(errorMessage));
         }

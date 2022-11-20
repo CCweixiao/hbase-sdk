@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 
 /**
  * @author leojie 2020/11/28 7:55 下午
@@ -19,7 +19,14 @@ public class ByteHandler extends AbstractTypeHandler {
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        ObjUtil.checkLength(bytes, 1);
         return bytes[0];
+    }
+
+    @Override
+    public String convertToString(Object val) {
+        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Byte or byte.");
+
+        byte b = (byte) val;
+        return String.valueOf(b);
     }
 }

@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.hql.filter;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
@@ -10,7 +9,6 @@ import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -88,7 +86,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
-                BytesUtil.EMPTY, true);
+                new byte[0], true);
     }
 
     @Override
@@ -97,7 +95,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL,
-                BytesUtil.EMPTY, true);
+                new byte[0], true);
     }
 
     @Override
@@ -234,7 +232,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                BytesUtil.EMPTY, true);
+                new byte[0], true);
     }
 
     @Override
@@ -243,7 +241,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS,
-                BytesUtil.EMPTY, false);
+                new byte[0], false);
     }
 
     private static Filter constructFilter(HBaseColumnSchema hBaseColumnSchema,

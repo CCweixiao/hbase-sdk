@@ -5,7 +5,7 @@
     <parent>
         <artifactId>hbase-sdk</artifactId>
         <groupId>com.github.CCweixiao</groupId>
-        <version>3.0.0</version>
+        <version>3.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,9 +14,9 @@
 
     <modules>
         <module>hbase-sdk-adapter-common</module>
-        <module>hbase-sdk-adapter-1.2</module>
-        <module>hbase-sdk-adapter-1.4</module>
-        <module>hbase-sdk-adapter-2.2</module>
+        <module>hbase-sdk-adapter_1.2</module>
+        <module>hbase-sdk-adapter_1.4</module>
+        <module>hbase-sdk-adapter_2.2</module>
     </modules>
 
 </project>
