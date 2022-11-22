@@ -59,6 +59,8 @@ public class ReflectFactory {
                             String[] familyAndQualifierArr = getHBaseColumnName(clazz, field).split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
                             fieldStruct.setFamily(familyAndQualifierArr[0]);
                             fieldStruct.setQualifier(familyAndQualifierArr[1]);
+                            fieldStruct.setFamilyAndQualifier(familyAndQualifierArr[0] +
+                                    HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + familyAndQualifierArr[1]);
                             // setter
                             String setterMethodName = getSetterMethodName(field);
                             setMethod = allMethodsMap.getOrDefault(setterMethodName, null);

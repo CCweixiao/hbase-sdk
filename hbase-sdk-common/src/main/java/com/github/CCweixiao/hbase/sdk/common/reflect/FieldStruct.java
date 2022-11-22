@@ -9,6 +9,8 @@ public class FieldStruct {
     private boolean isRowKey;
     private String family;
     private String qualifier;
+
+    private String familyAndQualifier;
     private int setterMethodIndex;
     private String setterMethodName;
     private int getterMethodIndex;
@@ -43,6 +45,14 @@ public class FieldStruct {
 
     public void setQualifier(String qualifier) {
         this.qualifier = qualifier;
+    }
+
+    public String getFamilyAndQualifier() {
+        return familyAndQualifier;
+    }
+
+    public void setFamilyAndQualifier(String familyAndQualifier) {
+        this.familyAndQualifier = familyAndQualifier;
     }
 
     public int getSetterMethodIndex() {

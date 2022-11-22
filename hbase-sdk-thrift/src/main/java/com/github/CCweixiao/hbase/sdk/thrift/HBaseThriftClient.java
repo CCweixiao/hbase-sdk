@@ -1,7 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.common.IHBaseThriftOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
+import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
+import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
@@ -57,82 +59,78 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         hbaseClient = new Hbase.Client(protocol);
     }
 
-    public Hbase.Client hbaseThriftClient() {
+    @Override
+    public Hbase.Client getHbaseThriftClient() {
         return hbaseClient;
     }
 
     @Override
-    public void save(String tableName, String rowKey, Map<String, String> data) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is blank");
-        }
-        if (StrUtil.isBlank(rowKey)) {
-            throw new HBaseThriftException("row key is blank");
-        }
+    public void save(String tableName, String rowKey, Map<String, Object> data) {
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "Row key must not be empty.");
         if (data == null || data.isEmpty()) {
             return;
         }
         List<Mutation> mutations = new ArrayList<>(data.size());
-        data.forEach((key, value) -> mutations.add(new Mutation(false, ByteBufferUtil.toByteBuffer(key),
-                ByteBufferUtil.toByteBuffer(value), true)));
-        try {
-            hbaseClient.mutateRow(ByteBufferUtil.toByteBuffer(tableName),
-                    ByteBufferUtil.toByteBuffer(rowKey), mutations, getAttributesMap(new HashMap<>()));
-        } catch (TException e) {
-            throw new HBaseThriftException(e);
-        }
+        data.forEach((key, value) -> mutations.add(
+                new Mutation(false, ByteBufferUtil.toByterBufferFromStr(key),
+                        ByteBufferUtil.toByteBuffer(value), true)));
+        this.save(tableName, rowKey, mutations);
     }
 
     @Override
-    public void saveBatch(String tableName, Map<String, Map<String, String>> data) {
+    public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
         if (data == null || data.isEmpty()) {
-            return;
+            return 0;
         }
-        Map<String, String> attributes = new HashMap<>();
-        Map<ByteBuffer, ByteBuffer> wrappedAttributes = getAttributesMap(attributes);
-
-        List<BatchMutation> rowBatches = new ArrayList<>(data.size());
-        data.forEach((rowKey, columnData) -> {
-            if (null != columnData && !columnData.isEmpty()) {
-                List<Mutation> mutations = new ArrayList<>();
-                columnData.forEach((col, value) -> mutations.add(new Mutation(false,
+        List<BatchMutation> batchMutations = new ArrayList<>(data.size());
+        data.forEach((rowKey, colAndValMap) -> {
+            Assert.checkArgument(StrUtil.isNotBlank(rowKey), "Row key must not be empty.");
+            if (null != colAndValMap && !colAndValMap.isEmpty()) {
+                List<Mutation> mutations = new ArrayList<>(colAndValMap.size());
+                colAndValMap.forEach((col, value) -> mutations.add(new Mutation(false,
                         ByteBufferUtil.toByteBuffer(col),
                         ByteBufferUtil.toByteBuffer(value), true)));
 
-                rowBatches.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
+                batchMutations.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
             }
         });
-        try {
-            hbaseClient.mutateRows(ByteBufferUtil.toByteBuffer(tableName), rowBatches, wrappedAttributes);
-        } catch (TException e) {
-            throw new HBaseThriftException(e);
-        }
-
+        return this.saveBatch(tableName, batchMutations);
     }
 
     @Override
     public <T> T save(T t) throws Exception {
-        return null;
+        return this.pSave(t);
     }
 
     @Override
-    public <T> T saveBatch(List<T> lst) throws Exception {
-        return null;
+    public <T> int saveBatch(List<T> lst) throws Exception {
+        if (lst == null || lst.isEmpty()) {
+            return 0;
+        }
+        final Class<?> clazz0 = lst.get(0).getClass();
+        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
+        List<BatchMutation> batchMutationList = this.createBatchMutationList(lst, tableMeta);
+        return saveBatch(tableMeta.getTableName(), batchMutationList);
     }
 
     @Override
-    public <T> T getByRowKey(String rowKey, Class<T> clazz) {
-        return null;
+    public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
+        // todo
+        return Optional.empty();
     }
 
     @Override
-    public <T> T getByRowKeyWithFamily(String rowKey, String familyName, Class<T> clazz) {
-        return null;
+    public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
+        // todo
+        return Optional.empty();
     }
 
     @Override
-    public <T> T getByRowKeyWithFamilyAndQualifiers(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return null;
+    public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
+        // todo
+        return Optional.empty();
     }
 
     @Override
@@ -615,15 +613,6 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         } catch (TException e) {
             throw new HBaseThriftException(e);
         }
-    }
-
-    private Map<ByteBuffer, ByteBuffer> getAttributesMap(Map<String, String> attributes) {
-        Map<ByteBuffer, ByteBuffer> attributesMap = new HashMap<>();
-        if (attributes != null && !attributes.isEmpty()) {
-            attributes.forEach((key, value) -> attributesMap.put(ByteBufferUtil.toByteBuffer(key),
-                    ByteBufferUtil.toByteBuffer(value)));
-        }
-        return attributesMap;
     }
 
     @Override

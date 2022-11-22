@@ -89,6 +89,11 @@ public final class TypeHandlerFactory {
         return typeHandler.convertToByteBuffer(val);
     }
 
+    public static ByteBuffer toByteBufferFromStr(String val) {
+        AbstractTypeHandler typeHandler = findTypeHandler(String.class);
+        return typeHandler.convertToByteBuffer(val);
+    }
+
     public static AbstractTypeHandler findTypeHandler(String type) {
         ObjUtil.checkEmptyString(type);
         if (typeHandlerCache == null || !typeHandlerCache.containsKey(type)) {

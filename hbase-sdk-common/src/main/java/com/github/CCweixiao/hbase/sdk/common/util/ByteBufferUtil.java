@@ -34,6 +34,10 @@ public class ByteBufferUtil {
         return TypeHandlerFactory.toByteBuffer(val);
     }
 
+    public static ByteBuffer toByterBufferFromStr(String val) {
+        return TypeHandlerFactory.toByteBufferFromStr(val);
+    }
+
     public static String bytesIncrement(String str) {
         if (StrUtil.isBlank(str)) {
             return "";

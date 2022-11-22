@@ -534,7 +534,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
             throw new HBaseMetaDataException("The first field is not row key, please check hbase table mata data.");
         }
         Object value = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
-        Assert.checkArgument(value != null, "The row key value is not null.");
+        Assert.checkArgument(value != null, "The value of row key must not be null.");
         Put put = new Put(rowFieldStruct.getTypeHandler().toBytes(rowFieldStruct.getType(), value));
 
         fieldStructList.forEach(fieldStruct -> {
