@@ -7,6 +7,7 @@ import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
  * @author leojie 2020/9/25 10:37 下午
  */
 public class HMHBaseConstants {
+    public static final String META_TABLE_NAME = "hbase:meta";
     public static final String DEFAULT_SYS_TABLE_NAMESPACE = "hbase";
     public static final String TABLE_NAME_SPLIT_CHAR = ":";
     public static final String FAMILY_QUALIFIER_SEPARATOR = ":";

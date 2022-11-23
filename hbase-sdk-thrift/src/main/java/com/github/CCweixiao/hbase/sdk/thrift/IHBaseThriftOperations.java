@@ -9,6 +9,7 @@ import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
 import org.apache.hadoop.hbase.thrift.generated.*;
@@ -121,29 +122,19 @@ public interface IHBaseThriftOperations extends IHBaseTableOperations {
         return rowKeyVal;
     }
 
-    default <T> List<TRowResult> getTRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
+    default List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
         Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be null.");
         Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The value of row key must not be null.");
+        ByteBuffer rowByteBuffer = ByteBufferUtil.toByterBufferFromStr(rowKey);
+        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
         List<TRowResult> results;
         try {
-            if (StrUtil.isNotBlank(familyName)) {
-                if (qualifiers != null && !qualifiers.isEmpty()) {
-                    List<ByteBuffer> colNames = qualifiers.stream().map(q -> ByteBufferUtil.toByterBufferFromStr(
-                                    familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + q))
-                            .collect(Collectors.toList());
-                    results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
-                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(rowKey)), colNames,
-                            getAttributesMap(new HashMap<>(0)));
-                } else {
-                    results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
-                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(rowKey)),
-                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(familyName)),
-                            getAttributesMap(new HashMap<>(0)));
-                }
-
+            if (familyQualifiers != null && !familyQualifiers.isEmpty()) {
+                results = thriftClient.getRowWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                        rowByteBuffer, familyQualifiers, getAttributesMap(new HashMap<>(0)));
             } else {
-                results = thriftClient.getRow(ByteBufferUtil.toByterBufferFromStr(tableName),
-                        ByteBufferUtil.toByterBufferFromStr(rowKey), getAttributesMap(new HashMap<>(0)));
+                results = thriftClient.getRow(ByteBufferUtil.toByterBufferFromStr(tableName), rowByteBuffer,
+                        getAttributesMap(new HashMap<>(0)));
             }
         } catch (TException e) {
             throw new HBaseThriftException(e);
@@ -151,45 +142,104 @@ public interface IHBaseThriftOperations extends IHBaseTableOperations {
         return results;
     }
 
-    default <T> T mapperRowToT(List<TRowResult> results, Class<T> clazz) throws Exception {
+    default List<TRowResult> getToRowsResultList(Hbase.Client thriftClient, String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be null.");
+        Assert.checkArgument((rowKeyList != null && !rowKeyList.isEmpty()), "The row key(s) must not be empty.");
+        if (rowKeyList.size() == 1) {
+            return getToRowResultList(thriftClient, tableName, rowKeyList.get(0), familyName, qualifiers);
+        }
+        List<ByteBuffer> rowByteBuffers = rowKeyList.stream().map(ByteBufferUtil::toByterBufferFromStr).collect(Collectors.toList());
+        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
+
+        List<TRowResult> results;
+        try {
+            if (familyQualifiers != null && !familyQualifiers.isEmpty()) {
+                results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                        rowByteBuffers, familyQualifiers, getAttributesMap(new HashMap<>(0)));
+            } else {
+                results = thriftClient.getRows(ByteBufferUtil.toByterBufferFromStr(tableName),
+                        rowByteBuffers, getAttributesMap(new HashMap<>(0)));
+            }
+        } catch (TException e) {
+            throw new HBaseThriftException(e);
+        }
+        return results;
+    }
+
+    default List<ByteBuffer> createFamilyQualifiesBuffer(String familyName, List<String> qualifiers) {
+        List<ByteBuffer> familyQualifiers = null;
+        if (StrUtil.isNotBlank(familyName)) {
+            if (qualifiers != null && !qualifiers.isEmpty()) {
+                familyQualifiers = qualifiers.stream().map(q -> ByteBufferUtil.toByterBufferFromStr(
+                                familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + q))
+                        .collect(Collectors.toList());
+            } else {
+                familyQualifiers = Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(familyName));
+            }
+        }
+        return familyQualifiers;
+    }
+
+    default <T> T mapperRowToT(TRowResult result, Class<T> clazz) throws Exception {
+        //TODO 这里的反射调用构造函数是否可以再优化
         T t = clazz.getDeclaredConstructor().newInstance();
-        if (results == null || results.isEmpty()) {
+        if (result == null) {
             return t;
         }
         HBaseTableMeta hBaseTableMeta = ReflectFactory.getHBaseTableMeta(clazz);
         List<FieldStruct> fieldColStructMap = hBaseTableMeta.getFieldStructList();
-        Map<String, ByteBuffer> resultDataMap = new HashMap<>(results.size());
-        results.forEach(result -> {
-            for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
-                if (entry.getValue().value == null) {
-                    resultDataMap.put(ByteBufferUtil.byteBufferToString(entry.getKey()), null);
-                    continue;
-                }
-                resultDataMap.put(ByteBufferUtil.byteBufferToString(entry.getKey()), entry.getValue().value);
-            }
-        });
+
         fieldColStructMap.forEach(fieldStruct -> {
-            Object value = fieldStruct.getTypeHandler().toObject(fieldStruct.getType(), resultDataMap.get(fieldStruct.getFamilyAndQualifier()));
             if (fieldStruct.isRowKey()) {
-                Assert.checkArgument(value != null, "The value of row key must not be null.");
+                Object rowVal = TypeHandlerFactory.toObject(String.class, result.getRow());
+                hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), rowVal);
+            } else {
+                Object fieldValue = result.getFieldValue(TRowResult._Fields.findByName(fieldStruct.getFamilyAndQualifier()));
+                hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), fieldValue);
             }
-            hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), value);
         });
         return t;
     }
 
-    default Map<String, String> parseResultsToMap(List<TRowResult> results) {
+    default <T> List<T> mapperRowToTList(List<TRowResult> results, Class<T> clazz) {
+        if (results == null || results.isEmpty()) {
+            return new ArrayList<>(0);
+        }
+        List<T> list = new ArrayList<>(results.size());
+        try {
+            for (TRowResult result : results) {
+                list.add(mapperRowToT(result, clazz));
+            }
+        } catch (Exception e) {
+            throw new HBaseThriftException(e);
+        }
+        return list;
+    }
+
+    default Map<String, String> parseResultsToMap(TRowResult result) {
+        if (result == null) {
+            return new HashMap<>(0);
+        }
+        Map<String, String> res = new HashMap<>(result.getColumnsSize());
+        for (Map.Entry<ByteBuffer, TCell> entry : result.getColumns().entrySet()) {
+            res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
+                    ByteBufferUtil.byteBufferToString(entry.getValue().value));
+        }
+        return res;
+    }
+
+    default Map<String, Map<String, String>> parseResultsToMap(List<TRowResult> results) {
         if (results == null || results.isEmpty()) {
             return new HashMap<>(0);
         }
-        Map<String, String> res = new HashMap<>(results.size());
+        Map<String, Map<String, String>> res = new HashMap<>(results.size());
         results.forEach(result -> {
-            for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
-                res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
-                        ByteBufferUtil.byteBufferToString(entry.getValue().value));
-            }
+            String rowVal = TypeHandlerFactory.toObject(String.class, result.getRow()).toString();
+            res.put(rowVal, parseResultsToMap(result));
         });
         return res;
     }
+
+    boolean ping();
 
 }

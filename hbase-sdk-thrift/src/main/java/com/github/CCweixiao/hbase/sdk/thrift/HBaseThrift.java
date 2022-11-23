@@ -237,10 +237,10 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
         hBaseThriftClient.disconnect();
     }
 
+    @Override
     public boolean ping() {
         try {
-            hBaseThriftClient.ping();
-            return true;
+            return hBaseThriftClient.ping();
         } catch (Exception e) {
             return false;
         }

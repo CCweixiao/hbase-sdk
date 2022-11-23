@@ -1,13 +1,17 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.thrift.generated.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -130,8 +134,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, thriftClient -> {
-            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
-            return mapperRowToT(results, clazz);
+            List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            return mapperRowToT(results.get(0), clazz);
         });
     }
 
@@ -148,11 +152,11 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
         return this.execute(tableName, thriftClient -> {
-            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
             if (results == null || results.isEmpty()) {
                 return null;
             }
-            return rowMapper.mapRow(results, 0);
+            return rowMapper.mapRow(results.get(0), 0);
         });
     }
 
@@ -169,143 +173,141 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
         return this.execute(tableName, thriftClient -> {
-            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            return parseResultsToMap(results.get(0));
+        }).orElse(new HashMap<>(0));
+    }
+
+    @Override
+    public <T> List<T> getRows(List<String> rowKeys, Class<T> clazz) {
+        return getRows(rowKeys, "", new ArrayList<>(0), clazz);
+    }
+
+    @Override
+    public <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz) {
+        return getRows(rowKeys, familyName, new ArrayList<>(0), clazz);
+    }
+
+    @Override
+    public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
+        String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
+            return mapperRowToTList(results, clazz);
+        }).orElse(new ArrayList<>(0));
+    }
+
+    @Override
+    public <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper) {
+        return getRows(tableName, rowKeys, "", new ArrayList<>(0), rowMapper);
+    }
+
+    @Override
+    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper) {
+        return getRows(tableName, rowKeys, familyName, new ArrayList<>(0), rowMapper);
+    }
+
+    @Override
+    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
+            List<T> data = new ArrayList<>(results.size());
+            for (TRowResult result : results) {
+                data.add(rowMapper.mapRow(result, 0));
+            }
+            return data;
+        }).orElse(new ArrayList<>(0));
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
+        return getRowsToMap(tableName, rowKeys, "", new ArrayList<>(0), withTimestamp);
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
+        return getRowsToMap(tableName, rowKeys, familyName, new ArrayList<>(0), withTimestamp);
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
             return parseResultsToMap(results);
         }).orElse(new HashMap<>(0));
     }
 
     @Override
-    public Map<String, String> getByRowKeyToMap(String tableName, String rowKey) {
-        return getByRowKeyWithFamilyToMap(tableName, rowKey, null);
+    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+        return null;
     }
 
     @Override
-    public Map<String, String> getByRowKeyWithFamilyToMap(String tableName, String rowKey, String familyName) {
-        return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, new ArrayList<>());
+    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+        return null;
     }
 
     @Override
-    public Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        Map<String, String> res = new HashMap<>();
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is blank");
+    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
+        return null;
+    }
+
+    @Override
+    public List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow,
+                                                       String rowPrefix, String familyName,
+                                                       List<String> qualifiers, String filterStr,
+                                                       Long timestamp, Integer batchSize,
+                                                       Integer scanBatching, boolean reverse, Integer limit) {
+        Map<String, String> attributes = new HashMap<>();
+
+        int scannerId = scannerOpen(tableName, startRow, stopRow, rowPrefix, familyName,
+                qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, attributes);
+        LOG.debug("Opened scanner (id={}) on '{}'", scannerId, tableName);
+        if (limit != null && limit < 0) {
+            throw new HBaseThriftException("'limit' must be >= 0");
         }
-        if (StrUtil.isBlank(rowKey)) {
-            throw new HBaseThriftException("row key is blank");
-        }
+
+        AtomicInteger nReturned = new AtomicInteger();
+        int nFetched = 0;
+        int howMany;
+        List<Map<String, Map<String, String>>> results = new ArrayList<>();
+
         try {
-            List<TRowResult> results;
-            if (StrUtil.isNotBlank(familyName)) {
-                if (qualifiers != null && !qualifiers.isEmpty()) {
-                    List<ByteBuffer> colNames = new ArrayList<>(qualifiers.size());
-                    qualifiers.forEach(qualifier -> colNames.add(ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier)));
-                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
-                            Collections.singletonList(ByteBufferUtil.toByteBuffer(rowKey)), colNames,
-                            getAttributesMap(new HashMap<>()));
+            while (true) {
+                if (null == limit) {
+                    howMany = batchSize;
                 } else {
-                    results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
-                            Collections.singletonList(ByteBufferUtil.toByteBuffer(rowKey)),
-                            Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName)),
-                            getAttributesMap(new HashMap<>()));
+                    howMany = Math.min(batchSize, limit - nReturned.get());
                 }
-            } else {
-                results = hbaseClient.getRow(ByteBufferUtil.toByteBuffer(tableName),
-                        ByteBufferUtil.toByteBuffer(rowKey), getAttributesMap(new HashMap<>()));
-            }
-
-            if (results == null || results.isEmpty()) {
-                return res;
-            }
-            results.forEach(result -> {
-                for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
-                    res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
-                            ByteBufferUtil.byteBufferToString(entry.getValue().value));
+                final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
+                if (items != null && !items.isEmpty()) {
+                    nFetched += items.size();
+                    items.forEach(scannerResult -> {
+                        Map<String, Map<String, String>> data = new HashMap<>();
+                        Map<String, String> tmpValue = new HashMap<>();
+                        scannerResult.columns.forEach((colName, value) -> tmpValue.put(ByteBufferUtil.byteBufferToString(colName), ByteBufferUtil.byteBufferToString(value.value)));
+                        data.put(ByteBufferUtil.byteBufferToString(scannerResult.row), tmpValue);
+                        results.add(data);
+                        nReturned.addAndGet(1);
+                    });
+                    if (limit != null && nReturned.get() == limit) {
+                        break;
+                    }
+                } else {
+                    break;
                 }
-            });
+            }
         } catch (TException e) {
             throw new HBaseThriftException(e);
-        }
-        return res;
-    }
-
-    @Override
-    public Map<String, String> getByRowKeyWithFamilyAndQualifiersToMap(String tableName, String rowKey, String familyName, String... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
-            return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, Arrays.asList(qualifiers));
-        } else {
-            return getByRowKeyWithFamilyAndQualifiersToMap(tableName, rowKey, familyName, new ArrayList<>());
-        }
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsByRowKeysToMap(String tableName, List<String> rowKeyList) {
-        return getRowsByRowKeysWithFamilyToMap(tableName, rowKeyList, null);
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyToMap(String tableName, List<String> rowKeyList, String familyName) {
-        return getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, new ArrayList<>());
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is blank");
-        }
-        if (rowKeyList == null || rowKeyList.isEmpty()) {
-            throw new HBaseThriftException("row keys are empty");
-        }
-        final List<ByteBuffer> rows = rowKeyList.stream().map(ByteBufferUtil::toByteBuffer)
-                .collect(Collectors.toList());
-        Map<String, Map<String, String>> resMap = new HashMap<>(rowKeyList.size());
-
-        final List<TRowResult> results;
-        if (StrUtil.isNotBlank(familyName)) {
-            final List<ByteBuffer> cols;
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                cols = qualifiers.stream().map(qualifier -> ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier))
-                        .collect(Collectors.toList());
-
-            } else {
-                cols = Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName));
-            }
+        } finally {
             try {
-                results = hbaseClient.getRowsWithColumns(ByteBufferUtil.toByteBuffer(tableName),
-                        rows, cols, getAttributesMap(new HashMap<>()));
+                hbaseClient.scannerClose(scannerId);
+                LOG.debug("Closed scanner (id={}) on '{}' ({} returned, {} fetched)", scannerId, tableName, nReturned, nFetched);
             } catch (TException e) {
-                throw new HBaseThriftException(e);
+                LOG.error("close scanner id failed. ", e);
             }
-        } else {
-            try {
-                results = hbaseClient.getRows(ByteBufferUtil.toByteBuffer(tableName), rows, getAttributesMap(new HashMap<>()));
-            } catch (TException e) {
-                throw new HBaseThriftException(e);
-            }
-
         }
-
-        if (results == null || results.isEmpty()) {
-            return resMap;
-        }
-
-        results.forEach(result -> {
-            Map<String, String> res = new HashMap<>();
-            for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
-                res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
-                        ByteBufferUtil.byteBufferToString(entry.getValue().value));
-            }
-            resMap.put(ByteBufferUtil.byteBufferToString(result.row), res);
-        });
-        return resMap;
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsByRowKeysWithFamilyAndQualifiersToMap(String tableName, List<String> rowKeyList, String familyName, String... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
-            return getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, Arrays.asList(qualifiers));
-        } else {
-            return getRowsByRowKeysWithFamilyAndQualifiersToMap(tableName, rowKeyList, familyName, new ArrayList<>());
-        }
+        return results;
     }
 
     @Override
@@ -437,153 +439,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         }
     }
 
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowToMapList(String tableName, int limit) {
-        return scan(tableName, null, null, null, null, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
 
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithFamilyToMapList(String tableName, String familyName, int limit) {
-        return scan(tableName, null, null, null, familyName, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithFamilyAndQualifiersToMapList(String tableName, String familyName, List<String> qualifiers, int limit) {
-        return scan(tableName, null, null, null, familyName, qualifiers,
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartRowToMapList(String tableName, String startRow, int limit) {
-        return scan(tableName, startRow, null, null, null, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyToMapList(String tableName, String startRow, String familyName, int limit) {
-        return scan(tableName, startRow, null, null, familyName, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String familyName, List<String> qualifiers, int limit) {
-        return scan(tableName, startRow, null, null, familyName, qualifiers,
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowToMapList(String tableName, String startRow, String stopRow, int limit) {
-        return scan(tableName, startRow, stopRow, null, null, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyToMapList(String tableName, String startRow, String stopRow, String familyName, int limit) {
-        return scan(tableName, startRow, stopRow, null, familyName, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithStartAndStopRowAndFamilyAndQualifiersToMapList(String tableName, String startRow, String stopRow, String familyName, List<String> qualifiers, int limit) {
-        return scan(tableName, startRow, stopRow, null, familyName, qualifiers,
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithPrefixToMapList(String tableName, String rowPrefix, int limit) {
-        return scan(tableName, null, null, rowPrefix, null, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyToMapList(String tableName, String rowPrefix, String familyName, int limit) {
-        return scan(tableName, null, null, rowPrefix, familyName, new ArrayList<>(),
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> findAllRowWithPrefixAndFamilyAndQualifiersToMapList(String tableName, String rowPrefix, String familyName, List<String> qualifiers, int limit) {
-        return scan(tableName, null, null, rowPrefix, familyName, qualifiers,
-                null, null, HBaseThriftProtocol.DEFAULT_SCAN_CACHING,
-                HBaseThriftProtocol.DEFAULT_SCAN_CACHING, false, limit);
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow,
-                                                       String rowPrefix, String familyName,
-                                                       List<String> qualifiers, String filterStr,
-                                                       Long timestamp, Integer batchSize,
-                                                       Integer scanBatching, boolean reverse, Integer limit) {
-        Map<String, String> attributes = new HashMap<>();
-
-        int scannerId = scannerOpen(tableName, startRow, stopRow, rowPrefix, familyName,
-                qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, attributes);
-        LOG.debug("Opened scanner (id={}) on '{}'", scannerId, tableName);
-        if (limit != null && limit < 0) {
-            throw new HBaseThriftException("'limit' must be >= 0");
-        }
-
-        AtomicInteger nReturned = new AtomicInteger();
-        int nFetched = 0;
-        int howMany;
-        List<Map<String, Map<String, String>>> results = new ArrayList<>();
-
-        try {
-            while (true) {
-                if (null == limit) {
-                    howMany = batchSize;
-                } else {
-                    howMany = Math.min(batchSize, limit - nReturned.get());
-                }
-                final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
-                if (items != null && !items.isEmpty()) {
-                    nFetched += items.size();
-                    items.forEach(scannerResult -> {
-                        Map<String, Map<String, String>> data = new HashMap<>();
-                        Map<String, String> tmpValue = new HashMap<>();
-                        scannerResult.columns.forEach((colName, value) -> tmpValue.put(ByteBufferUtil.byteBufferToString(colName), ByteBufferUtil.byteBufferToString(value.value)));
-                        data.put(ByteBufferUtil.byteBufferToString(scannerResult.row), tmpValue);
-                        results.add(data);
-                        nReturned.addAndGet(1);
-                    });
-                    if (limit != null && nReturned.get() == limit) {
-                        break;
-                    }
-                } else {
-                    break;
-                }
-            }
-        } catch (TException e) {
-            throw new HBaseThriftException(e);
-        } finally {
-            try {
-                hbaseClient.scannerClose(scannerId);
-                LOG.debug("Closed scanner (id={}) on '{}' ({} returned, {} fetched)", scannerId, tableName, nReturned, nFetched);
-            } catch (TException e) {
-                LOG.error("close scanner id failed. ", e);
-            }
-        }
-        return results;
-    }
-
-    private int scannerOpen(String tableName, String startRow, String stopRow,
-                            String rowPrefix, String familyName,
-                            List<String> qualifiers, String filterStr,
-                            Long timestamp, Integer batchSize, Integer scanBatching,
-                            boolean reverse, Map<String, String> attributes) {
+    private int scannerOpen(String tableName, ScanQueryParamsBuilder scanQueryParams, Map<String, String> attributes) {
         if (StrUtil.isBlank(tableName)) {
             throw new HBaseThriftException("table name is not empty.");
         }
@@ -634,8 +491,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
             scan.setTimestamp(timestamp);
         }
 
-        if (StrUtil.isNotBlank(filterStr)) {
-            scan.setFilterString(ByteBufferUtil.toByteBuffer(filterStr));
+        if (scanQueryParams.getFilter() != null && scanQueryParams.getFilter().customFilter() instanceof String) {
+            scan.setFilterString(ByteBufferUtil.toStrByteBuffer(scanQueryParams.getFilter().customFilter()));
         }
 
         if (batchSize != null) {
@@ -656,22 +513,21 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         }
     }
 
-    @Override
-    public List<String> getTableNames() {
-        ArrayList<String> tableNames = new ArrayList<>();
+
+    public List<String> getMetaTableRegions() {
         try {
-            for (ByteBuffer name : hbaseClient.getTableNames()) {
-                tableNames.add(ByteBufferUtil.byteBufferToString(name));
-            }
-            return tableNames;
+            List<TRegionInfo> regions = hbaseClient.getTableRegions(ByteBufferUtil.toByterBufferFromStr(HMHBaseConstants.META_TABLE_NAME));
+            return regions.stream().map(r -> TypeHandlerFactory.toStrFromBuffer(r.bufferForName()))
+                    .collect(Collectors.toList());
         } catch (TException e) {
             throw new HBaseThriftException(e);
         }
     }
 
 
-    public void ping() {
-        getTableNames();
+    @Override
+    public boolean ping() {
+        return getMetaTableRegions().size() > 0;
     }
 
 
