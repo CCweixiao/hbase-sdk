@@ -41,6 +41,7 @@ public class ReflectFactory {
                         List<FieldStruct> fieldStructList = new LinkedList<>();
                         Method getMethod;
                         Method setMethod;
+                        // TODO 判断模型类是否拥有无参的构造函数
                         for (Field field : fields) {
                             if (isNotGeneralProperty(field)) {
                                 continue;
@@ -56,11 +57,11 @@ public class ReflectFactory {
                                 fieldStruct.setRowKey(false);
                             }
                             // 解析col name
-                            String[] familyAndQualifierArr = getHBaseColumnName(clazz, field).split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
+                            String familyAndQualifier = getHBaseColumnName(clazz, field);
+                            String[] familyAndQualifierArr = familyAndQualifier.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
                             fieldStruct.setFamily(familyAndQualifierArr[0]);
                             fieldStruct.setQualifier(familyAndQualifierArr[1]);
-                            fieldStruct.setFamilyAndQualifier(familyAndQualifierArr[0] +
-                                    HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + familyAndQualifierArr[1]);
+                            fieldStruct.setFamilyAndQualifier(familyAndQualifier);
                             // setter
                             String setterMethodName = getSetterMethodName(field);
                             setMethod = allMethodsMap.getOrDefault(setterMethodName, null);

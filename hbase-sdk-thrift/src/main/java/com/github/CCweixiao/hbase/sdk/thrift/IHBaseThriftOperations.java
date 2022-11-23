@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.callback.TableCallback;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
@@ -9,12 +10,13 @@ import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
-import org.apache.hadoop.hbase.thrift.generated.BatchMutation;
-import org.apache.hadoop.hbase.thrift.generated.Hbase;
-import org.apache.hadoop.hbase.thrift.generated.Mutation;
+import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import org.apache.hadoop.hbase.thrift.generated.*;
+import org.apache.thrift.TException;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>定义HBase Thrift 的操作接口</p>
@@ -117,6 +119,77 @@ public interface IHBaseThriftOperations extends IHBaseTableOperations {
         Object rowKeyVal = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
         Assert.checkArgument(rowKeyVal != null, "The value of row key must not be null.");
         return rowKeyVal;
+    }
+
+    default <T> List<TRowResult> getTRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be null.");
+        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The value of row key must not be null.");
+        List<TRowResult> results;
+        try {
+            if (StrUtil.isNotBlank(familyName)) {
+                if (qualifiers != null && !qualifiers.isEmpty()) {
+                    List<ByteBuffer> colNames = qualifiers.stream().map(q -> ByteBufferUtil.toByterBufferFromStr(
+                                    familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + q))
+                            .collect(Collectors.toList());
+                    results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(rowKey)), colNames,
+                            getAttributesMap(new HashMap<>(0)));
+                } else {
+                    results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(rowKey)),
+                            Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(familyName)),
+                            getAttributesMap(new HashMap<>(0)));
+                }
+
+            } else {
+                results = thriftClient.getRow(ByteBufferUtil.toByterBufferFromStr(tableName),
+                        ByteBufferUtil.toByterBufferFromStr(rowKey), getAttributesMap(new HashMap<>(0)));
+            }
+        } catch (TException e) {
+            throw new HBaseThriftException(e);
+        }
+        return results;
+    }
+
+    default <T> T mapperRowToT(List<TRowResult> results, Class<T> clazz) throws Exception {
+        T t = clazz.getDeclaredConstructor().newInstance();
+        if (results == null || results.isEmpty()) {
+            return t;
+        }
+        HBaseTableMeta hBaseTableMeta = ReflectFactory.getHBaseTableMeta(clazz);
+        List<FieldStruct> fieldColStructMap = hBaseTableMeta.getFieldStructList();
+        Map<String, ByteBuffer> resultDataMap = new HashMap<>(results.size());
+        results.forEach(result -> {
+            for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
+                if (entry.getValue().value == null) {
+                    resultDataMap.put(ByteBufferUtil.byteBufferToString(entry.getKey()), null);
+                    continue;
+                }
+                resultDataMap.put(ByteBufferUtil.byteBufferToString(entry.getKey()), entry.getValue().value);
+            }
+        });
+        fieldColStructMap.forEach(fieldStruct -> {
+            Object value = fieldStruct.getTypeHandler().toObject(fieldStruct.getType(), resultDataMap.get(fieldStruct.getFamilyAndQualifier()));
+            if (fieldStruct.isRowKey()) {
+                Assert.checkArgument(value != null, "The value of row key must not be null.");
+            }
+            hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), value);
+        });
+        return t;
+    }
+
+    default Map<String, String> parseResultsToMap(List<TRowResult> results) {
+        if (results == null || results.isEmpty()) {
+            return new HashMap<>(0);
+        }
+        Map<String, String> res = new HashMap<>(results.size());
+        results.forEach(result -> {
+            for (Map.Entry<ByteBuffer, TCell> entry : result.columns.entrySet()) {
+                res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
+                        ByteBufferUtil.byteBufferToString(entry.getValue().value));
+            }
+        });
+        return res;
     }
 
 }

@@ -84,9 +84,24 @@ public final class TypeHandlerFactory {
         return typeHandler.toObject(type, buffer);
     }
 
+    public static String toStrFromBuffer(ByteBuffer buffer) {
+        AbstractTypeHandler typeHandler = new StringHandler();
+        Object val = typeHandler.toObject(String.class, buffer);
+        if (val == null) {
+            return "";
+        }
+        return val.toString();
+    }
+
     public static ByteBuffer toByteBuffer(Object val) {
         AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
         return typeHandler.convertToByteBuffer(val);
+    }
+
+    public static ByteBuffer toStrByteBuffer(Object val) {
+        AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
+        String strVal = typeHandler.convertToString(val);
+        return toByteBufferFromStr(strVal);
     }
 
     public static ByteBuffer toByteBufferFromStr(String val) {
@@ -94,6 +109,7 @@ public final class TypeHandlerFactory {
         return typeHandler.convertToByteBuffer(val);
     }
 
+    @Deprecated
     public static AbstractTypeHandler findTypeHandler(String type) {
         ObjUtil.checkEmptyString(type);
         if (typeHandlerCache == null || !typeHandlerCache.containsKey(type)) {
@@ -117,11 +133,13 @@ public final class TypeHandlerFactory {
     }
 
 
+    @Deprecated
     public static byte[] toBytes(String typeClassName, Object val) {
         AbstractTypeHandler typeHandler = findTypeHandler(typeClassName);
         return typeHandler.convertToBytes(val);
     }
 
+    @Deprecated
     public static ByteBuffer toByteBuffer(String typeClassName, Object val) {
         AbstractTypeHandler typeHandler = findTypeHandler(typeClassName);
         return typeHandler.convertToByteBuffer(val);

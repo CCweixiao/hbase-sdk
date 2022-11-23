@@ -3,9 +3,6 @@ package com.github.CCweixiao.hbase.sdk.common.util;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 
 /**
  * @author leojie 2020/12/27 2:36 下午
@@ -13,25 +10,19 @@ import java.nio.charset.CharsetDecoder;
 public class ByteBufferUtil {
 
     public static String byteBufferToString(ByteBuffer buffer) {
-        CharBuffer charBuffer;
-        try {
-            Charset charset = Charset.forName(HBaseThriftProtocol.CHAR_SET);
-            CharsetDecoder decoder = charset.newDecoder();
-            charBuffer = decoder.decode(buffer);
-            buffer.flip();
-            return charBuffer.toString();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return null;
-        }
+        return TypeHandlerFactory.toStrFromBuffer(buffer);
     }
 
-    public static Object byteBufferToObj(Class<?> type, ByteBuffer buffer) {
-        return TypeHandlerFactory.toObject(type, buffer);
+    public static Object byteBufferToObj( Class<?> clazz, ByteBuffer buffer) {
+        return TypeHandlerFactory.toObject(clazz, buffer);
     }
 
     public static ByteBuffer toByteBuffer(Object val) {
         return TypeHandlerFactory.toByteBuffer(val);
+    }
+
+    public static ByteBuffer toStrByteBuffer(Object val) {
+        return TypeHandlerFactory.toStrByteBuffer(val);
     }
 
     public static ByteBuffer toByterBufferFromStr(String val) {

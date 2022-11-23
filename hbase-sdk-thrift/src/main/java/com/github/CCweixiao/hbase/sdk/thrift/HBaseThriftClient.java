@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
@@ -74,7 +75,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         List<Mutation> mutations = new ArrayList<>(data.size());
         data.forEach((key, value) -> mutations.add(
                 new Mutation(false, ByteBufferUtil.toByterBufferFromStr(key),
-                        ByteBufferUtil.toByteBuffer(value), true)));
+                        ByteBufferUtil.toStrByteBuffer(value), true)));
         this.save(tableName, rowKey, mutations);
     }
 
@@ -91,7 +92,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
                 List<Mutation> mutations = new ArrayList<>(colAndValMap.size());
                 colAndValMap.forEach((col, value) -> mutations.add(new Mutation(false,
                         ByteBufferUtil.toByteBuffer(col),
-                        ByteBufferUtil.toByteBuffer(value), true)));
+                        ByteBufferUtil.toStrByteBuffer(value), true)));
 
                 batchMutations.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
             }
@@ -117,20 +118,60 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
     @Override
     public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
-        // todo
-        return Optional.empty();
+        return getRow(rowKey, "", new ArrayList<>(0), clazz);
     }
 
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
-        // todo
-        return Optional.empty();
+        return getRow(rowKey, familyName, new ArrayList<>(0), clazz);
     }
 
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
-        // todo
-        return Optional.empty();
+        String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            return mapperRowToT(results, clazz);
+        });
+    }
+
+    @Override
+    public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
+        return getRow(tableName, rowKey, "", new ArrayList<>(0), rowMapper);
+    }
+
+    @Override
+    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
+        return getRow(tableName, rowKey, familyName, new ArrayList<>(0), rowMapper);
+    }
+
+    @Override
+    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            if (results == null || results.isEmpty()) {
+                return null;
+            }
+            return rowMapper.mapRow(results, 0);
+        });
+    }
+
+    @Override
+    public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
+        return getRowToMap(tableName, rowKey, "", new ArrayList<>(0), withTimestamp);
+    }
+
+    @Override
+    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
+        return getRowToMap(tableName, rowKey, familyName, new ArrayList<>(0), withTimestamp);
+    }
+
+    @Override
+    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
+        return this.execute(tableName, thriftClient -> {
+            List<TRowResult> results = getTRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            return parseResultsToMap(results);
+        }).orElse(new HashMap<>(0));
     }
 
     @Override

@@ -508,6 +508,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @throws Exception 异常抛出
      */
     protected <T> T mapperRowToT(Result result, Class<T> clazz) throws Exception {
+        //TODO 这里的反射调用构造函数是否可以再优化
         T t = clazz.getDeclaredConstructor().newInstance();
         HBaseTableMeta hBaseTableMeta = ReflectFactory.getHBaseTableMeta(clazz);
         List<FieldStruct> fieldColStructMap = hBaseTableMeta.getFieldStructList();
