@@ -11,12 +11,8 @@ import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
 import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
-import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.thrift.generated.*;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,11 +26,8 @@ import java.util.stream.Collectors;
  *
  * @author leojie 2020/12/27 2:46 下午
  */
-public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseThriftOperations {
+public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseThriftOperations {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseThriftClient.class);
-
-    private Hbase.Client hbaseClient;
-
     public HBaseThriftClient() {
         this(HBaseThriftProtocol.DEFAULT_HOST);
     }
@@ -48,31 +41,20 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
     }
 
     public HBaseThriftClient(final String host, final int port, final int connectionTimeout, int socketTimeout) {
-        this(new DefaultHBaseThriftTSocketFactory(host, port, connectionTimeout, socketTimeout));
+        this(new HBaseThriftTSocketImpl.Builder(host, port)
+                .connectionTimeout(connectionTimeout)
+                .socketTimeout(socketTimeout)
+                .build());
     }
 
-    public HBaseThriftClient(final HBaseThriftTSocketFactory thriftTSocketFactory) {
+    public HBaseThriftClient(final IHBaseThriftTSocket thriftTSocketFactory) {
         super(thriftTSocketFactory);
-    }
-
-    @Override
-    public void connect() {
-        super.connect();
-        TSocket socket = getSocket();
-        LOG.info("connecting hbase thrift server {}:{}, and local port is {} ", getHost(), getPort(), socket.getSocket().getLocalPort());
-        TProtocol protocol = new TBinaryProtocol(socket, true, true);
-        hbaseClient = new Hbase.Client(protocol);
-    }
-
-    @Override
-    public Hbase.Client getHbaseThriftClient() {
-        return hbaseClient;
     }
 
     @Override
     public void save(String tableName, String rowKey, Map<String, Object> data) {
         Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
-        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "Row key must not be empty.");
+        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
         if (data == null || data.isEmpty()) {
             return;
         }
@@ -91,7 +73,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
         }
         List<BatchMutation> batchMutations = new ArrayList<>(data.size());
         data.forEach((rowKey, colAndValMap) -> {
-            Assert.checkArgument(StrUtil.isNotBlank(rowKey), "Row key must not be empty.");
+            Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
             if (null != colAndValMap && !colAndValMap.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(colAndValMap.size());
                 colAndValMap.forEach((col, value) -> mutations.add(new Mutation(false,
@@ -249,23 +231,10 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
     @Override
     public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
-        return null;
-    }
-
-    @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, String startRow, String stopRow,
-                                                       String rowPrefix, String familyName,
-                                                       List<String> qualifiers, String filterStr,
-                                                       Long timestamp, Integer batchSize,
-                                                       Integer scanBatching, boolean reverse, Integer limit) {
         Map<String, String> attributes = new HashMap<>();
 
-        int scannerId = scannerOpen(tableName, startRow, stopRow, rowPrefix, familyName,
-                qualifiers, filterStr, timestamp, batchSize, scanBatching, reverse, attributes);
-        LOG.debug("Opened scanner (id={}) on '{}'", scannerId, tableName);
-        if (limit != null && limit < 0) {
-            throw new HBaseThriftException("'limit' must be >= 0");
-        }
+        int scannerId = scannerOpen(tableName, scanQueryParams, attributes);
+        int limit = scanQueryParams.getLimit();
 
         AtomicInteger nReturned = new AtomicInteger();
         int nFetched = 0;
@@ -274,10 +243,10 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
         try {
             while (true) {
-                if (null == limit) {
-                    howMany = batchSize;
+                if (limit <= 0) {
+                    howMany = scanQueryParams.getBatch();
                 } else {
-                    howMany = Math.min(batchSize, limit - nReturned.get());
+                    howMany = Math.min(scanQueryParams.getBatch(), limit - nReturned.get());
                 }
                 final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
                 if (items != null && !items.isEmpty()) {
@@ -290,7 +259,7 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
                         results.add(data);
                         nReturned.addAndGet(1);
                     });
-                    if (limit != null && nReturned.get() == limit) {
+                    if (nReturned.get() == limit) {
                         break;
                     }
                 } else {
@@ -322,12 +291,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
     @Override
     public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is blank");
-        }
-        if (StrUtil.isBlank(rowKey)) {
-            throw new HBaseThriftException("row key is blank");
-        }
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
         if (StrUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(qualifiers.size());
@@ -385,12 +350,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is blank");
-        }
-        if (rowKeys == null || rowKeys.isEmpty()) {
-            throw new HBaseThriftException("row keys are empty");
-        }
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        Assert.checkArgument(rowKeys != null && !rowKeys.isEmpty(), "The row key list must not be empty.");
 
         List<BatchMutation> rowBatches = new ArrayList<>(rowKeys.size());
 
@@ -441,70 +402,8 @@ public class HBaseThriftClient extends HBaseThriftConnection implements IHBaseTh
 
 
     private int scannerOpen(String tableName, ScanQueryParamsBuilder scanQueryParams, Map<String, String> attributes) {
-        if (StrUtil.isBlank(tableName)) {
-            throw new HBaseThriftException("table name is not empty.");
-        }
-
-        if (batchSize != null && batchSize < 1) {
-            throw new HBaseThriftException("'batchSize' must be >= 1");
-        }
-
-        if (scanBatching != null && scanBatching < 1) {
-            throw new HBaseThriftException("'scanBatching' must be >= 1");
-        }
-
-        if (StrUtil.isNotBlank(rowPrefix)) {
-            if (StrUtil.isNotBlank(startRow) || StrUtil.isNotBlank(stopRow)) {
-                throw new HBaseThriftException("'rowPrefix' cannot be combined with 'startRow' or 'stopRow'");
-            }
-
-            if (reverse) {
-                startRow = ByteBufferUtil.bytesIncrement(rowPrefix);
-                stopRow = rowPrefix;
-            } else {
-                startRow = rowPrefix;
-                stopRow = ByteBufferUtil.bytesIncrement(rowPrefix);
-            }
-        }
-
-        TScan scan = new TScan();
-        if (StrUtil.isNotBlank(startRow)) {
-            scan.setStartRow(ByteBufferUtil.toByteBuffer(startRow));
-        }
-        if (StrUtil.isNotBlank(stopRow)) {
-            scan.setStopRow(ByteBufferUtil.toByteBuffer(stopRow));
-        }
-
-        if (StrUtil.isNotBlank(familyName)) {
-            if (qualifiers != null && !qualifiers.isEmpty()) {
-                final List<ByteBuffer> columns = qualifiers.stream()
-                        .filter(StrUtil::isNotBlank)
-                        .map(qualifier -> ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier))
-                        .collect(Collectors.toList());
-                scan.setColumns(columns);
-            } else {
-                scan.setColumns(Collections.singletonList(ByteBufferUtil.toByteBuffer(familyName)));
-            }
-        }
-
-        if (timestamp != null && timestamp > 0) {
-            scan.setTimestamp(timestamp);
-        }
-
-        if (scanQueryParams.getFilter() != null && scanQueryParams.getFilter().customFilter() instanceof String) {
-            scan.setFilterString(ByteBufferUtil.toStrByteBuffer(scanQueryParams.getFilter().customFilter()));
-        }
-
-        if (batchSize != null) {
-            scan.setCaching(batchSize);
-        }
-
-        if (scanBatching != null) {
-            scan.setBatchSize(scanBatching);
-        }
-
-        scan.setReversed(reverse);
-
+        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        TScan scan = buildScan(scanQueryParams);
         ByteBuffer tableNameByte = ByteBufferUtil.toByteBuffer(tableName);
         try {
             return hbaseClient.scannerOpenWithScan(tableNameByte, scan, getAttributesMap(attributes));

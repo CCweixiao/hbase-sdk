@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.thrift.*;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -15,9 +14,9 @@ public class HBaseThriftPoolTest {
         HBaseThriftPool hBaseThriftPool = new HBaseThriftPool(config, "localhost", 9090);
         // 从连接池中获取到HBaseThrift对象，HBaseThrift中封装了对HBase的读写操作
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        Map<String, String> data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("info:name", "leo");
-        data.put("info:age", "18");
+        data.put("info:age", 18);
         data.put("info:address", "shanghai");
         // 保存数据
         hBaseThrift.save("leo_test", "a10002", data);
@@ -27,9 +26,9 @@ public class HBaseThriftPoolTest {
     @Test
     public void testPut2(){
         HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
-        Map<String, String> data = new HashMap<>();
+        Map<String, Object> data = new HashMap<>();
         data.put("info:name", "leo");
-        data.put("info:age", "18");
+        data.put("info:age", 18);
         data.put("info:address", "shanghai");
         // 保存数据
         hBaseThriftService.save("leo_test", "a10003", data);

@@ -15,14 +15,12 @@ public class HBaseThriftPoolTest {
 
         while (true) {
 
-            System.out.println(hBaseThriftService.getTableNames());
 
             try {
                 int r = random.nextInt(10) + 1;
                 //int r = 4;
                 System.out.println("即将等待：" + r + "分钟");
                 Thread.sleep(r * 60 * 1000);
-                System.out.println(hBaseThriftService.getTableNames());
                 //System.out.println("getNumIdle=" + hBaseThriftPool.getNumIdle());
                 //System.out.println("getNumActive=" + hBaseThriftPool.getNumActive());
                 System.out.println("等待时间：" + r + "分钟");

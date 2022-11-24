@@ -1,9 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThrift;
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftPool;
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftPoolConfig;
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,7 +23,7 @@ public class HBaseThriftPoolTests {
     @Test
     public void testThriftPool() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        System.out.println(hBaseThrift.getTableNames());
+        System.out.println(hBaseThrift.ping());
         hBaseThrift.close();
     }
 
@@ -35,25 +31,25 @@ public class HBaseThriftPoolTests {
     public void testThriftClient() {
         HBaseThrift hBaseThrift = new HBaseThrift();
         hBaseThrift.connect();
-        System.out.println(hBaseThrift.getTableNames());
+        System.out.println(hBaseThrift.ping());
         hBaseThrift.close();
     }
 
     @Test
     public void testBatchPut() {
-        Map<String, String> data1 = new HashMap<>();
+        Map<String, Object> data1 = new HashMap<>();
         data1.put("g:name", "leo");
-        data1.put("g:age", "18");
+        data1.put("g:age", 18);
         data1.put("g:address", "上海");
         data1.put("g:tag", null);
 
-        Map<String, String> data2 = new HashMap<>();
+        Map<String, Object> data2 = new HashMap<>();
         data2.put("f:name", "leo2");
-        data2.put("f:age", "18");
+        data2.put("f:age", 18);
         data2.put("f:address", "上海2");
         data2.put("f:tag", "tag2");
 
-        Map<String, Map<String, String>> data = new HashMap<>(2);
+        Map<String, Map<String, Object>> data = new HashMap<>(2);
         data.put("a10001", data1);
         data.put("a10002", data2);
         hBaseThriftService.saveBatch("LEO_USER", data);
@@ -70,9 +66,9 @@ public class HBaseThriftPoolTests {
     public void testPut() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
 
-        Map<String, String> data3 = new HashMap<>();
+        Map<String, Object> data3 = new HashMap<>();
         data3.put("g:name", "leo2g");
-        data3.put("g:age", "18");
+        data3.put("g:age", 18);
         data3.put("g:address", "上海2g");
         data3.put("g:tag", "tag2g");
 
@@ -85,20 +81,20 @@ public class HBaseThriftPoolTests {
 
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
 
-        System.out.println(hBaseThrift.getByRowKeyWithFamilyAndQualifiersToMap("LEO_USER",
-                "a10001", "g", Collections.singletonList("age")));
+        System.out.println(hBaseThrift.getRowToMap("LEO_USER",
+                "a10001", "g", Collections.singletonList("age"), false));
 
-        System.out.println(hBaseThrift.getByRowKeyWithFamilyAndQualifiersToMap("LEO_USER",
-                "a10001", "g", Arrays.asList("name", "age", "sds")));
+        System.out.println(hBaseThrift.getRowToMap("LEO_USER",
+                "a10001", "g", Arrays.asList("name", "age", "sds"), false));
 
-        System.out.println(hBaseThrift.getByRowKeyWithFamilyToMap("LEO_USER",
-                "a10002", "f"));
+        System.out.println(hBaseThrift.getRowToMap("LEO_USER",
+                "a10002", "f", false));
 
-        System.out.println(hBaseThrift.getByRowKeyWithFamilyToMap("LEO_USER",
-                "a10002", "g"));
+        System.out.println(hBaseThrift.getRowToMap("LEO_USER",
+                "a10002", "g", false));
 
-        System.out.println(hBaseThrift.getByRowKeyToMap("LEO_USER",
-                "a1002"));
+        System.out.println(hBaseThrift.getRowToMap("LEO_USER",
+                "a1002", false));
 
         hBaseThrift.close();
     }
@@ -148,38 +144,38 @@ public class HBaseThriftPoolTests {
     @Test
     public void testGetRows() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        final Map<String, Map<String, String>> res = hBaseThrift.getRowsByRowKeysToMap("LEO_USER", Arrays.asList("a10001", "a10002"));
+        final Map<String, Map<String, String>> res = hBaseThrift.
+                getRowsToMap("LEO_USER", Arrays.asList("a10001", "a10002"), false);
         System.out.println(res);
     }
 
     @Test
     public void testGetRowsFamily() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        final Map<String, Map<String, String>> res = hBaseThrift.getRowsByRowKeysWithFamilyToMap("LEO_USER",
-                Arrays.asList("a10001", "a10002"), "g");
+        final Map<String, Map<String, String>> res = hBaseThrift.getRowsToMap("LEO_USER",
+                Arrays.asList("a10001", "a10002"), "g", false);
         System.out.println(res);
     }
 
     @Test
     public void testGetRowsFamilyAndQualifier() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        final Map<String, Map<String, String>> res = hBaseThrift.getRowsByRowKeysWithFamilyAndQualifiersToMap
-                ("LEO_USER", Arrays.asList("a10001", "a10002"), "f", Arrays.asList("name", "age"));
+        final Map<String, Map<String, String>> res = hBaseThrift.getRowsToMap
+                ("LEO_USER", Arrays.asList("a10001", "a10002"), "f", Arrays.asList("name", "age"), false);
         System.out.println(res);
     }
 
     @Test
     public void testGetRowsQualifierAndNoFamily() {
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        final Map<String, Map<String, String>> res = hBaseThrift.getRowsByRowKeysWithFamilyAndQualifiersToMap
-                ("LEO_USER", Arrays.asList("a10001", "a10002"), "", Arrays.asList("name", "age"));
+        final Map<String, Map<String, String>> res = hBaseThrift.getRowsToMap
+                ("LEO_USER", Arrays.asList("a10001", "a10002"), "", Arrays.asList("name", "age"), false);
         System.out.println(res);
     }
 
     @Test
     public void testScan(){
         final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-        System.out.println(hBaseThrift.findAllRowToMapList("LEO_USER", 1));
     }
 
 }

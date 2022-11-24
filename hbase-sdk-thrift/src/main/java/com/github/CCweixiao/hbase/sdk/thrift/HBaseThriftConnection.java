@@ -12,7 +12,7 @@ import java.io.Closeable;
  * @author leojie 2020/12/27 2:45 下午
  */
 public class HBaseThriftConnection implements Closeable {
-    private final HBaseThriftTSocketFactory thriftTSocketFactory;
+    private final IHBaseThriftTSocket hbaseThriftTSocket;
     private TSocket socket = null;
     private boolean broken = false;
 
@@ -29,11 +29,14 @@ public class HBaseThriftConnection implements Closeable {
     }
 
     public HBaseThriftConnection(final String host, final int port, final int connectionTimeout, final int socketTimeout) {
-        this(new DefaultHBaseThriftTSocketFactory(host, port, connectionTimeout, socketTimeout));
+        this(new HBaseThriftTSocketImpl.Builder(host, port)
+                .connectionTimeout(connectionTimeout)
+                .socketTimeout(socketTimeout)
+                .build());
     }
 
-    public HBaseThriftConnection(final HBaseThriftTSocketFactory thriftTSocketFactory) {
-        this.thriftTSocketFactory = thriftTSocketFactory;
+    public HBaseThriftConnection(final IHBaseThriftTSocket hbaseThriftTSocket) {
+        this.hbaseThriftTSocket = hbaseThriftTSocket;
     }
 
     public TSocket getSocket() {
@@ -41,45 +44,29 @@ public class HBaseThriftConnection implements Closeable {
     }
 
     public int getConnectionTimeout() {
-        return thriftTSocketFactory.getConnectionTimeout();
-    }
-
-    public void setConnectionTimeout(int connectionTimeout) {
-        thriftTSocketFactory.setConnectionTimeout(connectionTimeout);
+        return hbaseThriftTSocket.getConnectionTimeout();
     }
 
     public int getSocketTimeout() {
-        return thriftTSocketFactory.getSocketTimeout();
-    }
-
-    public void setSocketTimeout(int soTimeout) {
-        thriftTSocketFactory.setSocketTimeout(soTimeout);
+        return hbaseThriftTSocket.getSocketTimeout();
     }
 
     public String getHost() {
-        return thriftTSocketFactory.getHost();
-    }
-
-    public void setHost(final String host) {
-        thriftTSocketFactory.setHost(host);
+        return hbaseThriftTSocket.getHost();
     }
 
     public int getPort() {
-        return thriftTSocketFactory.getPort();
-    }
-
-    public void setPort(final int port) {
-        thriftTSocketFactory.setPort(port);
+        return hbaseThriftTSocket.getPort();
     }
 
 
     public void connect() {
         if (!isConnected()) {
             try {
-                socket = thriftTSocketFactory.createTSocket();
+                socket = hbaseThriftTSocket.createTSocket();
             } catch (HBaseThriftTSocketException e) {
                 broken = true;
-                throw new HBaseThriftTSocketException("Failed connecting to " + thriftTSocketFactory.getDescription());
+                throw new HBaseThriftTSocketException("Failed connecting to " + hbaseThriftTSocket.getDescription());
             }
         }
     }
