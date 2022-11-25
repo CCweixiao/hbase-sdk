@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler.ext;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 
 import java.util.Arrays;
 
@@ -12,17 +12,17 @@ public class HexBytes {
     private final byte[] data;
 
     public HexBytes(byte[] data) {
-        ObjUtil.checkIsNull(data);
-        this.data = data;
+        MyAssert.checkNotNull(data);
+        this.data = data.clone();
     }
 
     public HexBytes(String hexStr) {
-        ObjUtil.checkIsNull(hexStr);
+        MyAssert.checkNotNull(hexStr);
         this.data = EncodingUtil.parseBytesFromHexString(hexStr);
     }
 
     public byte[] getData() {
-        return data;
+        return data.clone();
     }
 
     @Override

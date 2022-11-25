@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.*;
  * @author leojie 2020/11/24 10:55 下午
  */
 public class HBaseSQLErrorStrategy extends DefaultErrorStrategy {
-    public static HBaseSQLErrorStrategy instance = new HBaseSQLErrorStrategy();
+    public static final HBaseSQLErrorStrategy INSTANCE = new HBaseSQLErrorStrategy();
 
     @Override
     public void recover(Parser recognizer, RecognitionException e) {

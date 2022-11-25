@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.starter.boot;
 
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
@@ -54,7 +54,7 @@ public class HBaseAutoConfiguration {
         properties.setProperty(HBASE_CONF_ZK_PORT, this.hBaseProperties.getZkClientPort());
         properties.setProperty(HBASE_ROOTDIR, hBaseProperties.getRootDir());
         properties.setProperty(HBASE_ZNODE_PARENT, hBaseProperties.getNodeParent());
-        Map<String, String> otherProperties = StrUtil.parsePropertyToMapFromStr(hBaseProperties.getClientProperties());
+        Map<String, String> otherProperties = StringUtil.parsePropertyToMapFromStr(hBaseProperties.getClientProperties());
         if (!otherProperties.isEmpty()) {
             otherProperties.forEach(properties::setProperty);
         }

@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.model;
 
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class NamespaceDesc {
         if (this.namespaceProps == null) {
             this.namespaceProps = new HashMap<>();
         }
-        if (StrUtil.isBlank(key)) {
+        if (StringUtil.isBlank(key)) {
             return this;
         }
         if(value == null){

@@ -6,7 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.model.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
@@ -63,7 +63,7 @@ public abstract class AbstractHBaseAdminTemplate extends AbstractHBaseOperations
     public List<String> listTableNames(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
             TableName[] tableNames;
-            if (StrUtil.isBlank(regex)) {
+            if (StringUtil.isBlank(regex)) {
                 tableNames = admin.listTableNames((Pattern) null, includeSysTables);
             } else {
                 tableNames = admin.listTableNames(Pattern.compile(regex), includeSysTables);

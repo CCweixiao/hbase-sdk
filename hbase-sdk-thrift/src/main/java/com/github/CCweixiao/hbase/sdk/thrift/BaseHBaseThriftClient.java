@@ -4,14 +4,14 @@ import com.github.CCweixiao.hbase.sdk.common.callback.TableCallback;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.thrift.generated.*;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -113,8 +113,8 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     }
 
     protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be null.");
-        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The value of row key must not be null.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be null.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The value of row key must not be null.");
         ByteBuffer rowByteBuffer = ByteBufferUtil.toByterBufferFromStr(rowKey);
         List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
         List<TRowResult> results;
@@ -133,8 +133,8 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     }
 
     protected List<TRowResult> getToRowsResultList(Hbase.Client thriftClient, String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be null.");
-        Assert.checkArgument((rowKeyList != null && !rowKeyList.isEmpty()), "The row key(s) must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be null.");
+        MyAssert.checkArgument((rowKeyList != null && !rowKeyList.isEmpty()), "The row key(s) must not be empty.");
         if (rowKeyList.size() == 1) {
             return getToRowResultList(thriftClient, tableName, rowKeyList.get(0), familyName, qualifiers);
         }
@@ -218,17 +218,17 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
 
     protected TScan buildScan(ScanQueryParamsBuilder scanQueryParams) {
         TScan scan = new TScan();
-        if (StrUtil.isNotBlank(scanQueryParams.getStartRow())) {
+        if (StringUtil.isNotBlank(scanQueryParams.getStartRow())) {
             scan.setStartRow(ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getStartRow()));
         }
-        if (StrUtil.isNotBlank(scanQueryParams.getStopRow())) {
+        if (StringUtil.isNotBlank(scanQueryParams.getStopRow())) {
             scan.setStopRow(ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getStopRow()));
         }
 
-        if (StrUtil.isNotBlank(scanQueryParams.getFamilyName())) {
+        if (StringUtil.isNotBlank(scanQueryParams.getFamilyName())) {
             if (scanQueryParams.getColumnNames() != null && !scanQueryParams.getColumnNames().isEmpty()) {
                 final List<ByteBuffer> columns = scanQueryParams.getColumnNames().stream()
-                        .filter(StrUtil::isNotBlank)
+                        .filter(StringUtil::isNotBlank)
                         .map(qualifier -> ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getFamilyName() + ":" + qualifier))
                         .collect(Collectors.toList());
                 scan.setColumns(columns);
@@ -273,15 +273,15 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     private <T> Object createRowKeyVal(HBaseTableMeta tableMeta, T t) {
         List<FieldStruct> fieldStructList = tableMeta.getFieldStructList();
         FieldStruct rowFieldStruct = fieldStructList.get(0);
-        Assert.checkArgument(rowFieldStruct.isRowKey(), "The first field is not row key, please check hbase table mata data.");
+        MyAssert.checkArgument(rowFieldStruct.isRowKey(), "The first field is not row key, please check hbase table mata data.");
         Object rowKeyVal = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
-        Assert.checkArgument(rowKeyVal != null, "The value of row key must not be null.");
+        MyAssert.checkArgument(rowKeyVal != null, "The value of row key must not be null.");
         return rowKeyVal;
     }
 
     private List<ByteBuffer> createFamilyQualifiesBuffer(String familyName, List<String> qualifiers) {
         List<ByteBuffer> familyQualifiers = null;
-        if (StrUtil.isNotBlank(familyName)) {
+        if (StringUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 familyQualifiers = qualifiers.stream().map(q -> ByteBufferUtil.toByterBufferFromStr(
                                 familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + q))

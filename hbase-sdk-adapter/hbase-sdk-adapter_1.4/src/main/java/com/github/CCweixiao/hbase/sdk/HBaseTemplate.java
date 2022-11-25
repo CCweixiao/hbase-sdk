@@ -3,7 +3,7 @@ package com.github.CCweixiao.hbase.sdk;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
@@ -37,17 +37,17 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
         }
         if (familyAndColumnNames(scanQueryParams.getFamilyName(), scanQueryParams.getColumnNames())) {
             scanQueryParams.getColumnNames().forEach(colName -> {
-                if (StrUtil.isNotBlank(colName)) {
+                if (StringUtil.isNotBlank(colName)) {
                     scan.addColumn(Bytes.toBytes(scanQueryParams.getFamilyName()), Bytes.toBytes(colName));
                 }
             });
         }
 
-        if (StrUtil.isNotBlank(scanQueryParams.getStartRow())) {
+        if (StringUtil.isNotBlank(scanQueryParams.getStartRow())) {
             scan.withStartRow(Bytes.toBytes(scanQueryParams.getStartRow()), scanQueryParams.isInclusiveStartRow());
         }
 
-        if (StrUtil.isNotBlank(scanQueryParams.getStopRow())) {
+        if (StringUtil.isNotBlank(scanQueryParams.getStopRow())) {
             scan.withStopRow(Bytes.toBytes(scanQueryParams.getStopRow()), scanQueryParams.isInclusiveStopRow());
         }
 

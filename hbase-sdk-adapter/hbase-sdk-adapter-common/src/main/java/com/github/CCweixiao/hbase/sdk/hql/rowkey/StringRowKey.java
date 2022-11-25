@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.hql.rowkey;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -13,7 +13,7 @@ public class StringRowKey implements RowKey {
     private final String key;
 
     public StringRowKey(String key) {
-        Assert.notNull(key);
+        MyAssert.notNull(key);
         this.key = key;
     }
 

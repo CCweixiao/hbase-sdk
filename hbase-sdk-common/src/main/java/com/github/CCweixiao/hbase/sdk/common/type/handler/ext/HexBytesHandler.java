@@ -2,9 +2,9 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler.ext;
 
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 /**
  * @author leojie 2020/11/28 7:58 下午
@@ -40,11 +40,11 @@ public class HexBytesHandler extends AbstractTypeHandler {
 
 
     public byte[] decode(CharSequence encoded) {
-        if (StrUtil.isEmpty(encoded)) {
+        if (StringUtil.isEmpty(encoded)) {
             return null;
         }
 
-        encoded = StrUtil.cleanBlank(encoded);
+        encoded = StringUtil.cleanBlank(encoded);
         int len = encoded.length();
 
         if ((len & 0x01) != 0) {
@@ -77,7 +77,7 @@ public class HexBytesHandler extends AbstractTypeHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not HexBytes.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not HexBytes.");
         return val.toString();
     }
 }

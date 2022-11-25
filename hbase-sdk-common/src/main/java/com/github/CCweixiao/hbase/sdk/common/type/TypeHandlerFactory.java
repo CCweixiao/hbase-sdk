@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.*;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytes;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytesHandler;
@@ -52,7 +52,7 @@ public final class TypeHandlerFactory {
     }
 
     public static AbstractTypeHandler findTypeHandler(Class<?> type) {
-        Assert.notNull(type);
+        MyAssert.notNull(type);
         if (type.isEnum()) {
             return ENUM_HANDLER;
         }

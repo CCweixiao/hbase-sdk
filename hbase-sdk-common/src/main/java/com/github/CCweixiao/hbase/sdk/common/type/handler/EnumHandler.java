@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
 import java.nio.charset.Charset;
@@ -29,7 +29,7 @@ public class EnumHandler extends AbstractTypeHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Enum.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Enum.");
         return val.toString();
     }
 }

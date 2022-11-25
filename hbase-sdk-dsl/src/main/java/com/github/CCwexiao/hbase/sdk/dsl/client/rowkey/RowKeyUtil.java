@@ -10,10 +10,10 @@ public class RowKeyUtil {
      * Used by scanners, etc when they want to start at the beginning of a
      * region
      */
-    public static RowKey START_ROW = new BytesRowKey(new byte[0]);
+    public final static RowKey START_ROW = new BytesRowKey(new byte[0]);
     /**
      * Last row in a table.
      */
-    public static RowKey END_ROW   = new BytesRowKey(new byte[0]);
+    public final static RowKey END_ROW   = new BytesRowKey(new byte[0]);
 
 }

@@ -6,13 +6,16 @@ package com.github.CCweixiao.hbase.sdk.hql.rowkeytextfunc;
  * @author leojie 2020/12/6 1:32 下午
  */
 public enum RowKeyFunctionNameEnum {
+    /**
+     * RowKeyFunction
+     */
     INT_KEY("intkey"),
     STRING_KEY("stringkey"),
     LONG_KEY("longkey"),
     HEX_KEY("hexkey")
     ;
 
-    private String functionName;
+    private final String functionName;
 
     RowKeyFunctionNameEnum(String functionName){
         this.functionName = functionName;
@@ -20,9 +23,5 @@ public enum RowKeyFunctionNameEnum {
 
     public String getFunctionName() {
         return functionName;
-    }
-
-    public void setFunctionName(String functionName) {
-        this.functionName = functionName;
     }
 }

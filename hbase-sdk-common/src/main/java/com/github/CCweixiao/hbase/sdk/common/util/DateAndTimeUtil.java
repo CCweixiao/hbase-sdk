@@ -1,19 +1,15 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 /**
  * @author leojie 2021/6/13 8:52 下午
  */
-public final class DateUtil extends cn.hutool.core.date.DateUtil {
+public final class DateAndTimeUtil extends DateUtil {
     public static final String MS_FORMAT = "yyyy-MM-dd_HH:mm:ss:SSS";
     public static final String SECOND_FORMAT = "yyyy-MM-dd_HH:mm:ss";
     public static final String MINUTE_FORMAT = "yyyy-MM-dd_HH:mm";

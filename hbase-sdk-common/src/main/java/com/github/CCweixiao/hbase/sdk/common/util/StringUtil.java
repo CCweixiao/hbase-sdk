@@ -1,5 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
+import cn.hutool.core.util.StrUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -8,7 +10,7 @@ import java.util.Map;
  *
  * @author leo.jie (weixiao.me@aliyun.com)
  */
-public class StrUtil extends cn.hutool.core.util.StrUtil {
+public class StringUtil extends StrUtil {
     /**
      * 驼峰命名法转换为下划线
      *
@@ -16,7 +18,7 @@ public class StrUtil extends cn.hutool.core.util.StrUtil {
      * @return 下划线字段名
      */
     public static String underscoreName(String camelCaseName) {
-        StringBuilder builder = StrUtil.builder();
+        StringBuilder builder = StringUtil.builder();
         if (isNotBlank(camelCaseName)) {
             builder.append(camelCaseName.substring(0, 1).toLowerCase());
             for (int i = 1; i < camelCaseName.length(); i++) {
@@ -39,7 +41,7 @@ public class StrUtil extends cn.hutool.core.util.StrUtil {
      * @return 驼峰命名法
      */
     public static String camelCaseName(String underscoreName) {
-        StringBuilder builder = StrUtil.builder();
+        StringBuilder builder = StringUtil.builder();
         if (isNotBlank(underscoreName)) {
             boolean flag = false;
             for (int i = 0; i < underscoreName.length(); i++) {

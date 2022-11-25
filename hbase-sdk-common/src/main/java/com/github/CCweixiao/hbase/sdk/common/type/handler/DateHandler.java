@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 
 import java.util.Date;
 
@@ -27,7 +27,7 @@ public class DateHandler extends LongHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Date.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Date.");
         Date d = (Date) val;
         return super.convertToString(d.getTime());
     }

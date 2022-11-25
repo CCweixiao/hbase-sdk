@@ -44,6 +44,7 @@
 
     <modules>
         <!-- 项目模块名称 -->
+        <module>hbase-sdk-build-tools</module>
         <module>hbase-sdk-common</module>
         <module>hbase-sdk-dsl</module>
         <module>hbase-sdk-adapter</module>
@@ -72,6 +73,8 @@
         <fastjson2.version>2.0.19</fastjson2.version>
         <reflectasm.version>1.11.9</reflectasm.version>
         <hutool.version>5.7.2</hutool.version>
+        <findbugs.maven.version>3.0.5</findbugs.maven.version>
+        <spotbugs.version>3.1.11</spotbugs.version>
         <hbase.sdk.adapter.default.version>1.2</hbase.sdk.adapter.default.version>
         <hbase.sdk.adapter.version>${hbase.sdk.adapter.default.version}</hbase.sdk.adapter.version>
     </properties>
@@ -282,6 +285,36 @@
                         </execution>
                     </executions>
                 </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>findbugs-maven-plugin</artifactId>
+                    <version>${findbugs.maven.version}</version>
+                    <!--NOTE: Findbugs 3.0.0 requires jdk7-->
+                    <configuration>
+                        <effort>Low</effort>
+                        <threshold>Medium</threshold>
+                        <excludeFilterFile>hbase-sdk-build-tools/src/main/resources/findbugs/findbugs-exclude.xml</excludeFilterFile>
+                        <findbugsXmlOutput>true</findbugsXmlOutput>
+                        <xmlOutput>true</xmlOutput>
+                        <findbugsXmlOutputDirectory>target/findbugs</findbugsXmlOutputDirectory>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>run-findbugs</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.github.CCweixiao</groupId>
+                            <artifactId>hbase-sdk-build-tools</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -318,6 +351,10 @@
                     <reportOutputDirectory>${project.basedir}/doc</reportOutputDirectory>
                     <destDir>hbase-sdk</destDir>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.util;
 
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.util.Bytes;
 import com.google.common.base.Preconditions;
@@ -299,7 +299,7 @@ public class RegionSplitter {
          */
         public byte[] convertToByte(BigInteger bigInteger, int pad) {
             String bigIntegerString = bigInteger.toString(radix);
-            bigIntegerString = StrUtil.leftPad(bigIntegerString, pad, '0');
+            bigIntegerString = StringUtil.leftPad(bigIntegerString, pad, '0');
             return Bytes.toBytes(bigIntegerString);
         }
 

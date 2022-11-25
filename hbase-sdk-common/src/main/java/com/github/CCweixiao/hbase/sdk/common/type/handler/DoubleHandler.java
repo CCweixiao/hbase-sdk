@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 
 /**
  * @author leojie 2020/11/28 7:53 下午
@@ -31,7 +31,7 @@ public class DoubleHandler extends LongHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Double or double.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Double or double.");
         return val.toString();
     }
 }

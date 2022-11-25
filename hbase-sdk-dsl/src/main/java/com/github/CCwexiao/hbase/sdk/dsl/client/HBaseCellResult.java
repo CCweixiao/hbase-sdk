@@ -11,7 +11,7 @@ public class HBaseCellResult {
     private String qualifierStr;
     private String columnName;
     private Object value;
-    private Date tsDate;
+    private long timestamp;
 
     public Object getRowKey() {
         return rowKey;
@@ -33,8 +33,8 @@ public class HBaseCellResult {
         this.value = value;
     }
 
-    public void setTsDate(Date tsDate) {
-        this.tsDate = tsDate;
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getFamilyStr() {
@@ -58,11 +58,11 @@ public class HBaseCellResult {
         return value;
     }
 
-    public Date getTsDate() {
-        return tsDate;
+    public long getTimestamp() {
+        return timestamp;
     }
 
- /*   @Override
+    /*   @Override
     public boolean equals(Object obj) {
         return EqualsBuilder.reflectionEquals(this, obj);
     }

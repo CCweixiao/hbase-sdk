@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.hbtop.mode;
 
-import com.github.CCweixiao.hbase.sdk.common.util.DateUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.DateAndTimeUtil;
 import com.github.CCweixiao.hbase.sdk.hbtop.Record;
 import com.github.CCweixiao.hbase.sdk.hbtop.field.Field;
 import com.github.CCweixiao.hbase.sdk.hbtop.field.FieldInfo;
@@ -149,7 +149,7 @@ public final class RegionModeStrategy implements ModeStrategy {
     long lastMajorCompactionTimestamp = regionLoad.getLastMajorCompactionTs();
 
     builder.put(Field.LAST_MAJOR_COMPACTION_TIME,
-      lastMajorCompactionTimestamp == 0 ? "" : DateUtil.parseTimestampToTimeStr(lastMajorCompactionTimestamp));
+      lastMajorCompactionTimestamp == 0 ? "" : DateAndTimeUtil.parseTimestampToTimeStr(lastMajorCompactionTimestamp));
 
     return builder.build();
   }

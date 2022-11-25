@@ -2,7 +2,7 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
@@ -10,7 +10,7 @@ import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.thrift.generated.*;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -53,8 +53,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public void save(String tableName, String rowKey, Map<String, Object> data) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
-        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The row key must not be empty.");
         if (data == null || data.isEmpty()) {
             return;
         }
@@ -67,13 +67,13 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
         if (data == null || data.isEmpty()) {
             return 0;
         }
         List<BatchMutation> batchMutations = new ArrayList<>(data.size());
         data.forEach((rowKey, colAndValMap) -> {
-            Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
+            MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The row key must not be empty.");
             if (null != colAndValMap && !colAndValMap.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(colAndValMap.size());
                 colAndValMap.forEach((col, value) -> mutations.add(new Mutation(false,
@@ -291,9 +291,9 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
-        Assert.checkArgument(StrUtil.isNotBlank(rowKey), "The row key must not be empty.");
-        if (StrUtil.isNotBlank(familyName)) {
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The row key must not be empty.");
+        if (StringUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(qualifiers.size());
                 for (String qualifier : qualifiers) {
@@ -350,12 +350,12 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
-        Assert.checkArgument(rowKeys != null && !rowKeys.isEmpty(), "The row key list must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
+        MyAssert.checkArgument(rowKeys != null && !rowKeys.isEmpty(), "The row key list must not be empty.");
 
         List<BatchMutation> rowBatches = new ArrayList<>(rowKeys.size());
 
-        if (StrUtil.isNotBlank(familyName)) {
+        if (StringUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 rowKeys.forEach(rowKey -> {
                     List<Mutation> mutations = new ArrayList<>(rowKeys.size());
@@ -402,7 +402,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
 
     private int scannerOpen(String tableName, ScanQueryParamsBuilder scanQueryParams, Map<String, String> attributes) {
-        Assert.checkArgument(StrUtil.isNotBlank(tableName), "The table name must not be empty.");
+        MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
         TScan scan = buildScan(scanQueryParams);
         ByteBuffer tableNameByte = ByteBufferUtil.toByteBuffer(tableName);
         try {

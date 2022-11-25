@@ -9,7 +9,7 @@ public enum AuthType {
      */
     SIMPLE("simple"),
     KERBEROS("kerberos");
-    private String authType;
+    private final String authType;
 
     AuthType(String authType) {
         this.authType = authType;
@@ -17,9 +17,5 @@ public enum AuthType {
 
     public String getAuthType() {
         return authType;
-    }
-
-    public void setAuthType(String authType) {
-        this.authType = authType;
     }
 }

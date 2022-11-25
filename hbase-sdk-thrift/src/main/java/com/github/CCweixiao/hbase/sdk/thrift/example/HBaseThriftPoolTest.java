@@ -10,7 +10,7 @@ import java.util.Random;
  */
 public class HBaseThriftPoolTest {
     public static void main(String[] args) {
-        HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
+        // HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
         Random random = new Random();
 
         while (true) {
@@ -20,7 +20,7 @@ public class HBaseThriftPoolTest {
                 int r = random.nextInt(10) + 1;
                 //int r = 4;
                 System.out.println("即将等待：" + r + "分钟");
-                Thread.sleep(r * 60 * 1000);
+                Thread.sleep(r * 60 * 1000L);
                 //System.out.println("getNumIdle=" + hBaseThriftPool.getNumIdle());
                 //System.out.println("getNumActive=" + hBaseThriftPool.getNumActive());
                 System.out.println("等待时间：" + r + "分钟");

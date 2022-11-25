@@ -1,11 +1,12 @@
 package com.github.CCweixiao.hbase.sdk.common.lang;
 
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.StrUtil;
 
 /**
  * @author leojie 2022/11/20 09:19
  */
-public class Assert extends cn.hutool.core.lang.Assert {
+public class MyAssert extends Assert {
     public static void checkArgument(boolean expression) {
         if (!expression) {
             throw new IllegalArgumentException();

@@ -28,7 +28,7 @@ public class TreeUtil {
             HBaseSQLStatementsLexer lexer = new HBaseSQLStatementsLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             HBaseSQLParser parser = new HBaseSQLParser(tokens);
-            parser.setErrorHandler(HBaseSQLErrorStrategy.instance);
+            parser.setErrorHandler(HBaseSQLErrorStrategy.INSTANCE);
             return parser.prog();
         } catch (Exception e) {
             throw new HBaseOperationsException("parse hql error.", e);

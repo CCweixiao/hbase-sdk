@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.constants;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 /**
  * @author leojie 2020/9/25 10:37 下午
@@ -26,7 +26,7 @@ public class HMHBaseConstants {
 
 
     public static String getFullTableName(String tableName) {
-        if (StrUtil.isBlank(tableName)) {
+        if (StringUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("The table name is not empty.");
         }
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
@@ -53,13 +53,13 @@ public class HMHBaseConstants {
     }
 
     public static String getFullTableName(String namespaceName, String tableName) {
-        if (StrUtil.isBlank(tableName)) {
+        if (StringUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("The table name is not empty.");
         }
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;
         } else {
-            if (StrUtil.isBlank(namespaceName)) {
+            if (StringUtil.isBlank(namespaceName)) {
                 return DEFAULT_NAMESPACE_NAME + TABLE_NAME_SPLIT_CHAR + tableName;
             }
             return namespaceName + TABLE_NAME_SPLIT_CHAR + tableName;

@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
 /**
@@ -41,7 +41,7 @@ public class IntegerHandler extends AbstractTypeHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Integer or int.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Integer or int.");
         return val.toString();
     }
 }

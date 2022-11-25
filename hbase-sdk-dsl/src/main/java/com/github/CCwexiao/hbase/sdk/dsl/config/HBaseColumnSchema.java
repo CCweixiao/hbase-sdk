@@ -1,13 +1,13 @@
 package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.ClassUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 /**
  * @author leojie 2020/11/27 10:45 下午
@@ -50,17 +50,17 @@ public class HBaseColumnSchema {
         ObjUtil.checkEmptyCTypeName(typeName);
 
         type = ClassUtil.forName(typeName);
-        Assert.notNull(type);
+        MyAssert.notNull(type);
 
-        if (StrUtil.isBlank(typeHandlerName)) {
+        if (StringUtil.isBlank(typeHandlerName)) {
             typeHandler = TypeHandlerFactory.findTypeHandler(type);
             typeHandlerName = typeHandler.getClass().getName();
         } else {
             typeHandler = TypeHandlerFactory.findTypeHandler(typeHandlerName);
         }
 
-        Assert.notNull(typeHandlerName);
-        Assert.notNull(typeHandler);
+        MyAssert.notNull(typeHandlerName);
+        MyAssert.notNull(typeHandler);
 
     }
 

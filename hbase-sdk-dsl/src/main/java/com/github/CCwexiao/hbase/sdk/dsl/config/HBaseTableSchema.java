@@ -2,7 +2,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.config;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.*;
 
@@ -34,7 +34,7 @@ public class HBaseTableSchema {
         }
 
         for (HBaseColumnSchema columnSchema : hBaseColumnSchemas) {
-            if (StrUtil.isBlank(columnSchema.getFamily())) {
+            if (StringUtil.isBlank(columnSchema.getFamily())) {
                 columnSchema.setFamily(defaultFamily);
             }
 

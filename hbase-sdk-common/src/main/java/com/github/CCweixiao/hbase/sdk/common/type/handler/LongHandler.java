@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
 /**
@@ -43,7 +43,7 @@ public class LongHandler extends AbstractTypeHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Long or long.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Long or long.");
         return val.toString();
     }
 }

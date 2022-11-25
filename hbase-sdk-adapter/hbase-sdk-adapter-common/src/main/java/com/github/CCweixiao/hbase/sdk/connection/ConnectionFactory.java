@@ -3,7 +3,7 @@ package com.github.CCweixiao.hbase.sdk.connection;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkConnectionException;
 import com.github.CCweixiao.hbase.sdk.common.security.AuthType;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
@@ -87,11 +87,11 @@ public class ConnectionFactory {
             return;
         }
         String principal = properties.getProperty("kerberos.principal");
-        if (StrUtil.isBlank(principal)) {
+        if (StringUtil.isBlank(principal)) {
             throw new HBaseSdkConnectionException("Kerberos principal is not empty.");
         }
         String keytabFilePath = properties.getProperty("keytab.file");
-        if (StrUtil.isBlank(keytabFilePath)) {
+        if (StringUtil.isBlank(keytabFilePath)) {
             throw new HBaseSdkConnectionException("keytab file path is not empty.");
         }
         try {
@@ -131,7 +131,7 @@ public class ConnectionFactory {
     }
 
     private static AuthType getAuthType(String auth) {
-        if (StrUtil.isBlank(auth)) {
+        if (StringUtil.isBlank(auth)) {
             return AuthType.SIMPLE;
         }
         for (AuthType value : AuthType.values()) {
@@ -144,7 +144,7 @@ public class ConnectionFactory {
 
     private static boolean isKerberosAuthType(Configuration configuration) {
         String authType = configuration.get("hbase.security.authentication", "");
-        if (StrUtil.isBlank(authType)) {
+        if (StringUtil.isBlank(authType)) {
             return false;
         }
         return "kerberos".equalsIgnoreCase(authType);

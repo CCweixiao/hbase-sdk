@@ -4,7 +4,7 @@ import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
@@ -12,7 +12,7 @@ import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -289,10 +289,10 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
 
     @Override
     public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(tableName)) {
+        if (StringUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("the table name is not empty.");
         }
-        if (StrUtil.isBlank(rowKey)) {
+        if (StringUtil.isBlank(rowKey)) {
             throw new HBaseOperationsException("the row key of the table will be deleted is not empty.");
         }
         Delete delete = buildDeleteCondition(rowKey, familyName, qualifiers);
@@ -322,7 +322,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(tableName)) {
+        if (StringUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("the table name is not empty.");
         }
         if (rowKeys == null || rowKeys.isEmpty()) {
@@ -356,7 +356,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @return get
      */
     protected Get buildGetCondition(String rowKey, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(rowKey)) {
+        if (StringUtil.isBlank(rowKey)) {
             return null;
         }
         Get get = new Get(Bytes.toBytes(rowKey));
@@ -365,7 +365,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         }
         if (familyAndColumnNames(familyName, qualifiers)) {
             qualifiers.forEach(qualifier -> {
-                if (StrUtil.isNotBlank(qualifier)) {
+                if (StringUtil.isNotBlank(qualifier)) {
                     get.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
                 }
             });
@@ -411,7 +411,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @return put
      */
     protected Put buildPutCondition(String rowKey, Map<String, Object> data) {
-        if (StrUtil.isBlank(rowKey)) {
+        if (StringUtil.isBlank(rowKey)) {
             throw new HBaseOperationsException("RowKey must not be empty.");
         }
         Put put = new Put(Bytes.toBytes(rowKey));
@@ -434,7 +434,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @return delete
      */
     protected Delete buildDeleteCondition(String rowKey, String familyName, List<String> qualifiers) {
-        if (StrUtil.isBlank(rowKey)) {
+        if (StringUtil.isBlank(rowKey)) {
             throw new HBaseOperationsException("RowKey must not be empty.");
         }
         Delete delete = new Delete(Bytes.toBytes(rowKey));
@@ -443,7 +443,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         }
         if (familyAndColumnNames(familyName, qualifiers)) {
             qualifiers.forEach(qualifier -> {
-                if (StrUtil.isNotBlank(qualifier)) {
+                if (StringUtil.isNotBlank(qualifier)) {
                     delete.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
                 }
             });
@@ -535,7 +535,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
             throw new HBaseMetaDataException("The first field is not row key, please check hbase table mata data.");
         }
         Object value = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
-        Assert.checkArgument(value != null, "The value of row key must not be null.");
+        MyAssert.checkArgument(value != null, "The value of row key must not be null.");
         Put put = new Put(rowFieldStruct.getTypeHandler().toBytes(rowFieldStruct.getType(), value));
 
         fieldStructList.forEach(fieldStruct -> {
@@ -558,7 +558,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @return 最终数据
      */
     protected boolean familyNameOnly(String familyName, List<String> qualifiers) {
-        return StrUtil.isNotBlank(familyName) && (qualifiers == null || qualifiers.isEmpty());
+        return StringUtil.isNotBlank(familyName) && (qualifiers == null || qualifiers.isEmpty());
     }
 
     /**
@@ -569,6 +569,6 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
      * @return 最终数据
      */
     protected boolean familyAndColumnNames(String familyName, List<String> qualifiers) {
-        return StrUtil.isNotBlank(familyName) && (qualifiers != null && !qualifiers.isEmpty());
+        return StringUtil.isNotBlank(familyName) && (qualifiers != null && !qualifiers.isEmpty());
     }
 }

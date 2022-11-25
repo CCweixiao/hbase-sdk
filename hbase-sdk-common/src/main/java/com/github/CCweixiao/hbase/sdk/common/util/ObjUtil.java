@@ -10,7 +10,7 @@ import java.util.List;
 public final class ObjUtil {
 
     public static void checkEmptyString(String str) {
-        if (StrUtil.isBlank(str)) {
+        if (StringUtil.isBlank(str)) {
             throw new HBaseOperationsException("The str is null or empty.");
         }
     }
@@ -54,19 +54,19 @@ public final class ObjUtil {
     }
 
     public static void checkEmptyTableName(String tableName) {
-        if (StrUtil.isBlank(tableName)) {
+        if (StringUtil.isBlank(tableName)) {
             throw new HBaseOperationsException("table name is null or empty.");
         }
     }
 
     public static void checkEmptyFamilyName(String familyName) {
-        if (StrUtil.isBlank(familyName)) {
+        if (StringUtil.isBlank(familyName)) {
             throw new HBaseOperationsException("family name is null or empty.");
         }
     }
 
     public static void checkEmptyTimestamp(String timestamp) {
-        if (StrUtil.isBlank(timestamp)) {
+        if (StringUtil.isBlank(timestamp)) {
             throw new HBaseOperationsException("the value of timestamp is null or empty.");
         }
     }
@@ -78,13 +78,13 @@ public final class ObjUtil {
     }
 
     public static void checkEmptyQualifierName(String qualifierName) {
-        if (StrUtil.isBlank(qualifierName)) {
+        if (StringUtil.isBlank(qualifierName)) {
             throw new HBaseOperationsException("qualifier is null or empty.");
         }
     }
 
     public static void checkEmptyCTypeName(String type) {
-        if (StrUtil.isBlank(type)) {
+        if (StringUtil.isBlank(type)) {
             throw new HBaseOperationsException("the type of qualifier is null or empty.");
         }
     }

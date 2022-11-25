@@ -30,7 +30,7 @@ public class ByteBufferUtil {
     }
 
     public static String bytesIncrement(String str) {
-        if (StrUtil.isBlank(str)) {
+        if (StringUtil.isBlank(str)) {
             return "";
         }
         final char[] chars = str.toCharArray();

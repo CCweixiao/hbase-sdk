@@ -149,15 +149,13 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
                 Object valueObject = typeHandler.toObject(hBaseColumnSchema.getType(), hbaseVal);
 
                 long ts = cell.getTimestamp();
-                Date tsDate = new Date(ts);
-
                 HBaseCellResult cellResult = new HBaseCellResult();
                 RowKey rowKey = rowKeyTextFunc.convert(result.getRow());
                 cellResult.setFamilyStr(familyStr);
                 cellResult.setQualifierStr(qualifierStr);
                 cellResult.setColumnName(familyStr + ":" + qualifierStr);
                 cellResult.setValue(valueObject);
-                cellResult.setTsDate(tsDate);
+                cellResult.setTimestamp(ts);
                 cellResult.setRowKey(rowKeyTextFunc.reverse(rowKey));
 
                 resultList.add(cellResult);

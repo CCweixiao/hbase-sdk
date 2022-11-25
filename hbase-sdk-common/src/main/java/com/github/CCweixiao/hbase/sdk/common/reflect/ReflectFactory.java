@@ -9,7 +9,7 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -117,13 +117,13 @@ public class ReflectFactory {
      */
     private static String getTableName(Class<?> clazz) {
         String className = clazz.getSimpleName();
-        String tableName = StrUtil.underscoreName(className);
+        String tableName = StringUtil.underscoreName(className);
         if (clazz.isAnnotationPresent(HBaseTable.class)) {
             HBaseTable table = clazz.getAnnotation(HBaseTable.class);
-            if (StrUtil.isNotBlank(table.tableName())) {
+            if (StringUtil.isNotBlank(table.tableName())) {
                 tableName = table.tableName();
             }
-            return StrUtil.isBlank(table.namespaceName()) ? "default:" + tableName : table.namespaceName() + ":" + tableName;
+            return StringUtil.isBlank(table.namespaceName()) ? "default:" + tableName : table.namespaceName() + ":" + tableName;
         } else {
             return "default:" + tableName;
         }
@@ -152,17 +152,17 @@ public class ReflectFactory {
      * @return 最终的字段名，例如：info:name, info:is_vip ......
      */
     private static String getHBaseColumnName(Class<?> clazz, Field field) {
-        String fieldName = StrUtil.underscoreName(field.getName());
+        String fieldName = StringUtil.underscoreName(field.getName());
         String columnFamilyName = getTableDefaultFamilyName(clazz);
         if (field.isAnnotationPresent(HBaseColumn.class)) {
             HBaseColumn column = field.getAnnotation(HBaseColumn.class);
-            if (StrUtil.isNotBlank(column.columnName())) {
+            if (StringUtil.isNotBlank(column.columnName())) {
                 fieldName = column.columnName();
             }
             if (column.toUpperCase()) {
                 fieldName = fieldName.toUpperCase();
             }
-            if (StrUtil.isNotBlank(column.familyName())) {
+            if (StringUtil.isNotBlank(column.familyName())) {
                 columnFamilyName = column.familyName();
             }
         }
@@ -172,7 +172,7 @@ public class ReflectFactory {
         if (fieldName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
             throw new HBaseOperationsException("The column qualifier name cannot contain ':'.");
         }
-        if (StrUtil.isNotBlank(columnFamilyName)) {
+        if (StringUtil.isNotBlank(columnFamilyName)) {
             return columnFamilyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + fieldName;
         } else {
             throw new HBaseOperationsException("the family should be assigned in the field of " + field.getName());
@@ -191,7 +191,7 @@ public class ReflectFactory {
      */
     private static String getGetterMethodName(Field field) {
         String fieldName = field.getName();
-        StringBuilder sb = StrUtil.builder();
+        StringBuilder sb = StringUtil.builder();
         if (booleanType(field.getType()) && fieldName.startsWith("is")) {
             //如果字段是boolean类型的
             sb.append("is");
@@ -214,7 +214,7 @@ public class ReflectFactory {
      */
     private static String getSetterMethodName(Field field) {
         String fieldName = field.getName();
-        StringBuilder sb = StrUtil.builder();
+        StringBuilder sb = StringUtil.builder();
         if (booleanType(field.getType()) && fieldName.startsWith("is")) {
             //如果字段是boolean类型的
             sb.append("set");

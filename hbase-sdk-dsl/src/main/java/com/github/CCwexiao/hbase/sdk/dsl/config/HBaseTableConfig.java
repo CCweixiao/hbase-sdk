@@ -37,10 +37,6 @@ public abstract class HBaseTableConfig {
         return hBaseTableSchema;
     }
 
-    public List<HBaseColumnSchema> gethBaseColumnSchemaList() {
-        return hBaseColumnSchemaList;
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

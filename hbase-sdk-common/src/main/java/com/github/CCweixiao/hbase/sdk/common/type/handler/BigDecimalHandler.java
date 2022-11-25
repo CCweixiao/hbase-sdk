@@ -1,10 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.Assert;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -21,16 +22,16 @@ public class BigDecimalHandler extends AbstractTypeHandler {
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
         BigDecimal bd = (BigDecimal) value;
-        return bd.toString().getBytes();
+        return bd.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        return toBigDecimal(new String(bytes));
+        return toBigDecimal(new String(bytes, StandardCharsets.UTF_8));
     }
 
     protected BigDecimal toBigDecimal(String numberStr) {
-        if (StrUtil.isBlank(numberStr)) {
+        if (StringUtil.isBlank(numberStr)) {
             return BigDecimal.ZERO;
         }
 
@@ -47,7 +48,7 @@ public class BigDecimalHandler extends AbstractTypeHandler {
     }
 
     protected Number parseNumber(String numberStr) throws NumberFormatException {
-        if (StrUtil.startWithIgnoreCase(numberStr, "0x")) {
+        if (StringUtil.startWithIgnoreCase(numberStr, "0x")) {
             // 0x04表示16进制数
             return Long.parseLong(numberStr.substring(2), 16);
         }
@@ -69,7 +70,7 @@ public class BigDecimalHandler extends AbstractTypeHandler {
 
     @Override
     public String convertToString(Object val) {
-        Assert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not BigDecimal.");
+        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not BigDecimal.");
         return val.toString();
     }
 }

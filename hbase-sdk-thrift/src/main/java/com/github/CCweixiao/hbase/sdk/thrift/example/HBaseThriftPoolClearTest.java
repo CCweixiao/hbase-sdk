@@ -19,7 +19,7 @@ public class HBaseThriftPoolClearTest {
                 try {
                     System.out.println(Thread.currentThread().getName());
                     System.out.println(thriftService.getRowToMap("LEO_USER", "a10001", false));
-                    Thread.sleep( 10 * 1000);
+                    Thread.sleep( 10 * 1000L);
                     // thriftService.clearThriftPool();
                 } catch (InterruptedException e) {
                     e.printStackTrace();

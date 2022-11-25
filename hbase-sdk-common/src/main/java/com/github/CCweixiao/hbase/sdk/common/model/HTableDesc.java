@@ -2,7 +2,7 @@ package com.github.CCweixiao.hbase.sdk.common.model;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.util.StrUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -92,7 +92,7 @@ public class HTableDesc {
             if (this.tableProps == null) {
                 this.tableProps = new HashMap<>();
             }
-            if (StrUtil.isBlank(key)) {
+            if (StringUtil.isBlank(key)) {
                 return this;
             }
             if (value == null) {
@@ -174,10 +174,10 @@ public class HTableDesc {
     }
 
     public String getFullTableName() {
-        if (StrUtil.isBlank(getTableName())) {
+        if (StringUtil.isBlank(getTableName())) {
             throw new HBaseOperationsException("The table name is not empty.");
         }
-        if (StrUtil.isNotBlank(getNamespaceName())) {
+        if (StringUtil.isNotBlank(getNamespaceName())) {
             if (!getTableName().contains(HMHBaseConstants.TABLE_NAME_SPLIT_CHAR)) {
                 return getNamespaceName().concat(HMHBaseConstants.TABLE_NAME_SPLIT_CHAR).concat(getTableName());
             } else {
