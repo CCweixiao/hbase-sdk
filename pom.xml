@@ -74,6 +74,8 @@
         <reflectasm.version>1.11.9</reflectasm.version>
         <hutool.version>5.7.2</hutool.version>
         <findbugs.maven.version>3.0.5</findbugs.maven.version>
+        <maven.checkstyle.version>3.0.0</maven.checkstyle.version>
+        <checkstyle.version>8.11</checkstyle.version>
         <spotbugs.version>3.1.11</spotbugs.version>
         <hbase.sdk.adapter.default.version>1.2</hbase.sdk.adapter.default.version>
         <hbase.sdk.adapter.version>${hbase.sdk.adapter.default.version}</hbase.sdk.adapter.version>
@@ -285,6 +287,7 @@
                         </execution>
                     </executions>
                 </plugin>
+
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>findbugs-maven-plugin</artifactId>
@@ -293,7 +296,7 @@
                     <configuration>
                         <effort>Low</effort>
                         <threshold>Medium</threshold>
-                        <excludeFilterFile>hbase-sdk-build-tools/src/main/resources/findbugs/findbugs-exclude.xml</excludeFilterFile>
+                        <excludeFilterFile>hbase-sdk-build-tools/src/main/resources/hbase-sdk/findbugs-exclude.xml</excludeFilterFile>
                         <findbugsXmlOutput>true</findbugsXmlOutput>
                         <xmlOutput>true</xmlOutput>
                         <findbugsXmlOutputDirectory>target/findbugs</findbugsXmlOutputDirectory>
@@ -314,6 +317,42 @@
                             <version>${project.version}</version>
                         </dependency>
                     </dependencies>
+                </plugin>
+
+                <plugin>
+                    <!-- Approach followed here is roughly the same as mentioned here:
+                    https://maven.apache.org/plugins/maven-checkstyle-plugin/examples/multi-module-config.html
+                    -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${maven.checkstyle.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.github.CCweixiao</groupId>
+                            <artifactId>hbase-sdk-build-tools</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <configLocation>hbase-sdk-build-tools/src/main/resources/hbase-sdk/checkstyle.xml</configLocation>
+                        <suppressionsLocation>hbase-sdk-build-tools/src/main/resources/hbase-sdk/checkstyle-suppressions.xml</suppressionsLocation>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                        <consoleOutput>true</consoleOutput>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>validate</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -355,6 +394,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

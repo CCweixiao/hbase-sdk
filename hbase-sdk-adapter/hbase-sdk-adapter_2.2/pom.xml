@@ -12,10 +12,6 @@
     <artifactId>hbase-sdk-adapter_2.2</artifactId>
     <packaging>jar</packaging>
 
-    <properties>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.github.CCweixiao</groupId>

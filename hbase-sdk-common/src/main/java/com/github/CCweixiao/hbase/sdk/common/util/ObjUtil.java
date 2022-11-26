@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-
 import java.util.List;
 
 /**
@@ -9,6 +8,7 @@ import java.util.List;
  */
 public final class ObjUtil {
 
+    private ObjUtil() {}
     public static void checkEmptyString(String str) {
         if (StringUtil.isBlank(str)) {
             throw new HBaseOperationsException("The str is null or empty.");
