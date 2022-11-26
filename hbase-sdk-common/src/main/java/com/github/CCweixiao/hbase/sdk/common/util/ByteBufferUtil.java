@@ -9,14 +9,6 @@ import java.nio.ByteBuffer;
  */
 public class ByteBufferUtil {
 
-    public static String byteBufferToString(ByteBuffer buffer) {
-        return TypeHandlerFactory.toStrFromBuffer(buffer);
-    }
-
-    public static Object byteBufferToObj( Class<?> clazz, ByteBuffer buffer) {
-        return TypeHandlerFactory.toObject(clazz, buffer);
-    }
-
     public static ByteBuffer toByteBuffer(Object val) {
         return TypeHandlerFactory.toByteBuffer(val);
     }
@@ -25,7 +17,7 @@ public class ByteBufferUtil {
         return TypeHandlerFactory.toStrByteBuffer(val);
     }
 
-    public static ByteBuffer toByterBufferFromStr(String val) {
+    public static ByteBuffer toByteBufferFromStr(String val) {
         return TypeHandlerFactory.toByteBufferFromStr(val);
     }
 

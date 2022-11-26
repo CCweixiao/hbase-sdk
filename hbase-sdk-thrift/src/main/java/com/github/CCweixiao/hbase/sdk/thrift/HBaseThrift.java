@@ -45,7 +45,7 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public <T> T save(T t) throws Exception {
+    public <T> T save(T t) {
         return hBaseThriftClient.save(t);
     }
 
@@ -55,7 +55,7 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) throws Exception {
+    public <T> int saveBatch(List<T> list) {
         return hBaseThriftClient.saveBatch(list);
     }
 

@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
  */
 public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseThriftOperations {
     private static final Logger LOG = LoggerFactory.getLogger(HBaseThriftClient.class);
+
     public HBaseThriftClient() {
         this(HBaseThriftProtocol.DEFAULT_HOST);
     }
@@ -60,7 +61,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
         }
         List<Mutation> mutations = new ArrayList<>(data.size());
         data.forEach((key, value) -> mutations.add(
-                new Mutation(false, ByteBufferUtil.toByterBufferFromStr(key),
+                new Mutation(false, ByteBufferUtil.toByteBufferFromStr(key),
                         ByteBufferUtil.toStrByteBuffer(value), true)));
         this.save(tableName, rowKey, mutations);
     }
@@ -87,12 +88,12 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public <T> T save(T t) throws Exception {
+    public <T> T save(T t) {
         return this.pSave(t);
     }
 
     @Override
-    public <T> int saveBatch(List<T> lst) throws Exception {
+    public <T> int saveBatch(List<T> lst) {
         if (lst == null || lst.isEmpty()) {
             return 0;
         }
@@ -115,8 +116,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
+            if (results == null || results.isEmpty()) {
+                return null;
+            }
             return mapperRowToT(results.get(0), clazz);
         });
     }
@@ -133,7 +137,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
             if (results == null || results.isEmpty()) {
                 return null;
@@ -154,7 +158,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
             return parseResultsToMap(results.get(0));
         }).orElse(new HashMap<>(0));
@@ -173,7 +177,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     @Override
     public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
             return mapperRowToTList(results, clazz);
         }).orElse(new ArrayList<>(0));
@@ -191,7 +195,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
             List<T> data = new ArrayList<>(results.size());
             for (TRowResult result : results) {
@@ -213,7 +217,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return this.execute(tableName, thriftClient -> {
+        return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
             return parseResultsToMap(results);
         }).orElse(new HashMap<>(0));
@@ -221,17 +225,98 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     @Override
     public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
-        return null;
+        String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        int scannerId = scannerOpen(tableName, scanQueryParams, new HashMap<>(0));
+        int limit = scanQueryParams.getLimit();
+
+        AtomicInteger nReturned = new AtomicInteger();
+        int nFetched = 0;
+        int howMany;
+        List<T> results = new ArrayList<>(scanQueryParams.getLimit());
+
+        try {
+            while (true) {
+                if (limit <= 0) {
+                    howMany = scanQueryParams.getBatch();
+                } else {
+                    howMany = Math.min(scanQueryParams.getBatch(), limit - nReturned.get());
+                }
+                final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
+                if (items != null && !items.isEmpty()) {
+                    nFetched += items.size();
+                    for (TRowResult result : items) {
+                        T t = mapperRowToT(result, clazz);
+                        results.add(t);
+                        nReturned.addAndGet(1);
+                    }
+                    if (nReturned.get() == limit) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new HBaseThriftException(e);
+        } finally {
+            try {
+                hbaseClient.scannerClose(scannerId);
+                LOG.debug("Closed scanner (id={}) on '{}' ({} returned, {} fetched)", scannerId, tableName, nReturned, nFetched);
+            } catch (TException e) {
+                LOG.error("close scanner id failed. ", e);
+            }
+        }
+        return results;
     }
 
     @Override
     public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
-        return null;
+        int scannerId = scannerOpen(tableName, scanQueryParams, new HashMap<>(0));
+        int limit = scanQueryParams.getLimit();
+
+        AtomicInteger nReturned = new AtomicInteger();
+        int nFetched = 0;
+        int howMany;
+        List<T> results = new ArrayList<>(scanQueryParams.getLimit());
+
+        try {
+            while (true) {
+                if (limit <= 0) {
+                    howMany = scanQueryParams.getBatch();
+                } else {
+                    howMany = Math.min(scanQueryParams.getBatch(), limit - nReturned.get());
+                }
+                final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
+                if (items != null && !items.isEmpty()) {
+                    nFetched += items.size();
+                    for (TRowResult result : items) {
+                        T t = rowMapper.mapRow(result, nReturned.get());
+                        results.add(t);
+                        nReturned.addAndGet(1);
+                    }
+                    if (nReturned.get() == limit) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new HBaseThriftException(e);
+        } finally {
+            try {
+                hbaseClient.scannerClose(scannerId);
+                LOG.debug("Closed scanner (id={}) on '{}' ({} returned, {} fetched)", scannerId, tableName, nReturned, nFetched);
+            } catch (TException e) {
+                LOG.error("close scanner id failed. ", e);
+            }
+        }
+        return results;
     }
 
     @Override
     public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
-        Map<String, String> attributes = new HashMap<>();
+        Map<String, String> attributes = new HashMap<>(0);
 
         int scannerId = scannerOpen(tableName, scanQueryParams, attributes);
         int limit = scanQueryParams.getLimit();
@@ -254,8 +339,10 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                     items.forEach(scannerResult -> {
                         Map<String, Map<String, String>> data = new HashMap<>();
                         Map<String, String> tmpValue = new HashMap<>();
-                        scannerResult.columns.forEach((colName, value) -> tmpValue.put(ByteBufferUtil.byteBufferToString(colName), ByteBufferUtil.byteBufferToString(value.value)));
-                        data.put(ByteBufferUtil.byteBufferToString(scannerResult.row), tmpValue);
+                        scannerResult.columns.forEach((colName, value) ->
+                                tmpValue.put(TypeHandlerFactory.toString(colName.array()),
+                                        TypeHandlerFactory.toString(value.value.array())));
+                        data.put(TypeHandlerFactory.toString(scannerResult.row.array()), tmpValue);
                         results.add(data);
                         nReturned.addAndGet(1);
                     });
@@ -415,7 +502,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     public List<String> getMetaTableRegions() {
         try {
-            List<TRegionInfo> regions = hbaseClient.getTableRegions(ByteBufferUtil.toByterBufferFromStr(HMHBaseConstants.META_TABLE_NAME));
+            List<TRegionInfo> regions = hbaseClient.getTableRegions(ByteBufferUtil.toByteBufferFromStr(HMHBaseConstants.META_TABLE_NAME));
             return regions.stream().map(r -> TypeHandlerFactory.toStrFromBuffer(r.bufferForName()))
                     .collect(Collectors.toList());
         } catch (TException e) {
