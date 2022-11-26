@@ -167,10 +167,10 @@ public class ReflectFactory {
             }
         }
         if (columnFamilyName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
-            throw new HBaseOperationsException("The column family name cannot contain ':'.");
+            throw new HBaseOperationsException("The family name cannot contain ':'.");
         }
         if (fieldName.contains(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR)) {
-            throw new HBaseOperationsException("The column qualifier name cannot contain ':'.");
+            throw new HBaseOperationsException("The qualifier name cannot contain ':'.");
         }
         if (StringUtil.isNotBlank(columnFamilyName)) {
             return columnFamilyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + fieldName;

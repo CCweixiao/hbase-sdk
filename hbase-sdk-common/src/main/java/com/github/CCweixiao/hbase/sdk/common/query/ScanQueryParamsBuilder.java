@@ -204,10 +204,16 @@ public class ScanQueryParamsBuilder {
     }
 
     public int getCaching() {
+        if (caching <= 0) {
+            return 1000;
+        }
         return caching;
     }
 
     public int getBatch() {
+        if (batch <= 0) {
+            return 100;
+        }
         return batch;
     }
 
@@ -216,6 +222,9 @@ public class ScanQueryParamsBuilder {
     }
 
     public int getLimit() {
+        if (limit <= 0) {
+            return 1000;
+        }
         return limit;
     }
 

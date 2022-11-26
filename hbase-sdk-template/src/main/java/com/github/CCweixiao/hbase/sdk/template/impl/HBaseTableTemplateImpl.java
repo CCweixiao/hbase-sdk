@@ -35,12 +35,12 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     }
 
     @Override
-    public <T> T save(T t) throws Exception {
+    public <T> T save(T t) {
         return tableOperations.save(t);
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) throws Exception {
+    public <T> int saveBatch(List<T> list) {
         return tableOperations.saveBatch(list);
     }
 

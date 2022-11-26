@@ -69,6 +69,10 @@ public final class TypeHandlerFactory {
         return typeHandler.toObject(type, bytes);
     }
 
+    public static String toString(byte[] bytes) {
+        return toObject(String.class, bytes).toString();
+    }
+
     public static byte[] toBytes(Object val) {
         AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
         return typeHandler.convertToBytes(val);

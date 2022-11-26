@@ -50,14 +50,14 @@ public class HBaseThriftService implements IHBaseThriftOperations {
         }
     }
     @Override
-    public <T> T save(T t) throws Exception {
+    public <T> T save(T t) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.save(t);
         }
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) throws Exception {
+    public <T> int saveBatch(List<T> list) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.saveBatch(list);
         }

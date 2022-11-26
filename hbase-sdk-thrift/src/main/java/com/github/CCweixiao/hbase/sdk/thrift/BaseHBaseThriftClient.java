@@ -13,6 +13,7 @@ import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.thrift.generated.*;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -42,7 +43,7 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
 
     abstract boolean ping();
 
-    protected <T> Optional<T> execute(String tableName, TableCallback<T, Hbase.Client> action) {
+    protected <T> Optional<T> execute(TableCallback<T, Hbase.Client> action) {
         try {
             return Optional.ofNullable(action.doInTable(this.hbaseClient));
         } catch (Throwable throwable) {
@@ -51,8 +52,8 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     }
 
     protected void save(String tableName, Object rowKey, List<Mutation> mutations) {
-        this.execute(tableName, thriftClient -> {
-            thriftClient.mutateRow(ByteBufferUtil.toByterBufferFromStr(tableName),
+        this.execute(thriftClient -> {
+            thriftClient.mutateRow(ByteBufferUtil.toByteBufferFromStr(tableName),
                     ByteBufferUtil.toByteBuffer(rowKey), mutations,
                     getAttributesMap(new HashMap<>(0)));
             return null;
@@ -60,8 +61,8 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     }
 
     protected int saveBatch(String tableName, List<BatchMutation> batchMutations) {
-        return this.execute(tableName, thriftClient -> {
-            thriftClient.mutateRows(ByteBufferUtil.toByterBufferFromStr(tableName), batchMutations,
+        return this.execute(thriftClient -> {
+            thriftClient.mutateRows(ByteBufferUtil.toByteBufferFromStr(tableName), batchMutations,
                     getAttributesMap(new HashMap<>(0)));
             return batchMutations.size();
         }).orElse(0);
@@ -79,7 +80,7 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         fieldStructList.forEach(fieldStruct -> {
             if (!fieldStruct.isRowKey()) {
                 Object fieldValue = tableMeta.getMethodAccess().invoke(t, fieldStruct.getGetterMethodIndex());
-                mutations.add(new Mutation(false, ByteBufferUtil.toByterBufferFromStr(fieldStruct.getFamilyAndQualifier()),
+                mutations.add(new Mutation(false, ByteBufferUtil.toByteBufferFromStr(fieldStruct.getFamilyAndQualifier()),
                         ByteBufferUtil.toByteBuffer(fieldValue), true));
             }
         });
@@ -104,6 +105,9 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     }
 
     protected <T> T pSave(T t) {
+        if (t == null) {
+            throw new NullPointerException("The data model class object to be saved cannot be null.");
+        }
         Class<?> clazz = t.getClass();
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
         Object rowKeyVal = createRowKeyVal(tableMeta, t);
@@ -115,15 +119,15 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be null.");
         MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The value of row key must not be null.");
-        ByteBuffer rowByteBuffer = ByteBufferUtil.toByterBufferFromStr(rowKey);
+        ByteBuffer rowByteBuffer = ByteBufferUtil.toByteBufferFromStr(rowKey);
         List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
         List<TRowResult> results;
         try {
             if (familyQualifiers != null && !familyQualifiers.isEmpty()) {
-                results = thriftClient.getRowWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                results = thriftClient.getRowWithColumns(ByteBufferUtil.toByteBufferFromStr(tableName),
                         rowByteBuffer, familyQualifiers, getAttributesMap(new HashMap<>(0)));
             } else {
-                results = thriftClient.getRow(ByteBufferUtil.toByterBufferFromStr(tableName), rowByteBuffer,
+                results = thriftClient.getRow(ByteBufferUtil.toByteBufferFromStr(tableName), rowByteBuffer,
                         getAttributesMap(new HashMap<>(0)));
             }
         } catch (TException e) {
@@ -138,16 +142,19 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         if (rowKeyList.size() == 1) {
             return getToRowResultList(thriftClient, tableName, rowKeyList.get(0), familyName, qualifiers);
         }
-        List<ByteBuffer> rowByteBuffers = rowKeyList.stream().map(ByteBufferUtil::toByterBufferFromStr).collect(Collectors.toList());
+        List<ByteBuffer> rowByteBuffers = rowKeyList.stream().map(row -> {
+            MyAssert.checkArgument(StringUtil.isNotBlank(row), "The row key must not be empty.");
+            return ByteBufferUtil.toByteBufferFromStr(row);
+        }).collect(Collectors.toList());
         List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
 
         List<TRowResult> results;
         try {
             if (familyQualifiers != null && !familyQualifiers.isEmpty()) {
-                results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByterBufferFromStr(tableName),
+                results = thriftClient.getRowsWithColumns(ByteBufferUtil.toByteBufferFromStr(tableName),
                         rowByteBuffers, familyQualifiers, getAttributesMap(new HashMap<>(0)));
             } else {
-                results = thriftClient.getRows(ByteBufferUtil.toByterBufferFromStr(tableName),
+                results = thriftClient.getRows(ByteBufferUtil.toByteBufferFromStr(tableName),
                         rowByteBuffers, getAttributesMap(new HashMap<>(0)));
             }
         } catch (TException e) {
@@ -156,10 +163,16 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return results;
     }
 
-    protected  <T> T mapperRowToT(TRowResult result, Class<T> clazz) throws Exception {
+    protected <T> T mapperRowToT(TRowResult result, Class<T> clazz) throws Exception {
         //TODO 这里的反射调用构造函数是否可以再优化
         T t = clazz.getDeclaredConstructor().newInstance();
         if (result == null) {
+            return t;
+        }
+        Map<String, TCell> tmpDataMap = new HashMap<>(result.getColumnsSize());
+        result.getColumns().forEach((keyBuffer, cell) ->
+                tmpDataMap.put(Bytes.toString(keyBuffer.array()), cell));
+        if (tmpDataMap.isEmpty()) {
             return t;
         }
         HBaseTableMeta hBaseTableMeta = ReflectFactory.getHBaseTableMeta(clazz);
@@ -167,17 +180,20 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
 
         fieldColStructMap.forEach(fieldStruct -> {
             if (fieldStruct.isRowKey()) {
-                Object rowVal = TypeHandlerFactory.toObject(String.class, result.getRow());
+                Object rowVal = TypeHandlerFactory.toObject(fieldStruct.getType(), result.getRow());
                 hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), rowVal);
             } else {
-                Object fieldValue = result.getFieldValue(TRowResult._Fields.findByName(fieldStruct.getFamilyAndQualifier()));
-                hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), fieldValue);
+                TCell tCell = tmpDataMap.get(fieldStruct.getFamilyAndQualifier());
+                if (tCell != null) {
+                    Object fieldValue = TypeHandlerFactory.toObject(fieldStruct.getType(), tCell.getValue());
+                    hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), fieldValue);
+                }
             }
         });
         return t;
     }
 
-    protected  <T> List<T> mapperRowToTList(List<TRowResult> results, Class<T> clazz) {
+    protected <T> List<T> mapperRowToTList(List<TRowResult> results, Class<T> clazz) {
         if (results == null || results.isEmpty()) {
             return new ArrayList<>(0);
         }
@@ -198,8 +214,9 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         }
         Map<String, String> res = new HashMap<>(result.getColumnsSize());
         for (Map.Entry<ByteBuffer, TCell> entry : result.getColumns().entrySet()) {
-            res.put(ByteBufferUtil.byteBufferToString(entry.getKey()),
-                    ByteBufferUtil.byteBufferToString(entry.getValue().value));
+            String colName = TypeHandlerFactory.toString(entry.getKey().array());
+            String value = TypeHandlerFactory.toString(entry.getValue().getValue());
+            res.put(colName, value);
         }
         return res;
     }
@@ -210,7 +227,7 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         }
         Map<String, Map<String, String>> res = new HashMap<>(results.size());
         results.forEach(result -> {
-            String rowVal = TypeHandlerFactory.toObject(String.class, result.getRow()).toString();
+            String rowVal = TypeHandlerFactory.toString(result.getRow());
             res.put(rowVal, parseResultsToMap(result));
         });
         return res;
@@ -219,21 +236,20 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
     protected TScan buildScan(ScanQueryParamsBuilder scanQueryParams) {
         TScan scan = new TScan();
         if (StringUtil.isNotBlank(scanQueryParams.getStartRow())) {
-            scan.setStartRow(ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getStartRow()));
+            scan.setStartRow(ByteBufferUtil.toByteBufferFromStr(scanQueryParams.getStartRow()));
         }
         if (StringUtil.isNotBlank(scanQueryParams.getStopRow())) {
-            scan.setStopRow(ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getStopRow()));
+            scan.setStopRow(ByteBufferUtil.toByteBufferFromStr(scanQueryParams.getStopRow()));
         }
-
         if (StringUtil.isNotBlank(scanQueryParams.getFamilyName())) {
             if (scanQueryParams.getColumnNames() != null && !scanQueryParams.getColumnNames().isEmpty()) {
                 final List<ByteBuffer> columns = scanQueryParams.getColumnNames().stream()
                         .filter(StringUtil::isNotBlank)
-                        .map(qualifier -> ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getFamilyName() + ":" + qualifier))
+                        .map(qualifier -> ByteBufferUtil.toByteBufferFromStr(scanQueryParams.getFamilyName() + ":" + qualifier))
                         .collect(Collectors.toList());
                 scan.setColumns(columns);
             } else {
-                scan.setColumns(Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(scanQueryParams.getFamilyName())));
+                scan.setColumns(Collections.singletonList(ByteBufferUtil.toByteBufferFromStr(scanQueryParams.getFamilyName())));
             }
         }
 
@@ -283,11 +299,11 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         List<ByteBuffer> familyQualifiers = null;
         if (StringUtil.isNotBlank(familyName)) {
             if (qualifiers != null && !qualifiers.isEmpty()) {
-                familyQualifiers = qualifiers.stream().map(q -> ByteBufferUtil.toByterBufferFromStr(
+                familyQualifiers = qualifiers.stream().map(q -> ByteBufferUtil.toByteBufferFromStr(
                                 familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + q))
                         .collect(Collectors.toList());
             } else {
-                familyQualifiers = Collections.singletonList(ByteBufferUtil.toByterBufferFromStr(familyName));
+                familyQualifiers = Collections.singletonList(ByteBufferUtil.toByteBufferFromStr(familyName));
             }
         }
         return familyQualifiers;

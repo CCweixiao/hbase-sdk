@@ -28,9 +28,8 @@ public interface IHBaseTableOperations {
      * @param t   Java数据实体对象.
      * @param <T> 泛型类型.
      * @return 保存成功的数据对象.
-     * @throws Exception 抛出异常
      */
-    <T> T save(T t) throws Exception;
+    <T> T save(T t);
 
     /**
      * 批量保存数据，构造Map类型结构的列表数据参数，例如：
@@ -48,9 +47,8 @@ public interface IHBaseTableOperations {
      * @param list Java数据实体对象列表.
      * @param <T>  泛型数据类型.
      * @return 成功保存数据的条数
-     * @throws Exception 抛出异常
      */
-    <T> int saveBatch(List<T> list) throws Exception;
+    <T> int saveBatch(List<T> list);
 
     /**
      * 根据rowKey查询数据，查询结果映射为一个Java Bean数据实体.

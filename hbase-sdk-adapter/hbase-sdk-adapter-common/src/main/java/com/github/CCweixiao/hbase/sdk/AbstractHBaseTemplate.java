@@ -48,7 +48,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
     }
 
     @Override
-    public <T> T save(T t) throws Exception {
+    public <T> T save(T t){
         final Class<?> clazz = t.getClass();
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
         this.save(tableMeta.getTableName(), new Put(createPut(t)));
@@ -71,7 +71,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) throws Exception {
+    public <T> int saveBatch(List<T> list) {
         if (list == null || list.isEmpty()) {
             return 0;
         }
