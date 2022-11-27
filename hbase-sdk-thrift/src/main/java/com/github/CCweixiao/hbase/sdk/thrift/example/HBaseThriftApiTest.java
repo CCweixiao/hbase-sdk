@@ -15,14 +15,14 @@ import java.util.stream.Collectors;
  */
 public class HBaseThriftApiTest {
     public static void main(String[] args) {
-        test1();
+        test2();
     }
 
     /**
      * 同一连接闲置失效异常
      */
     public static void test1(){
-        TSocket socket = new TSocket("localhost", 9090);
+        TSocket socket = new TSocket("myhbase", 9090);
         List<String> allTableNames;
         Hbase.Client hbaseClient;
 
@@ -54,7 +54,7 @@ public class HBaseThriftApiTest {
     public static void test2(){
         int x = 0;
         while (true){
-            TSocket socket = new TSocket("localhost", 9090);
+            TSocket socket = new TSocket("myhbase", 9090);
 
             TProtocol protocol = new TBinaryProtocol(socket, true, true);
             Hbase.Client hbaseClient = new Hbase.Client(protocol);
@@ -65,6 +65,11 @@ public class HBaseThriftApiTest {
                 System.out.println(allTableNames);
                 System.out.println(x);
             } catch (TException e) {
+                e.printStackTrace();
+            }
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             x+=1;

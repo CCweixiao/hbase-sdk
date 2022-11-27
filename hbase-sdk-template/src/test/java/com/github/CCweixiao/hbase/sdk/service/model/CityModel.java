@@ -18,7 +18,7 @@ public class CityModel {
 
     @HBaseColumn(familyName = "detail")
     private Integer cityArea;
-    @HBaseColumn(familyName = "detail", toUpperCase = true)
+    @HBaseColumn(familyName = "detail", columnName = "TOTAL_POPULATION",  toUpperCase = true)
     private Integer totalPopulation;
     @HBaseColumn(familyName = "detail", columnName = "cityTagList")
     private List<CityTag> cityTagList;

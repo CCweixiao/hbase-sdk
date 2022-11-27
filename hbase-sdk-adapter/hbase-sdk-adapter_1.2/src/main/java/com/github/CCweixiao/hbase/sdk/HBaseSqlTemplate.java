@@ -1,10 +1,10 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.client.HBaseCellResult;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;

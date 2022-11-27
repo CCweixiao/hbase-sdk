@@ -6,6 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 /**
  * 定义HBase的数据操作接口
  *
@@ -15,6 +16,7 @@ public interface IHBaseTableOperations {
 
     /**
      * 保存数据，构造Map类型的数据参数，例如： {"INFO:NAME": "leo", "INFO:AGE": 18}
+     * 非字符串类型的数据，底层会自动转换成字符串类型，其中复杂的数据类型，如：List/Map等，会先被格式化成字符串后再存储
      *
      * @param tableName 表名
      * @param rowKey    rowKey
@@ -34,6 +36,7 @@ public interface IHBaseTableOperations {
     /**
      * 批量保存数据，构造Map类型结构的列表数据参数，例如：
      * {"row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, "row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17}}
+     * 非字符串类型的数据，底层会自动转换成字符串类型，其中复杂的数据类型，如：List/Map等，会先被格式化成字符串后再存储
      *
      * @param tableName 表名
      * @param data      需要保存的数据. 如样例格式数据

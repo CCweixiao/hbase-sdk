@@ -65,13 +65,22 @@ public class HBaseThriftApiTest extends BaseHBaseThriftApiTest {
     }
 
     @Test
-    public void testSaveToMap() {
+    public void testSaveMap() {
         String t1 = "t1";
         String id = "100011";
-        Map<String, Object> data = new HashMap<>(2);
-        data.put("f1:name", "yyf");
+        Map<String, Object> data = createDefaultDataMap();
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
             hBaseThrift.save(t1, id, data);
+        }
+    }
+
+    @Test
+    public void testSaveBatchMap() {
+        String t1 = "t1";
+        Map<String, Map<String, Object>> data = createDefaultListDataMap();
+        try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
+            int rows = hBaseThrift.saveBatch(t1, data);
+            Assert.assertEquals(4, rows);
         }
     }
 
@@ -79,16 +88,16 @@ public class HBaseThriftApiTest extends BaseHBaseThriftApiTest {
     public void testGetRowToMap() {
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
             Map<String, String> data = hBaseThrift.getRowToMap("t1", "100011", false);
-            Assert.assertEquals(data.get("f1:name"), "yyf");
+            Assert.assertEquals("18", data.get("f1:age"));
         }
     }
 
     @Test
-    public void testGetRows() {
+    public void testGetRowsToMap() {
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
             Map<String, Map<String, String>> t1 =
-                    hBaseThrift.getRowsToMap("t1", Arrays.asList("100011"), true);
-            System.out.printf("t1");
+                    hBaseThrift.getRowsToMap("t1", Arrays.asList("a100011", "b120011"), true);
+            Assert.assertEquals(2, t1.size());
         }
     }
 
@@ -101,8 +110,15 @@ public class HBaseThriftApiTest extends BaseHBaseThriftApiTest {
                 .build();
 
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            List<Map<String, Map<String, String>>> data = hBaseThrift.scan("test:t1", params);
-            Assert.assertEquals(5, data.size());
+            List<Map<String, Map<String, String>>> data = hBaseThrift.scan("t1", params);
+            Assert.assertEquals(9, data.size());
+        }
+    }
+
+    @Test
+    public void testDelete() {
+        try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
+            hBaseThrift.delete("t1", "100011", "f1", "pay", "name");
         }
     }
 }

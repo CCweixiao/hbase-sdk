@@ -5,7 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.config.DefaultHBaseSQLRuntimeSetting;
-import com.github.CCwexiao.hbase.sdk.dsl.client.HBaseCellResult;
+import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
@@ -119,15 +119,6 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         }
         return delete;
     }
-
-
-    /**
-     * 输入hsql 查询数据，返回HBaseCellResult结合
-     *
-     * @param hsql hsql
-     * @return 数据集合
-     */
-    public abstract List<List<HBaseCellResult>> select(String hsql);
 
     protected List<HBaseCellResult> convertToHBaseCellResultList(Result result, RowKeyTextFunc rowKeyTextFunc) {
         final Cell[] cells = result.rawCells();

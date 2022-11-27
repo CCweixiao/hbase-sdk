@@ -208,8 +208,12 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return list;
     }
 
-    protected Map<String, String> parseResultsToMap(TRowResult result) {
+    protected Map<String, String> parseResultsToMap(TRowResult result, boolean withTimestamp) {
         if (result == null) {
+            return new HashMap<>(0);
+        }
+        Map<ByteBuffer, TCell> resultColumns = result.getColumns();
+        if (resultColumns == null || resultColumns.isEmpty()) {
             return new HashMap<>(0);
         }
         Map<String, String> res = new HashMap<>(result.getColumnsSize());
@@ -217,18 +221,21 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
             String colName = TypeHandlerFactory.toString(entry.getKey().array());
             String value = TypeHandlerFactory.toString(entry.getValue().getValue());
             res.put(colName, value);
+            if (withTimestamp) {
+                res.put(colName + ":timestamp", String.valueOf(entry.getValue().getTimestamp()));
+            }
         }
         return res;
     }
 
-    protected Map<String, Map<String, String>> parseResultsToMap(List<TRowResult> results) {
+    protected Map<String, Map<String, String>> parseResultsToMap(List<TRowResult> results, boolean withTimestamp) {
         if (results == null || results.isEmpty()) {
             return new HashMap<>(0);
         }
         Map<String, Map<String, String>> res = new HashMap<>(results.size());
         results.forEach(result -> {
             String rowVal = TypeHandlerFactory.toString(result.getRow());
-            res.put(rowVal, parseResultsToMap(result));
+            res.put(rowVal, parseResultsToMap(result, withTimestamp));
         });
         return res;
     }
@@ -307,6 +314,12 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
             }
         }
         return familyQualifiers;
+    }
+
+    protected void checkFamilyAndQualifierName(String colName) {
+        MyAssert.checkArgument(StringUtil.isNotBlank(colName), "The col name is not empty.");
+        MyAssert.checkArgument(colName.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR).length == 2,
+                "The col name must be in the format 'family:qualifier'.");
     }
 
 }

@@ -2,12 +2,18 @@ package com.github.CCweixiao.hbase.sdk.service;
 
 import com.github.CCweixiao.hbase.sdk.common.model.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.HTableDesc;
+import com.github.CCweixiao.hbase.sdk.hql.config.DefaultHBaseTableConfig;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
+import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
+import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
+import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableSchema;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +28,8 @@ public abstract class AbstractHBaseTemplateTest {
     protected IHBaseAdminTemplate adminTemplate;
     protected IHBaseTableTemplate tableTemplate;
 
+    protected IHBaseSqlTemplate sqlTemplate;
+
     protected void initIHBaseAdminTemplate() {
         adminTemplate = new HBaseAdminTemplateImpl.Builder()
                 .properties(getProperties()).build();
@@ -30,6 +38,51 @@ public abstract class AbstractHBaseTemplateTest {
     protected void initIHBaseTableTemplate() {
         tableTemplate = new HBaseTableTemplateImpl.Builder()
                 .properties(getProperties()).build();
+    }
+
+    protected void initIHBaseSqlTemplate() {
+        List<HBaseColumnSchema> hBaseColumnSchemas = createHBaseColumnSchemaList();
+
+        HBaseTableSchema hBaseTableSchema = new HBaseTableSchema();
+        hBaseTableSchema.setTableName("test:test_sql");
+        hBaseTableSchema.setDefaultFamily("f1");
+
+        HBaseTableConfig hBaseTableConfig = new DefaultHBaseTableConfig(hBaseTableSchema, hBaseColumnSchemas);
+
+        sqlTemplate = new HBaseSqlTemplateImpl.Builder()
+                .hbaseTableConfig(hBaseTableConfig)
+                .properties(getProperties()).build();
+    }
+
+    public List<HBaseColumnSchema> createHBaseColumnSchemaList() {
+        List<HBaseColumnSchema> hBaseColumnSchemas = new ArrayList<>();
+
+        HBaseColumnSchema hBaseColumnSchema1 = new HBaseColumnSchema();
+        hBaseColumnSchema1.setFamily("f1");
+        hBaseColumnSchema1.setQualifier("id");
+        hBaseColumnSchema1.setTypeName("string");
+
+        HBaseColumnSchema hBaseColumnSchema2 = new HBaseColumnSchema();
+        hBaseColumnSchema2.setFamily("f1");
+        hBaseColumnSchema2.setQualifier("name");
+        hBaseColumnSchema2.setTypeName("string");
+
+        HBaseColumnSchema hBaseColumnSchema3 = new HBaseColumnSchema();
+        hBaseColumnSchema3.setFamily("f1");
+        hBaseColumnSchema3.setQualifier("age");
+        hBaseColumnSchema3.setTypeName("int");
+
+        HBaseColumnSchema hBaseColumnSchema4 = new HBaseColumnSchema();
+        hBaseColumnSchema4.setFamily("f2");
+        hBaseColumnSchema4.setQualifier("address");
+        hBaseColumnSchema4.setTypeName("string");
+
+        hBaseColumnSchemas.add(hBaseColumnSchema1);
+        hBaseColumnSchemas.add(hBaseColumnSchema2);
+        hBaseColumnSchemas.add(hBaseColumnSchema3);
+        hBaseColumnSchemas.add(hBaseColumnSchema4);
+
+        return hBaseColumnSchemas;
     }
 
     protected Properties getProperties() {

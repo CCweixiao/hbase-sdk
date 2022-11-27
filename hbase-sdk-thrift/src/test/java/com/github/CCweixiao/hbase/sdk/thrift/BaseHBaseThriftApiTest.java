@@ -4,9 +4,7 @@ import com.github.CCweixiao.hbase.sdk.thrift.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.thrift.model.CityTag;
 import org.junit.Before;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseHBaseThriftApiTest {
@@ -15,6 +13,29 @@ public abstract class BaseHBaseThriftApiTest {
     @Before
     public void init() {
         thriftPool = new HBaseThriftPool("myhbase", 9090);
+    }
+
+    protected Map<String, Object> createDefaultDataMap() {
+        Map<String, Object> data = new HashMap<>(1);
+        data.put("f1:id", UUID.randomUUID().toString());
+        data.put("f1:name", "yyf");
+        data.put("f1:age", 18);
+        data.put("f1:pay", 1000000L);
+        Map<String, Object> tagsMap = new HashMap<>();
+        tagsMap.put("address", "上海市");
+        tagsMap.put("cost", 1000);
+        data.put("f1:tags", tagsMap);
+        data.put("f1:login_time", System.currentTimeMillis());
+        return data;
+    }
+
+    protected Map<String, Map<String, Object>> createDefaultListDataMap() {
+        Map<String, Map<String, Object>> data = new HashMap<>(4);
+        data.put("a100011", createDefaultDataMap());
+        data.put("a110011", createDefaultDataMap());
+        data.put("b110011", createDefaultDataMap());
+        data.put("b120011", createDefaultDataMap());
+        return data;
     }
 
     protected CityModel createDefaultCityModel() {

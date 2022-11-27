@@ -1,9 +1,7 @@
-package com.github.CCwexiao.hbase.sdk.dsl.client;
-
-import java.util.Date;
+package com.github.CCweixiao.hbase.sdk.common.model;
 
 /**
- * @author leojie 2020/11/28 8:22 下午
+ * @author leojie 2022/11/27 18:10
  */
 public class HBaseCellResult {
     private Object rowKey;
@@ -61,19 +59,4 @@ public class HBaseCellResult {
     public long getTimestamp() {
         return timestamp;
     }
-
-    /*   @Override
-    public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }*/
 }

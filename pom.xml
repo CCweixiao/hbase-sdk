@@ -69,7 +69,7 @@
         <commons.pool2.version>2.6.2</commons.pool2.version>
         <guava.version>30.0-jre</guava.version>
         <junit.version>4.13.2</junit.version>
-        <antlr4.version>4.11.1</antlr4.version>
+        <antlr4.version>4.5.1</antlr4.version>
         <fastjson2.version>2.0.19</fastjson2.version>
         <reflectasm.version>1.11.9</reflectasm.version>
         <hutool.version>5.7.2</hutool.version>

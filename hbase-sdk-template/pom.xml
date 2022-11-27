@@ -26,6 +26,12 @@
                     <artifactId>hbase-sdk-adapter_1.2</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-shaded-client</artifactId>
+                    <version>${hbase1.2.version}</version>
+                    <scope>provided</scope>
+                </dependency>
             </dependencies>
         </profile>
 
@@ -40,6 +46,12 @@
                     <artifactId>hbase-sdk-adapter_1.4</artifactId>
                     <version>${project.version}</version>
                 </dependency>
+                <dependency>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-shaded-client</artifactId>
+                    <version>${hbase1.4.version}</version>
+                    <scope>provided</scope>
+                </dependency>
             </dependencies>
         </profile>
 
@@ -53,6 +65,12 @@
                     <groupId>com.github.CCweixiao</groupId>
                     <artifactId>hbase-sdk-adapter_2.2</artifactId>
                     <version>${project.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.hbase</groupId>
+                    <artifactId>hbase-shaded-client</artifactId>
+                    <version>${hbase2.2.version}</version>
+                    <scope>provided</scope>
                 </dependency>
             </dependencies>
         </profile>

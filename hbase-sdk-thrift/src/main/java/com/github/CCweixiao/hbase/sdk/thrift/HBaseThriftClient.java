@@ -60,9 +60,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
             return;
         }
         List<Mutation> mutations = new ArrayList<>(data.size());
-        data.forEach((key, value) -> mutations.add(
-                new Mutation(false, ByteBufferUtil.toByteBufferFromStr(key),
-                        ByteBufferUtil.toStrByteBuffer(value), true)));
+        data.forEach((key, value) -> {
+            checkFamilyAndQualifierName(key);
+            mutations.add(new Mutation(false, ByteBufferUtil.toByteBufferFromStr(key),
+                            ByteBufferUtil.toStrByteBuffer(value), true));
+        });
         this.save(tableName, rowKey, mutations);
     }
 
@@ -77,9 +79,12 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
             MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The row key must not be empty.");
             if (null != colAndValMap && !colAndValMap.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(colAndValMap.size());
-                colAndValMap.forEach((col, value) -> mutations.add(new Mutation(false,
-                        ByteBufferUtil.toByteBuffer(col),
-                        ByteBufferUtil.toStrByteBuffer(value), true)));
+                colAndValMap.forEach((col, value) -> {
+                    checkFamilyAndQualifierName(col);
+                    mutations.add(new Mutation(false,
+                            ByteBufferUtil.toByteBuffer(col),
+                            ByteBufferUtil.toStrByteBuffer(value), true));
+                });
 
                 batchMutations.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
             }
@@ -160,7 +165,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
         return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
-            return parseResultsToMap(results.get(0));
+            return parseResultsToMap(results.get(0), withTimestamp);
         }).orElse(new HashMap<>(0));
     }
 
@@ -219,7 +224,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
         return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
-            return parseResultsToMap(results);
+            return parseResultsToMap(results, withTimestamp);
         }).orElse(new HashMap<>(0));
     }
 

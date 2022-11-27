@@ -2,8 +2,10 @@ package com.github.CCweixiao.hbase.sdk.starter.boot;
 
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
+import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,6 +40,13 @@ public class HBaseAutoConfiguration {
     @ConditionalOnMissingBean(IHBaseTableTemplate.class)
     public IHBaseTableTemplate hbaseTableTemplate() {
         return new HBaseTableTemplateImpl.Builder()
+                .properties(createHBaseProperties()).build();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(IHBaseSqlTemplate.class)
+    public IHBaseSqlTemplate hbaseSqlTemplate() {
+        return new HBaseSqlTemplateImpl.Builder()
                 .properties(createHBaseProperties()).build();
     }
 

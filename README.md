@@ -1,12 +1,8 @@
-<p align="center"><h3>hbase-sdk</h3></p>
+## hbase-sdk介绍
 
-<p align="center">基于HBase Client的相关API开发而来的一款轻量级的HBase ORM框架。提供SQL查询功能，以类SQL的方式——HQL读写HBase数据。 😋</p>
+<p align="center">hbase-sdk是基于HBase的Client和Thrift原生API封装的一款轻量级的HBase ORM框架。 针对HBase各版本API（1.x~2.x）之间的差异，在其上剥离出了一层统一的抽象。并提供了以类SQL的方式来读写HBase表中的数据。</p>
 
-<p align="center">针对HBase 1.x和2.xAPI的不同之处，在其上做了一层统一的封装。</p>
-
-<p align="center">hbase-sdk分为spring-boot-starter-hbase和hbase-sdk-core两部分。</p>
-
-<p align="center">SpringBoot项目中引入spring-boot-starter-hbase，在普通的Java项目中则可以使用hbase-sdk-core。</p>
+<p align="center">在普通的java项目和Spring Boot项目中，你可以分别依赖hbase-sdk-template_${hbase.adapter.version}和spring-boot-starter-hbase_${hbase.adapter.version}两个模块来使用hbase-sdk封装的统一API。其中hbase.adapter.version暂只支持：hbase-1.2、hbase-1.4、hbase-2.2</p>
 
 <p align="center">
     🐾 <a href="#快速开始" target="_blank">快速开始</a> | 
@@ -19,31 +15,58 @@
 
 ***
 
-## hbase-sdk
+##  hbase-sdk的优势
 
-`hbase-sdk` 是一款轻量级的ORM框架，封装了对HBase数据表的读写操作和对集群的运维管理，并针对HBase1.x的API和2.xAPI的差异，做了统一的定义，
-提供更加方便的调用API。同时，HQL的功能也已上线，提供了类SQL读写数据的能力，这将大大降低HBase Client API的使用门槛。
+`hbase-sdk` 基于HBase的原生API，封装了对HBase表及其数据的DML和DDL操作，同时，也是一款轻量级的ORM框架，提供了模型类绑定HBase表实体的能力，与原生的客户端API相比，其优势如下：
+
+1. 屏蔽了HBase各版本原生API的差异，当你的集群版本升级时，在业务层面只需对应升级hbase-client的版本即可。
+2. 提供ORM能力，java类通过简单的注解就可以定义HBase的表模型，简化了表数据的DDL操作。
+3. 对hbase的原生thrift api进行了池化封装，类似于Jedis-pool，增强了thrift api生产环境中使用的稳定性。
+4. 使用spring-boot-starter-hbase可无缝与SpringBoot集成。
+5. 提供了类SQL的方式——HQL读写HBase表中的数据，简化了原生API的使用门槛（但目前不建议直接用于生产环境）。
+
+
 API文档地址: [https://weixiaotome.gitee.io/hbase-sdk/](https://weixiaotome.gitee.io/hbase-sdk/)
 如果觉得这个项目不错可以 [star](https://github.com/CCweixiao/hbase-sdk/stargazers) 支持或者 [捐赠](https://www.jielongping.com) 它 :blush:
 
 ## 功能特性
 
-* [x] 消除不同版本API的差异，重新定义接口规范
-* [x] 优良的ORM特性，数据查询结果集自动映射Java实体类
-* [x] HQL，以类SQL的形式读写HBase的表中数据
+* [x] 定义了统一的接口规范，消除了HBase不同版本原生API之间的差异
+* [x] ORM特性，数据查询结果集自动映射Java实体类
+* [x] 对HBase的原生thrift API进行池化封装，增强了其生产环境中使用的稳定性
+* [x] HQL，以类SQL的形式读写HBase的表中数据（不建议直接用于生产环境）
 * [x] 利用spring-boot-starter-hbase无缝与SpringBoot集成
 * [x] HBatis，类似于myBatis，提供配置文件管理HQL的功能（规划中）
-* [x] 熔断能力，提供API级别的主备集群切换，保障服务的高可用（规划中）
-* [x] JDK8+
+* [x] 熔断能力，提供客户端API级别的主备集群切换，保障服务的高可用（规划中）
+* [x] thrift 连接池中连接数的动态扩所容能力（规划中）
 
+## 仓库地址
+
+https://github.com/CCweixiao/hbase-sdk
+
+https://gitee.com/weixiaotome/hbase-sdk
+
+两边仓库地址是同步更新的
+
+## 编译指南
+
+克隆项目到本地，导入到IDEA中，首次加载项目，会从远程仓库拉取项目所需的依赖，请耐心等待。
+
+cd hbase-sdk
+
+```shell
+mvn clean install -Phbase-1.2 # hbase-client:1.2.x
+mvn clean install -Phbase-1.4 # hbase-client:1.4.x
+mvn clean install -Phbase-2.2 # hbase-client:2.x.x
+```
+
+`hbase-sdk`的``hbase-sdk-adapter`模块下的各个子模块中已引入了具体的hbase-shaded-client的依赖，如有需要可以自行更改你想使用的hbase的版本。
 
 ## 快速开始
 
-`hbase-sdk` 的每个版本经过测试完成之后，都会编译打包至各个模块，最后发布到maven中央仓库之中，只是最新版本的代码有一定的延迟。如果你想在第一时间体验该项目，
-可以选择在Gitee或Github中克隆源码，在本地编译并运行测试用例。
+`hbase-sdk` 的各个版本完成开发测试之后，都会发布到maven中央仓库之中，只是最新版本的代码有一定的延迟。如果你想在第一时间体验该项目，可以选择克隆Gitee或Github仓库中的源码，在本地编译并运行测试用例。
 
-`hbase-sdk` 基于java8开发，如果你想自己编译或体验，请确保已经安装了Java8和maven3+。 此外，如果你想在本地进行开发调试，建议在本地存在一个可连通的HBase环境。
-如果你想快速搭建一个HBase的开发环境，请参考：[https://www.jielongping.com/archives/dockerhbasetest](https://www.jielongping.com/archives/dockerhbasetest)
+`hbase-sdk` 如果你想在本地进行开发，请确保已经安装了Java8和maven3.6+。同时建议在本地部署一个可连通的HBase环境。建议使用docker来快速搭建一个HBase的开发环境，请参考：https://blog.csdn.net/feinifi/article/details/121174846
 
 `hbase-sdk` 开发所用的工具为IDEA，所以也极力推荐导入项目到idea中。
 
@@ -51,44 +74,47 @@ API文档地址: [https://weixiaotome.gitee.io/hbase-sdk/](https://weixiaotome.g
 
 `Maven` 配置：
 
-创建一个基础的 `Maven` 工程，HBase SDK API开发时基于的HBase版本主要是1.4.3和2.1.0。
+创建一个基础的 `Maven` 工程，HBase SDK 已适配hbase-client的1.2/1.4/2.x版本。
 
-所以，如果你的HBase版本是1.x，可以使用如下依赖。
+所以，如果你的HBase版本是1.2.x，可以使用如下依赖。
 
-
-```xml
-<dependency>
-    <groupId>com.github.CCweixiao</groupId>
-    <artifactId>hbase-sdk-core_1.4</artifactId>
-    <version>2.0.6</version>
-</dependency>
-```
-
-如果你的HBase版本是2.x，则可以使用如下依赖。
 
 ```xml
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
-    <artifactId>hbase-sdk-core_2.1</artifactId>
-    <version>1.0.5</version>
+    <artifactId>hbase-sdk-template_1.2</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
-`hbase-sdk`目前最新的版本是`2.0.6`。你可以在maven仓库中搜索CCweixiao来获取hbase-sdk相关jar包的最新版本。
-[https://mvnrepository.com/artifact/com.github.CCweixiao](https://mvnrepository.com/artifact/com.github.CCweixiao)
+如果你的HBase版本是1.4.x，则可以使用如下依赖。
 
-当然，如果你想重新编译，以适配你自己的HBase版本，也可以选择下载源码，修改项目根pom.xml文件中的`hbase.version`，之后运行如下编译命令：
-
-```shell script
-git clone https://github.com/CCweixiao/hbase-sdk.git  or
-git clone https://gitee.com/weixiaotome/hbase-sdk.git
-cd hbase-sdk
-mvn clean install -Dmaven.test.skip=true
+```xml
+<dependency>
+    <groupId>com.github.CCweixiao</groupId>
+    <artifactId>hbase-sdk-template_1.4</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+</dependency>
 ```
+
+如果你的HBase版本是2.x.x，则可以使用如下依赖。
+
+```xml
+<dependency>
+    <groupId>com.github.CCweixiao</groupId>
+    <artifactId>hbase-sdk-template_2.2</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+`hbase-sdk`目前最新的版本是`3.0.0-SNAPSHOT`。你可以在maven中央仓库中搜索CCweixiao来获取hbase-sdk相关jar包的最新版本。
+https://mvnrepository.com/artifact/com.github.CCweixiao
+
+当然，如果你想重新编译，扩展你需要的功能，也可以选择下载源码，修改项目根pom.xml文件中的`hbase.version`，按照编译指南中的编译命令来操作。
 
 ### 2. 项目结构
 
-![project](https://leo-jie-pic.oss-cn-beijing.aliyuncs.com/leo_blog/2020-11-29-114449.jpg)
+![project](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/4nj24.jpg)
 
 API核心类继承结构示意图：
 ![api-project](https://leo-jie-pic.oss-cn-beijing.aliyuncs.com/leo_blog/2020-11-29-120043.jpg)
@@ -103,8 +129,8 @@ API核心类继承结构示意图：
 ```xml
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
-    <artifactId>spring-boot-starter-hbase_1.4</artifactId>
-    <version>2.0.6</version>
+    <artifactId>spring-boot-starter-hbase_1.2</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -113,22 +139,41 @@ or
 ```xml
 <dependency>
     <groupId>com.github.CCweixiao</groupId>
-    <artifactId>spring-boot-starter-hbase_2.1</artifactId>
-    <version>2.0.6</version>
+    <artifactId>spring-boot-starter-hbase_1.4</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
-spring-boot-starter-hbase这个模块中已经包含了hbase-sdk-core。
+or
+
+```xml
+<dependency>
+    <groupId>com.github.CCweixiao</groupId>
+    <artifactId>spring-boot-starter-hbase_2.2</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+spring-boot-starter-hbase这个模块中已经包含了hbase-sdk-adapter_${hbase.adapter.version}。
 
 ### 4. 引入hbase-client的依赖
 
-除了引入`hbase-sdk`的相关依赖之外，你还需要引入`hbase-client`的依赖，`hbase-client`的版本目前建议为`1.2.x`、`1.4.x`、`2.1.x`。
-hbase-client1.x和2.x的新旧API有所差异。未来，`hbase-sdk`会持续完善该依赖的版本兼容。
+除了引入`hbase-sdk`的相关依赖之外，你还需要引入`hbase-client`的依赖，`hbase-client`的版本目前支持`1.2.x`、`1.4.x`、`2.2.x`，请按需引入，（并且，建议使用hbase-shaded-client）。
 
 ```xml
 <dependency>
     <groupId>org.apache.hbase</groupId>
-    <artifactId>hbase-client</artifactId>
+    <artifactId>hbase-shaded-client</artifactId>
+    <version>1.2.0</version>
+</dependency>  
+```
+
+or
+
+```xml
+<dependency>
+    <groupId>org.apache.hbase</groupId>
+    <artifactId>hbase-shaded-client</artifactId>
     <version>1.4.3</version>
 </dependency>        
 ```
@@ -138,22 +183,30 @@ or
 ```xml
 <dependency>
     <groupId>org.apache.hbase</groupId>
-    <artifactId>hbase-client</artifactId>
-    <version>2.1.0</version>
+    <artifactId>hbase-shaded-client</artifactId>
+    <version>2.2.6</version>
 </dependency>        
 ```
 
 ### 5. 配置HBase数据库连接
 
-**普通项目**
+**普通java项目**
 
 ```java
-// 数据读写API
-HBaseTemplate hBaseTemplate = new HBaseTemplate("node1", "2181");
-// 管理员API
-HBaseAdminTemplate hBaseAdminTemplate = new HBaseAdminTemplate("node1", "2181");
-// HQL操作API
-HBaseSqlTemplate hBaseSqlTemplate = new HBaseSqlTemplate("localhost", "2181");
+Properties properties = new Properties();
+properties.setProperty("hbase.zookeeper.quorum", "myhbase");
+properties.setProperty("hbase.zookeeper.property.clientPort", "2181");
+// 请按需引入其他所需hbase的client的配置
+
+// 数据读写API的操作模版类
+IHBaseTableTemplate tableTemplate = new HBaseAdminTemplateImpl.Builder()
+                .properties(properties).build();
+// 管理员操作模版类
+IHBaseAdminTemplate adminTemplate = new HBaseAdminTemplateImpl.Builder()
+                .properties(properties).build();
+// HQL操作模版类
+IHBaseSqlTemplate sqlTemplate = new HBaseSqlTemplateImpl.Builder()
+                .properties(properties).build()
 ```
 
 **spring boot项目**
@@ -164,7 +217,7 @@ application.yaml
 spring:
   data:
     hbase:
-      quorum: node1,node2,node3
+      quorum: myhbase
       node-parent: /hbase
       zk-client-port: 2181
       root-dir: /hbase
@@ -177,32 +230,34 @@ spring:
 @Service
 public class UserService {
     @Autowired
-    private HBaseTemplate hBaseTemplate;
+    private IHBaseTableTemplate tableTemplate;
     @Autowired
-    private HBaseAdminTemplate hBaseAdminTemplate;
+    private IHBaseAdminTemplate adminTemplate;
+    @Autowired
+    private IHBaseSqlTemplate sqlTemplate;
 }
 ```
 
 
 ## Contents
 - [**`集群管理`**](#集群管理)
-    - [**`创建namespace`**](#创建namespace)
-    - [**`创建表`**](#创建表)
-    - [**`更多操作`**](#更多操作)
+  - [**`创建namespace`**](#创建namespace)
+  - [**`创建表`**](#创建表)
+  - [**`更多操作`**](#更多操作)
 - [**`数据读写`**](#数据读写)
-    - [**`创建数据模型类`**](#创建数据模型类)
-    - [**`保存数据`**](#保存数据)
-    - [**`批量保存数据`**](#批量保存数据)
-    - [**`根据RowKey查询`**](#根据RowKey查询)
-    - [**`scan查询`**](#scan查询)
-    - [**`删除数据`**](#删除数据)
-- [**`HQL`**](#HQL) 
-    - [**`insert`**](#insert)
-    - [**`select`**](#select)
-    - [**`delete`**](#delete)
-- [**`HBaseThriftAPI`**](#HBaseThriftAPI) 
-    - [**`创建HBaseThriftService连接池`**](#创建HBaseThriftService连接池)
-    
+  - [**`创建数据模型类`**](#创建数据模型类)
+  - [**`保存数据`**](#保存数据)
+  - [**`批量保存数据`**](#批量保存数据)
+  - [**`根据RowKey查询`**](#根据RowKey查询)
+  - [**`scan查询`**](#scan查询)
+  - [**`删除数据`**](#删除数据)
+- [**`HQL`**](#HQL)
+  - [**`insert`**](#insert)
+  - [**`select`**](#select)
+  - [**`delete`**](#delete)
+- [**`HBaseThriftAPI`**](#HBaseThriftAPI)
+  - [**`创建HBaseThriftService连接池`**](#创建HBaseThriftService连接池)
+
 ## 集群管理
 
 HBaseAdminTemplate封装了HBaseAdmin的常用操作，比如namespace的管理、表的管理、以及快照管理等等，后续这些API将会更加完善。
@@ -223,7 +278,7 @@ HBaseAdminTemplate封装了HBaseAdmin的常用操作，比如namespace的管理�
         namespaceDesc = namespaceDesc.addNamespaceProp("desc", "测试命名空间")
                 .addNamespaceProp("createBy", "leo").addNamespaceProp("updateBy", "admin");
 
-        hBaseTemplate.createNamespace(namespaceDesc);
+        adminTemplate.createNamespace(namespaceDesc);
     }
 ```
 
@@ -255,7 +310,7 @@ HBaseAdminTemplate封装了HBaseAdmin的常用操作，比如namespace的管理�
 
         tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
 
-        hBaseTemplate.createTable(tableDesc, false);
+        adminTemplate.createTable(tableDesc, false);
     }
 ```
 
@@ -267,137 +322,142 @@ HBaseAdminTemplate封装了HBaseAdmin的常用操作，比如namespace的管理�
 
 类似于Hibernate，你也可以使用hbase-sdk框架所提供的ORM特性，来实现对HBase的数据读写操作。
 
-![api-data](https://leo-jie-pic.oss-cn-beijing.aliyuncs.com/leo_blog/2020-11-29-121009.jpg)
+![api-data](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/gwjtl.jpg)
 
 
 ### 创建数据模型类
 
 ```java
-public class ModelEntity {
-    private String createBy;
-    private Long createTime;
+public class CityTag {
+    private String tagName;
 
-    public String getCreateBy() {
-        return createBy;
+    public CityTag(String tagName) {
+        this.tagName = tagName;
     }
 
-    public void setCreateBy(String createBy) {
-        this.createBy = createBy;
+    public String getTagName() {
+        return tagName;
     }
 
-    public Long getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Long createTime) {
-        this.createTime = createTime;
-    }
-}
-```
-
-```java
-@HBaseTable(schema = "TEST", name = "LEO_USER", uniqueFamily = "info1")
-public class UserEntity extends ModelEntity{
-    @HBaseRowKey
-    private String userId;
-
-    private String username;
-    private int age;
-    private List<String> addresses;
-    private Map<String,Object> contactInfo;
-    private Double pay;
-
-    @HBaseColumn(name = "is_vip", family = "INFO2", toUpperCase = true)
-    private boolean isVip;
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public boolean isVip() {
-        return isVip;
-    }
-
-    public void setVip(boolean vip) {
-        isVip = vip;
-    }
-
-    public List<String> getAddresses() {
-        return addresses;
-    }
-
-    public void setAddresses(List<String> addresses) {
-        this.addresses = addresses;
-    }
-
-    public Map<String, Object> getContactInfo() {
-        return contactInfo;
-    }
-
-    public void setContactInfo(Map<String, Object> contactInfo) {
-        this.contactInfo = contactInfo;
-    }
-
-    public Double getPay() {
-        return pay;
-    }
-
-    public void setPay(Double pay) {
-        this.pay = pay;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Override
     public String toString() {
-        return "UserEntity{" +
-                "userId='" + userId + '\'' +
-                ", username='" + username + '\'' +
-                ", age=" + age +
-                ", addresses=" + addresses +
-                ", contactInfo=" + contactInfo +
-                ", pay=" + pay +
-                ", isVip=" + isVip +
+        return "CityTag{" +
+                "tagName='" + tagName + '\'' +
                 '}';
     }
 }
 ```
 
-@HBaseTable(schema = "TEST", name = "LEO_USER", uniqueFamily = "info1")
+```java
+@HBaseTable(namespaceName = "default", tableName = "t2", defaultFamilyName = "info")
+public class CityModel {
+    @HBaseRowKey
+    private String cityId;
+    private String cityName;
+    private String cityAddress;
 
-HBaseTable注解用于定义HBase的表信息，schema用于定义该表的命名空间，如果不指定，默认是default，
-name用于定义该表的表名，如果不指定，表名则为类名的组合单词拆分加'_'拼接，如：UserEntity对应的表名为：user_entity。
-uniqueFamily用于定义如果所有的字段不特配置列簇名，则使用此处配置的列簇名。
+    @HBaseColumn(familyName = "detail")
+    private Integer cityArea;
+    @HBaseColumn(familyName = "detail", toUpperCase = true)
+    private Integer totalPopulation;
+    @HBaseColumn(familyName = "detail", columnName = "cityTagList")
+    private List<CityTag> cityTagList;
 
+    public String getCityId() {
+        return cityId;
+    }
 
+    public void setCityId(String cityId) {
+        this.cityId = cityId;
+    }
+
+    public String getCityName() {
+        return cityName;
+    }
+
+    public void setCityName(String cityName) {
+        this.cityName = cityName;
+    }
+
+    public String getCityAddress() {
+        return cityAddress;
+    }
+
+    public void setCityAddress(String cityAddress) {
+        this.cityAddress = cityAddress;
+    }
+
+    public Integer getCityArea() {
+        return cityArea;
+    }
+
+    public void setCityArea(Integer cityArea) {
+        this.cityArea = cityArea;
+    }
+
+    public Integer getTotalPopulation() {
+        return totalPopulation;
+    }
+
+    public void setTotalPopulation(Integer totalPopulation) {
+        this.totalPopulation = totalPopulation;
+    }
+
+    public List<CityTag> getCityTagList() {
+        return cityTagList;
+    }
+
+    public void setCityTagList(List<CityTag> cityTagList) {
+        this.cityTagList = cityTagList;
+    }
+
+    @Override
+    public String toString() {
+        return "CityModel{" +
+                "cityId='" + cityId + '\'' +
+                ", cityName='" + cityName + '\'' +
+                ", cityAddress='" + cityAddress + '\'' +
+                ", cityArea=" + cityArea +
+                ", totalPopulation=" + totalPopulation +
+                ", cityTagList=" + cityTagList +
+                '}';
+    }
+}
+```
+
+```java
+@HBaseTable(namespaceName = "default", tableName = "t2", defaultFamilyName = "info")
+```
+
+`@HBaseTable`注解用于定义HBase的表信息，namespaceName用于定义该表的命名空间，如果不指定，默认是default，tableName用于定义该表的表名，如果不指定，表名则为类名的组合单词拆分加'_'拼接，如：CityModel对应的表名为：city_model。
+defaultFamilyName用于定义如果所有的字段不特配置列簇名，则使用此处配置的列簇名。
+
+`@HBaseRowKey`注解用于标识某一个属性字段是用作存储rowKey数据的，是必须要设置的，如：
+
+```java
 @HBaseRowKey
-private String userId;
+private String cityId;
+```
 
-该注解表示userId字段为rowKey字段。
+该注解表示cityId字段为rowKey。
+
+`@HBaseColumn`注解用于定义HBase的列簇和列名信息，如：
+
+```java
+@HBaseColumn(familyName = "detail", columnName = "TOTAL_POPULATION",  toUpperCase = true)
+private Integer totalPopulation;
+```
 
 
-@HBaseColumn(name = "is_vip", family = "INFO2", toUpperCase = true)
-private boolean isVip;
-该注解用于定义一个字段信息，name用于定义字段名，如果不指定，则默认使用字段名的组合单词拆分加'_'拼接，如：isVip，对应的字段名是：is_vip.
-family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否转大写，默认false，不做操作。
+familyName用于定义列簇名称，如果不指定，则使用defaultFamilyName配置的列簇名。
+
+columnName指定列名，不指定则默认使用字段名的组合单词拆分加'_'拼接，如：isVip，对应的字段名是：is_vip.
+
+toUpperCase表示字段名是否转大写，默认false，不做转换。
 
 
 ### 保存数据
@@ -405,29 +465,15 @@ family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否�
 ```java
    @Test
     public void testSaveUser() {
-        UserEntity userEntity = new UserEntity();
-        userEntity.setUserId("10001");
-        userEntity.setUsername("leo");
-        userEntity.setAge(18);
-        userEntity.setVip(true);
-        userEntity.setAddresses(Arrays.asList("北京", "上海"));
-        userEntity.setCreateBy("admin");
-        userEntity.setCreateTime(System.currentTimeMillis());
-
-        Map<String, Object> contactInfo = new HashMap<>(2);
-        contactInfo.put("email", "2326130720@qq.com");
-        contactInfo.put("phone", "18739577988");
-        contactInfo.put("address", "浦东新区");
-
-        userEntity.setContactInfo(contactInfo);
-        userEntity.setPay(100000.0d);
-
-        try {
-            hBaseTemplate.save(userEntity);
-            System.out.println("用户数据保存成功！");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        CityModel cityModel = new CityModel();
+        cityModel.setCityId("10001");
+        cityModel.setCityName("上海");
+        cityModel.setCityAddress("上海市");
+        cityModel.setCityArea(10000);
+        cityModel.setTotalPopulation(200000);    		    					cityModel.setCityTagList(tagNameList.stream().map(CityTag::new).collect(Collectors.toList()));
+       CityModel city = tableTemplate.save(cityModel);
+       System.out.println(city);
+      
     }
 ```
 
@@ -483,20 +529,27 @@ family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否�
 
 ```java
     @Test
-    public void testGet() {
-        UserEntity userEntity = hBaseTemplate.getByRowKey("10001", UserEntity.class);
-        final UserEntity userEntity1 = hBaseTemplate.getByRowKey("10002", UserEntity.class);
-        System.out.println("用户数据获取成功！");
-        System.out.println(userEntity);
+    public void testGetJavaBean() {
+        Optional<CityModel> a10001 = tableTemplate.getRow("a10001", CityModel.class);
+        Optional<CityModel> a10001F = tableTemplate.getRow("a10001", "info", CityModel.class);
+        System.out.println(a10001.orElse(new CityModel()));
+        System.out.println(a10001F);
     }
 ```
 
 ```java
     @Test
-    public void testGetToMap() {
-        Map<String, Object> userInfo = hBaseTemplate.getByRowKey("TEST:LEO_USER", "10001");
-        System.out.println(Boolean.valueOf(userInfo.get("INFO2:IS_VIP").toString()));
-        System.out.println(userInfo);
+    public void testGetRowToMap() {
+        Map<String, String> d1 = tableTemplate.getRowToMap("t1", "1001", true);
+        JSONArray objects = JSON.parseArray(d1.get("f3:tags"));
+        Map<String, String> d2 = tableTemplate.getRowToMap("t1", "1002", false);
+        List<String> rows = new ArrayList<>(2);
+        rows.add("1001");
+        rows.add("1002");
+        Map<String, Map<String, String>> d3 = tableTemplate.getRowsToMap("t1", rows, true);
+        System.out.println(d1);
+        System.out.println(d2);
+        System.out.println(d3);
     }
 ```
 
@@ -504,16 +557,15 @@ family用于定义该字段属于INFO2列簇，toUpperCase表示字段名是否�
 
 ```java
     @Test
-    public void testFind() {
-        final List<UserEntity> userEntities = hBaseTemplate.findAll(10, UserEntity.class);
-        System.out.println(userEntities);
-        System.out.println("用户数据批量查询");
-    }
-
-    @Test
-    public void testFindByPrefix() {
-        final List<UserEntity> userEntities = hBaseTemplate.findByPrefix("11", 10, UserEntity.class);
-        System.out.println("用户数据批量查询");
+    public void testScan() {
+        ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
+                .familyName("info")
+                .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
+                .startRow("a10001")
+                .stopRow("a10002")
+                .build();
+        List<CityModel> cityModels = tableTemplate.scan(scanQueryParamsBuilder, CityModel.class);
+        System.out.println(cityModels);
     }
 ```
 
@@ -729,7 +781,6 @@ List<String> allTableNames = hBaseThriftService.getTableNames();
 
 更多API的使用可以参考源码中测试用例以及相关的API文档。
 
-
 ## 特别鸣谢
 
 HQL的语法设计以及antlr4的语法解析，有参考alibaba的开源项目 `simplehbase`，在此特别感谢。simplehbase感觉是一个被遗弃的项目，针对的HBase版本是0。94，
@@ -752,6 +803,12 @@ HQL的antlr4解析功能不太完善，比如，目前HQL对中文要求不太�
 
 ## 更新日志
 
+### v3.0.0 2022-11-27
+
+- 对hbase-sdk项目做了大重构，使API抽象程度更高，同时丰富了API的功能
+- 基于reflectasm重构反射工具类，提升ORM映射字段的效率
+- 工具类优化
+
 ### v2.0.7 2020-12-30
 
 - HBase Thrift API上线，以及提供Thrift API 的连接池实现
@@ -764,13 +821,9 @@ HQL的antlr4解析功能不太完善，比如，目前HQL对中文要求不太�
 
 - 新增功能与代码优化
 
-
-
 ### v2.0.3 2020-10-08
 
 - 大量重构和优化
-
-
 
 ### v1.0.5 2020-09-07
 
@@ -778,7 +831,6 @@ HQL的antlr4解析功能不太完善，比如，目前HQL对中文要求不太�
 - 完成ORM特性
 - 模块拆分
 - ......
-
 
 
 
