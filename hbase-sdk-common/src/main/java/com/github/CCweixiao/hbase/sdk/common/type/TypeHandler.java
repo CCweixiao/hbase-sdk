@@ -20,4 +20,6 @@ public interface TypeHandler {
     Object toObject(Class<?> type, byte[] bytes);
 
     Object toObject(Class<?> type, ByteBuffer buffer);
+
+    <T> Object toObjectFromStr(String value, TypeConverter<T> typeConverter);
 }

@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.alibaba.fastjson2.JSON;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeConverter;
 
 
 /**
@@ -27,5 +28,10 @@ public class JsonHandler extends StringHandler {
     @Override
     public String convertToString(Object val) {
         return JSON.toJSONString(val);
+    }
+
+    @Override
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, JSON::toJSONString);
     }
 }

@@ -2,8 +2,8 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 
 import java.util.ArrayList;
@@ -23,11 +23,11 @@ public class RowKeyListConstantVisitor extends HBaseSQLBaseVisitor<List<RowKey>>
     @Override
     public List<RowKey> visitRowkey_inRangeKey(HBaseSQLParser.Rowkey_inRangeKeyContext ctx) {
         String funcName = ctx.funcname().getText();
-        final RowKeyTextFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(funcName);
+        final RowKeyFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(funcName);
         List<RowKey> rowKeyList = new ArrayList<>();
 
         for (HBaseSQLParser.ConstantContext constantContext : ctx.constant()) {
-            String rowKeyText = constantContext.TEXT().getText();
+            String rowKeyText = constantContext.STRING().getText();
             final RowKey rowKey = rowKeyTextFunc.func(rowKeyText);
             rowKeyList.add(rowKey);
         }

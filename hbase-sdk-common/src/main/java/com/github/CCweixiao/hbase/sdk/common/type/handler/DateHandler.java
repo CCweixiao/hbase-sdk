@@ -1,6 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
+import cn.hutool.core.date.DateUtil;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeConverter;
 
 import java.util.Date;
 
@@ -30,5 +32,9 @@ public class DateHandler extends LongHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Date.");
         Date d = (Date) val;
         return super.convertToString(d.getTime());
+    }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, value1 -> new Date(Long.parseLong(value1)));
     }
 }

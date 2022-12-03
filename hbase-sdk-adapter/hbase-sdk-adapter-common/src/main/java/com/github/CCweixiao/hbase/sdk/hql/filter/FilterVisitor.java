@@ -5,7 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser.*;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
@@ -65,7 +65,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     public Filter visitEqualvar(EqualvarContext ctx) {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL, object);
@@ -75,7 +75,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     public Filter visitEqualconstant(EqualconstantContext ctx) {
         CidContext cidContext = ctx.cid();
         final ConstantContext constantContext = ctx.constant();
-        final HBaseColumnSchema hBaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
+        final HBaseColumn hBaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         final Object obj = HBaseSQLContextUtil.parseConstant(hBaseColumnSchema, constantContext, runtimeSetting);
         return constructFilter(hBaseColumnSchema, CompareFilter.CompareOp.EQUAL, obj);
     }
@@ -83,7 +83,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitIsnullc(IsnullcContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
                 new byte[0], true);
@@ -92,7 +92,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitIsnotnullc(IsnotnullcContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL,
                 new byte[0], true);
@@ -103,7 +103,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -115,7 +115,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     public Filter visitNotequalvar(NotequalvarContext ctx) {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -128,7 +128,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -140,7 +140,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -154,7 +154,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -168,7 +168,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS_OR_EQUAL, object);
@@ -179,7 +179,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -192,7 +192,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER, object);
@@ -204,7 +204,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
@@ -216,7 +216,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -229,7 +229,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitIsnotmissingc(IsnotmissingcContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
                 new byte[0], true);
@@ -238,13 +238,13 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitIsmissingc(IsmissingcContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS,
                 new byte[0], false);
     }
 
-    private static Filter constructFilter(HBaseColumnSchema hBaseColumnSchema,
+    private static Filter constructFilter(HBaseColumn hBaseColumnSchema,
                                           CompareFilter.CompareOp compareOp, Object object) {
         ObjUtil.checkIsNull(hBaseColumnSchema);
 
@@ -252,7 +252,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         return constructFilter(hBaseColumnSchema, compareOp, value, true);
     }
 
-    private static Filter constructFilter(HBaseColumnSchema hBaseColumnSchema,
+    private static Filter constructFilter(HBaseColumn hBaseColumnSchema,
                                           CompareFilter.CompareOp compareOp,
                                           byte[] value,
                                           boolean filterIfMissing) {
@@ -276,7 +276,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -290,7 +290,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -303,7 +303,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -316,7 +316,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
                 constantContext, runtimeSetting);
@@ -326,7 +326,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     }
 
     private static Filter constructFilterWithRegex(
-            HBaseColumnSchema hbaseColumnSchema, CompareFilter.CompareOp compareOp,
+            HBaseColumn hbaseColumnSchema, CompareFilter.CompareOp compareOp,
             Object object) {
         ObjUtil.checkIsNull(hbaseColumnSchema);
         ObjUtil.checkIsNull(compareOp);
@@ -360,7 +360,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitNotinconstantlist(NotinconstantlistContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
 
         ConstantListContext constantListContext = ctx.constantList();
@@ -378,7 +378,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -392,7 +392,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         VarContext varContext = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
@@ -403,7 +403,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitInconstantlist(InconstantlistContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
 
         ConstantListContext constantListContext = ctx.constantList();
@@ -416,7 +416,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     }
 
     private static Filter constructFilterForContain(
-            HBaseColumnSchema hbaseColumnSchema, CompareFilter.CompareOp compareOp,
+            HBaseColumn hbaseColumnSchema, CompareFilter.CompareOp compareOp,
             List<Object> list, FilterList.Operator operator) {
         ObjUtil.checkIsNull(hbaseColumnSchema);
         ObjUtil.checkIsNull(compareOp);
@@ -434,7 +434,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitNotbetweenconstant(NotbetweenconstantContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
 
         List<ConstantContext> constantContextList = ctx.constant();
@@ -455,7 +455,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         List<VarContext> varContextList = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         List<Object> list = HBaseSQLContextUtil.parseParaList(varContextList, para);
 
@@ -472,7 +472,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
         CidContext cidContext = ctx.cid();
         List<VarContext> varContextList = ctx.var();
 
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
         List<Object> list = HBaseSQLContextUtil.parseParaList(varContextList, para);
 
@@ -487,7 +487,7 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     @Override
     public Filter visitBetweenconstant(BetweenconstantContext ctx) {
         CidContext cidContext = ctx.cid();
-        HBaseColumnSchema hbaseColumnSchema = HBaseSQLContextUtil
+        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
                 .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
 
         List<ConstantContext> constantContextList = ctx.constant();

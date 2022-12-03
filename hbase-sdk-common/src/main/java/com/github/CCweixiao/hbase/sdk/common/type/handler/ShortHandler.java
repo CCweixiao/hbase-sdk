@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeConverter;
 
 /**
  * @author leojie 2020/11/28 7:49 下午
@@ -30,5 +31,9 @@ public class ShortHandler extends AbstractTypeHandler {
     public String convertToString(Object val) {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Short or short.");
         return val.toString();
+    }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Short::parseShort);
     }
 }

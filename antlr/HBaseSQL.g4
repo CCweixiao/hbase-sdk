@@ -10,13 +10,13 @@ prog   : inserthqlc         # insertHqlCl
        ;
 
 
-inserthqlc : INSERT INTO tableName LB cidList RB VALUES insertValueList WHERE ROWKEY IS rowKeyExp ( TS IS tsexp )  ?
+inserthqlc : INSERT INTO tableName LB colList RB VALUES insertValueList WHERE ROWKEY EQ rowKeyExp (AND TS EQ tsExp )  ?
 		   ;
 
-selecthqlc : SELECT selectCidList FROM tableName WHERE rowKeyRange? wherec? maxVersionExp? tsrange? limitExp?
+selecthqlc : SELECT selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND maxVersionExp)? (AND tsRange)? limitExp?
 	       ;
 
-deletehqlc : DELETE selectCidList FROM tableName WHERE rowKeyRange? wherec? ( TS IS tsexp ) ?
+deletehqlc : DELETE selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND TS EQ tsExp ) ?
 	       ;
 
 wherec: conditionc;
@@ -24,151 +24,169 @@ wherec: conditionc;
 conditionc : LB conditionc RB              # conditionwrapper
 	| conditionc AND conditionc            # andcondition
 	| conditionc OR conditionc             # orcondition
-	| cid EQUAL constant                   # equalconstant
-	| cid EQUAL var                        # equalvar
-	| cid LESS constant                    # lessconstant
-	| cid LESS var                         # lessvar
-	| cid GREATER constant                 # greaterconstant
-	| cid GREATER var                      # greatervar
-	| cid LESSEQUAL constant               # lessequalconstant
-	| cid LESSEQUAL var                    # lessequalvar
-	| cid GREATEREQUAL constant            # greaterequalconstant
-	| cid GREATEREQUAL var                 # greaterequalvar
-	| cid NOTEQUAL constant                # notequalconstant
-	| cid NOTEQUAL var                     # notequalvar
-	| cid NOTMATCH constant                # notmatchconstant
-	| cid NOTMATCH var                     # notmatchvar
-	| cid MATCH constant                   # matchconstant
-	| cid MATCH var                        # matchvar
-	| cid IN constantList                  # inconstantlist
-	| cid IN var                           # invarlist
-	| cid NOTIN constantList               # notinconstantlist
-	| cid NOTIN var                        # notinvarlist
-	| cid BETWEEN constant AND constant    # betweenconstant
-	| cid BETWEEN var AND var              # betweenvar
-	| cid NOTBETWEEN constant AND constant # notbetweenconstant
-	| cid NOTBETWEEN var AND var           # notbetweenvar
-	| cid ISNULL                           # isnullc
-	| cid ISNOTNULL                        # isnotnullc
-	| cid ISMISSING                        # ismissingc
-	| cid ISNOTMISSING                     # isnotmissingc
+	| col EQ constant                      # equalconstant
+	| col EQ var                           # equalvar
+	| col LESS constant                    # lessconstant
+	| col LESS var                         # lessvar
+	| col GREATER constant                 # greaterconstant
+	| col GREATER var                      # greatervar
+	| col LESSEQUAL constant               # lessequalconstant
+	| col LESSEQUAL var                    # lessequalvar
+	| col GREATEREQUAL constant            # greaterequalconstant
+	| col GREATEREQUAL var                 # greaterequalvar
+	| col NOTEQ constant                   # notequalconstant
+	| col NOTEQ var                        # notequalvar
+	| col NOTMATCH constant                # notmatchconstant
+	| col NOTMATCH var                     # notmatchvar
+	| col MATCH constant                   # matchconstant
+	| col MATCH var                        # matchvar
+	| col IN constantList                  # inconstantlist
+	| col IN var                           # invarlist
+	| col NOT IN constantList               # notinconstantlist
+	| col NOT IN var                        # notinvarlist
+	| col BETWEEN constant AND constant    # betweenconstant
+	| col BETWEEN var AND var              # betweenvar
+	| col NOT BETWEEN constant AND constant # notbetweenconstant
+	| col NOT BETWEEN var AND var           # notbetweenvar
+	| col IS NULL                           # isnullc
+	| col IS NOT NULL                        # isnotnullc
+	| col IS MISSING                        # ismissingc
+	| col IS NOT MISSING                     # isnotmissingc
 	;
 
-rowKeyRange : STARTKEY IS rowKeyExp ',' ENDKEY IS rowKeyExp   # rowkeyrange_startAndEnd
-			| STARTKEY IS rowKeyExp                           # rowkeyrange_start
-            | ENDKEY IS rowKeyExp		                      # rowkeyrange_end
-            | ROWKEY IS rowKeyExp 			                  # rowkeyrange_onerowkey
-            | ROWKEY IS rowKeyExp                             # rowkeyrange_insomekeys
-			;
+rowKeyRangeExp : LB STARTKEY EQ rowKeyExp COMMA_CHAR ENDKEY EQ rowKeyExp RB   # rowkeyrange_startAndEnd
+                | STARTKEY EQ rowKeyExp                                       # rowkeyrange_start
+                | ENDKEY EQ rowKeyExp		                                  # rowkeyrange_end
+                | ROWKEY EQ rowKeyExp 			                              # rowkeyrange_onerowkey
+                | ROWKEY IN rowKeyExp                                         # rowkeyrange_insomekeys
+                | ROWKEY LIKE rowKeyExp                                       # rowkeyrange_prefix
+                ;
 
-rowKeyExp : LB rowKeyExp RB                               # rowkey_Wrapper
+rowKeyExp :  LB rowKeyExp RB                              # rowkey_Wrapper
+	| constant                                            # rowkey_Constant
+	| LB constant ( ',' constant )* RB                    # rowkey_inRangeKey
 	| funcname LB constant RB                             # rowkey_FuncConstant
-	| funcname IN LB constant ( ',' constant)* RB         # rowkey_inRangeKey
-	| HBASESTARTKEY                                       # rowkey_hbasestart
-	| HBASEENDKEY                                         # rowkey_hbaseend
+    | LB rowKeyExp ( ',' rowKeyExp )* RB                  # rowkey_inRangeFuncKey
     ;
 
-tsrange : LB STARTTS IS tsexp ',' ENDTS IS tsexp RB                  # tsrange_startAndEnd
-		| LB STARTTS IS tsexp RB                                     # tsrange_start
-		| LB ENDTS IS tsexp RB                                       # tsrange_end
+tsRange : LB STARTTS EQ tsExp COMMA_CHAR ENDTS EQ tsExp RB      # tsrange_startAndEnd
+		| STARTTS EQ tsExp                                      # tsrange_start
+		| ENDTS EQ tsExp                                        # tsrange_end
+		| TS EQ tsExp                                           # tsequal
 	    ;
 
-tsexp: constant ;
+tsExp: timestamp ;
 
 
-selectCidList : cidList   # cidList_CidList
-			  | STAR      # cidList_Star
-			  | TEXT      # cidList_Regx
+selectColList : '*'       # colList_Star
+			  | colList   # colList_ColList
 	     	  ;
 
-cidList :  cid (',' cid)* ;
-cid : TEXT ;
+colList :  col ( ',' col )* ;
+col : STRING ;
 
-funcname: TEXT    # rowKey_FunctionName
-;
+funcname: STRING ;
 
-constantList  : LB constant ( ',' constant)* RB ;
-insertValueList : LB insertValue ( ',' insertValue)* RB ;
+constantList  : LB constant ( ',' constant )* RB ;
+insertValueList : LB insertValue ( ',' insertValue )* RB ;
 
 insertValue: constant                # insertValue_NotNull
             | NULL                   # insertValue_Null
 		    ;
 
-maxVersionExp : LB MAXVERSION IS maxversion RB
+maxVersionExp : MAXVERSION EQ maxversion
 			  ;
 
-limitExp : LIMIT TEXT ( ',' TEXT)?
+limitExp : LIMIT STRING
 		 ;
 
-tableName : TEXT ;
-maxversion : TEXT ;
-constant: '\'' TEXT '\'';
-var : '#' TEXT '#' ;
-
-
-STAR : '*' ;
+tableName : STRING ;
+maxversion : STRING ;
+constant: '\'' STRING '\'' | STRING;
+timestamp: STRING;
+var : '#' STRING '#' ;
 
 LB : '(' ;
 RB : ')' ;
+COMMA_CHAR: ',';
 
-WHERE : 'where' | 'WHERE' ;
+SELECT : S E L E C T ;
+INSERT : I N S E R T ;
+DELETE : D E L E T E ;
+INTO   : I N T O ;
+VALUES : V A L U E S ;
+WHERE : W H E R E ;
+FROM   : F R O M;
 
-SELECT : 'select' | 'SELECT' ;
-INSERT : 'insert' | 'INSERT' ;
-DELETE : 'delete' | 'DELETE' ;
-INTO   : 'into' | 'INTO' ;
-VALUES : 'values' | 'VALUES' ;
-FROM   : 'from' | 'FROM' ;
+ROWKEY   : R O W K E Y ;
+STARTKEY : S T A R T K E Y ;
+ENDKEY   : E N D K E Y ;
+MAXVERSION    : M A X V E R S I O N ;
 
-ROWKEY   : 'rowkey' | 'rowKey' ;
-STARTKEY : 'startkey' | 'startKey' ;
-ENDKEY   : 'endkey' | 'endKey' ;
-HBASESTARTKEY : 'hbasestartkey';
-HBASEENDKEY   : 'hbaseendkey';
-MAXVERSION    : 'maxversion' | 'maxVersion' ;
+LIMIT : L I M I T ;
 
-LIMIT : 'limit' | 'LIMIT' ;
+// 过滤时间戳
+TS : T S ;
+STARTTS : S T A R T T S ;
+ENDTS : E N D T S;
 
+IS : I S;
+EQ : '=';
+NOTEQ : '!=';
+NULL : N U L L;
+NOT : N O T ;
 
-TS : 'ts' ;
-STARTTS : 'startTS' ;
-ENDTS : 'endTS' ;
-
-IS : 'is' | 'IS';
-NULL : 'null';
-NOT : 'not' | 'NOT' ;
-
-AND : 'and' | 'AND' ;
-OR : 'or' | 'OR' ;
+AND : A N D ;
+OR : O R ;
 
 
-LESSEQUAL : 'lessequal' ;
-LESS : 'less' ;
+LESSEQUAL : '<=' ;
+LESS : '<' ;
 
-GREATEREQUAL : 'greaterequal';
-GREATER: 'greater' ;
+GREATEREQUAL : '>=';
+GREATER: '>' ;
 
-NOTEQUAL : 'notequal' ;
-EQUAL : 'equal' ;
+NOTMATCH : N O T M A T C H ;
+MATCH : M A T C H ;
 
-ENDER : ';' ;
+IN : I N ;
 
-NOTMATCH : 'notmatch' ;
-MATCH : 'match' ;
+LIKE : L I K E ;
 
-IN : 'in' ;
-NOTIN : 'notin' ;
+BETWEEN : B E T W E E N ;
 
-BETWEEN : 'between' ;
-NOTBETWEEN : 'notbetween' ;
+MISSING : M I S S I N G ;
 
-ISNULL : 'isnull' ;
-ISNOTNULL : 'isnotnull' ;
 
-ISMISSING : 'ismissing' ;
-ISNOTMISSING : 'isnotmissing' ;
+fragment A      : [aA];
+fragment B      : [bB];
+fragment C      : [cC];
+fragment D      : [dD];
+fragment E      : [eE];
+fragment F      : [fF];
+fragment G      : [gG];
+fragment H      : [hH];
+fragment I      : [iI];
+fragment J      : [jJ];
+fragment K      : [kK];
+fragment L      : [lL];
+fragment M      : [mM];
+fragment N      : [nN];
+fragment O      : [oO];
+fragment P      : [pP];
+fragment Q      : [qQ];
+fragment R      : [rR];
+fragment S      : [sS];
+fragment T      : [tT];
+fragment U      : [uU];
+fragment V      : [vV];
+fragment W      : [wW];
+fragment X      : [xX];
+fragment Y      : [yY];
+fragment Z      : [zZ];
 
-TEXT :  [a-zA-Z0-9_:*-+.,\\|=&^%$#@!~`()<>\r"]+ ;
+STRING :  [a-zA-Z0-9_:*-+.,\\|=&^%$#@!~`()<>\r\t\n"]+ ;
+
 
 SPACE:                               ( '\t' | ' ' | '\r' | '\n' )+ -> channel(HIDDEN);
 COMMENT_INPUT:                       '/*' .*? '*/' -> channel(HIDDEN);

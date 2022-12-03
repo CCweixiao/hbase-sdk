@@ -2,8 +2,8 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 
 import java.util.ArrayList;
@@ -28,10 +28,10 @@ public class RowKeyInSomeKeysVisitor extends HBaseSQLBaseVisitor<List<RowKey>> {
             return new ArrayList<>();
         }
         final String rowKeyFunctionName = inRangeKeyContext.funcname().getText();
-        final RowKeyTextFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(rowKeyFunctionName);
+        final RowKeyFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(rowKeyFunctionName);
 
         for (HBaseSQLParser.ConstantContext constantContext : constantContextList) {
-            rowKeys.add(rowKeyTextFunc.func(constantContext.TEXT().getText()));
+            rowKeys.add(rowKeyTextFunc.func(constantContext.STRING().getText()));
         }
         return rowKeys;
     }

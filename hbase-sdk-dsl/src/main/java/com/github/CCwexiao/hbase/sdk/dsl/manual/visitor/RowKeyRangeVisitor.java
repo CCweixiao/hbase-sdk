@@ -2,7 +2,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKeyUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;

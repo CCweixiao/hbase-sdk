@@ -46,4 +46,8 @@ public class LongHandler extends AbstractTypeHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Long or long.");
         return val.toString();
     }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Long::parseLong);
+    }
 }

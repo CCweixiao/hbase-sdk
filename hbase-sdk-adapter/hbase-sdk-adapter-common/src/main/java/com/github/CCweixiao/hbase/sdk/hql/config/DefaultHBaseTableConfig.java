@@ -1,18 +1,19 @@
 package com.github.CCweixiao.hbase.sdk.hql.config;
 
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.List;
 
 /**
  * @author leojie 2020/11/28 7:30 下午
  */
+@Deprecated
 public class DefaultHBaseTableConfig extends HBaseTableConfig {
 
     public DefaultHBaseTableConfig(HBaseTableSchema hBaseTableSchema,
-                                   List<HBaseColumnSchema> hBaseColumnSchemaList) {
+                                   List<HBaseColumn> hBaseColumnSchemaList) {
         this.hBaseTableSchema = hBaseTableSchema;
         this.hBaseColumnSchemaList = hBaseColumnSchemaList;
         init();
@@ -24,7 +25,7 @@ public class DefaultHBaseTableConfig extends HBaseTableConfig {
     }
 
     @Override
-    protected List<HBaseColumnSchema> providedAllHBaseColumnSchema() {
+    protected List<HBaseColumn> providedAllHBaseColumnSchema() {
         return this.hBaseColumnSchemaList;
     }
 }

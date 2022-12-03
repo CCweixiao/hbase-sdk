@@ -3,6 +3,8 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
+import java.util.Date;
+
 /**
  * @author leojie 2020/11/28 7:56 下午
  */
@@ -26,5 +28,9 @@ public class BooleanHandler extends AbstractTypeHandler {
     public String convertToString(Object val) {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Boolean or boolean.");
         return val.toString();
+    }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Boolean::new);
     }
 }

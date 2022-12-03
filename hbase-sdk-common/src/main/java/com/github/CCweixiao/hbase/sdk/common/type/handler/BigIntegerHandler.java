@@ -50,4 +50,8 @@ public class BigIntegerHandler extends BigDecimalHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not BigInteger.");
         return val.toString();
     }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Boolean::new);
+    }
 }

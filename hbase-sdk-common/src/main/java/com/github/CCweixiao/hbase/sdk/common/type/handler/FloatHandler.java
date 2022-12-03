@@ -26,4 +26,8 @@ public class FloatHandler extends IntegerHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Float or float.");
         return val.toString();
     }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Float::parseFloat);
+    }
 }

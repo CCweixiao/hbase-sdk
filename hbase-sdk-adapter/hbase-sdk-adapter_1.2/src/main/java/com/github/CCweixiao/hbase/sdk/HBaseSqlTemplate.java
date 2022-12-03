@@ -6,9 +6,9 @@ import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.util.TreeUtil;
@@ -82,7 +82,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         // cid List
         HBaseSQLParser.SelectCidListContext selectCidListContext = context.selectCidList();
-        final List<HBaseColumnSchema> queryHBaseColumnSchemaList = HBaseSQLContextUtil.parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
+        final List<HBaseColumn> queryHBaseColumnSchemaList = HBaseSQLContextUtil.parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
         ObjUtil.check(!queryHBaseColumnSchemaList.isEmpty());
 
         // filter
@@ -93,7 +93,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         RowKey startRowKey = rowKeyRange.getStart();
         RowKey endRowKey = rowKeyRange.getEnd();
         List<RowKey> queryInRows = rowKeyRange.getContainsSomeKeys();
-        final RowKeyTextFunc rowKeyFunc = rowKeyRange.getRowKeyFunc();
+        final RowKeyFunc rowKeyFunc = rowKeyRange.getRowKeyFunc();
         QueryExtInfo queryExtInfo = HBaseSQLContextUtil.parseQueryExtInfo(context);
 
         // in 查询
@@ -187,7 +187,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         String tableName = TreeUtil.parseTableName(progContext);
         checkTableName(tableName);
 
-        List<HBaseColumnSchema> insertHbaseColumnSchemaList = HBaseSQLContextUtil
+        List<HBaseColumn> insertHbaseColumnSchemaList = HBaseSQLContextUtil
                 .parseHBaseColumnSchemaList(hBaseTableConfig, context.cidList());
 
         final List<HBaseSQLParser.InsertValueContext> insertValueContextList = context.insertValueList().insertValue();
@@ -207,7 +207,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         Put put = new Put(rowKey.toBytes());
 
         for (int i = 0; i < insertHbaseColumnSchemaList.size(); i++) {
-            HBaseColumnSchema hbaseColumnSchema = insertHbaseColumnSchemaList.get(i);
+            HBaseColumn hbaseColumnSchema = insertHbaseColumnSchemaList.get(i);
 
             HBaseSQLParser.InsertValueContext insertValueContext = insertValueContextList.get(i);
             Object value = HBaseSQLContextUtil.parseInsertConstantValue(hbaseColumnSchema, insertValueContext, runtimeSetting);
@@ -241,7 +241,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
         //cid list
         HBaseSQLParser.SelectCidListContext selectCidListContext = context.selectCidList();
-        List<HBaseColumnSchema> deleteHbaseColumnSchemaList = HBaseSQLContextUtil
+        List<HBaseColumn> deleteHbaseColumnSchemaList = HBaseSQLContextUtil
                 .parseHBaseColumnSchemaList(hBaseTableConfig, selectCidListContext);
 
         ObjUtil.check(!deleteHbaseColumnSchemaList.isEmpty());
@@ -273,7 +273,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     }
 
     private void deleteInRowKeys(String tableName, List<RowKey> rowKeys, Filter filter,
-                                 List<HBaseColumnSchema> deleteHBaseColumnSchemaList, Date ts) {
+                                 List<HBaseColumn> deleteHBaseColumnSchemaList, Date ts) {
         if (rowKeys == null || rowKeys.isEmpty()) {
             return;
         }
@@ -294,7 +294,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     }
 
     private void deleteInternalWithScanFirst(String tableName, RowKey startRowKey, RowKey endRowKey,
-                                             Filter filter, List<HBaseColumnSchema> deleteHBaseColumnSchemaList, Date ts) {
+                                             Filter filter, List<HBaseColumn> deleteHBaseColumnSchemaList, Date ts) {
         final int deleteBatch = getDeleteBatch();
 
         while (true) {

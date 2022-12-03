@@ -7,9 +7,9 @@ import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.config.DefaultHBaseSQLRuntimeSetting;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
@@ -53,8 +53,8 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         return Bytes.toBytes(tableName);
     }
 
-    protected HBaseColumnSchema columnSchema(String family, String qualifier) {
-        return hBaseTableConfig.gethBaseTableSchema().findColumnSchema(family, qualifier);
+    protected HBaseColumn columnSchema(String family, String qualifier) {
+        return hBaseTableConfig.gethBaseTableSchema().findColumn(family, qualifier);
     }
 
     protected int getScanCaching() {
@@ -65,7 +65,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         return runtimeSetting.getDeleteBatchSize();
     }
 
-    protected Get constructGet(RowKey rowKey, Filter filter, QueryExtInfo queryExtInfo, List<HBaseColumnSchema> hbaseColumnSchemaList) {
+    protected Get constructGet(RowKey rowKey, Filter filter, QueryExtInfo queryExtInfo, List<HBaseColumn> hbaseColumnSchemaList) {
         Get get = constructGet(rowKey, filter);
         if (queryExtInfo != null) {
             if (queryExtInfo.isMaxVersionSet()) {
@@ -106,9 +106,9 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
     }
 
 
-    protected Delete constructDelete(Result result, List<HBaseColumnSchema> hbaseColumnSchemaList, Date ts) {
+    protected Delete constructDelete(Result result, List<HBaseColumn> hbaseColumnSchemaList, Date ts) {
         Delete delete = new Delete(result.getRow());
-        for (HBaseColumnSchema hBaseColumnSchema : hbaseColumnSchemaList) {
+        for (HBaseColumn hBaseColumnSchema : hbaseColumnSchemaList) {
             byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
             byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getQualifier());
             if (ts == null) {
@@ -120,7 +120,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         return delete;
     }
 
-    protected List<HBaseCellResult> convertToHBaseCellResultList(Result result, RowKeyTextFunc rowKeyTextFunc) {
+    protected List<HBaseCellResult> convertToHBaseCellResultList(Result result, RowKeyFunc rowKeyTextFunc) {
         final Cell[] cells = result.rawCells();
         if (cells == null || cells.length == 0) {
             return new ArrayList<>();
@@ -135,7 +135,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
                 familyStr = Bytes.toString(CellUtil.cloneFamily(cell));
                 qualifierStr = Bytes.toString(CellUtil.cloneQualifier(cell));
                 byte[] hbaseVal = CellUtil.cloneValue(cell);
-                final HBaseColumnSchema hBaseColumnSchema = columnSchema(familyStr, qualifierStr);
+                final HBaseColumn hBaseColumnSchema = columnSchema(familyStr, qualifierStr);
                 final TypeHandler typeHandler = hBaseColumnSchema.getTypeHandler();
                 Object valueObject = typeHandler.toObject(hBaseColumnSchema.getType(), hbaseVal);
 
@@ -168,8 +168,8 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
      * @param hbaseColumnSchemaList 字段列表
      * @param scan                  scan
      */
-    protected void applyRequestFamilyAndQualifier(List<HBaseColumnSchema> hbaseColumnSchemaList, Scan scan) {
-        for (HBaseColumnSchema hbaseColumnSchema : hbaseColumnSchemaList) {
+    protected void applyRequestFamilyAndQualifier(List<HBaseColumn> hbaseColumnSchemaList, Scan scan) {
+        for (HBaseColumn hbaseColumnSchema : hbaseColumnSchemaList) {
             scan.addColumn(Bytes.toBytes(hbaseColumnSchema.getFamily()),
                     Bytes.toBytes(hbaseColumnSchema.getQualifier()));
         }
@@ -179,7 +179,7 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         ObjUtil.checkEquals(tableName, hBaseTableConfig.gethBaseTableSchema().getTableName());
     }
 
-    protected byte[] convertValueToBytes(Object value, HBaseColumnSchema hbaseColumnSchema) {
+    protected byte[] convertValueToBytes(Object value, HBaseColumn hbaseColumnSchema) {
         TypeHandler typeHandler = hbaseColumnSchema.getTypeHandler();
         return typeHandler.toBytes(hbaseColumnSchema.getType(), value);
     }

@@ -27,4 +27,8 @@ public class StringHandler extends AbstractTypeHandler {
     public String convertToString(Object val) {
         return val.toString();
     }
+
+    public Object convertObjectFromStr(String value) {
+        return value;
+    }
 }

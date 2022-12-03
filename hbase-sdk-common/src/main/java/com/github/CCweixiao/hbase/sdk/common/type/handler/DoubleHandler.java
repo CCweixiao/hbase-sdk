@@ -34,4 +34,8 @@ public class DoubleHandler extends LongHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Double or double.");
         return val.toString();
     }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Double::parseDouble);
+    }
 }

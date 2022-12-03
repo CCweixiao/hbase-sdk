@@ -320,6 +320,13 @@ public class HBaseSQLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitRowkeyrange_prefix(HBaseSQLParser.Rowkeyrange_prefixContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitRowkey_Wrapper(HBaseSQLParser.Rowkey_WrapperContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -327,7 +334,7 @@ public class HBaseSQLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx) { return visitChildren(ctx); }
+	@Override public T visitRowkey_Constant(HBaseSQLParser.Rowkey_ConstantContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -341,14 +348,14 @@ public class HBaseSQLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRowkey_hbasestart(HBaseSQLParser.Rowkey_hbasestartContext ctx) { return visitChildren(ctx); }
+	@Override public T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRowkey_hbaseend(HBaseSQLParser.Rowkey_hbaseendContext ctx) { return visitChildren(ctx); }
+	@Override public T visitRowkey_inRangeFuncKey(HBaseSQLParser.Rowkey_inRangeFuncKeyContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -376,49 +383,49 @@ public class HBaseSQLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTsexp(HBaseSQLParser.TsexpContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTsequal(HBaseSQLParser.TsequalContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCidList_CidList(HBaseSQLParser.CidList_CidListContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTsExp(HBaseSQLParser.TsExpContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCidList_Star(HBaseSQLParser.CidList_StarContext ctx) { return visitChildren(ctx); }
+	@Override public T visitColList_Star(HBaseSQLParser.ColList_StarContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCidList_Regx(HBaseSQLParser.CidList_RegxContext ctx) { return visitChildren(ctx); }
+	@Override public T visitColList_ColList(HBaseSQLParser.ColList_ColListContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCidList(HBaseSQLParser.CidListContext ctx) { return visitChildren(ctx); }
+	@Override public T visitColList(HBaseSQLParser.ColListContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitCid(HBaseSQLParser.CidContext ctx) { return visitChildren(ctx); }
+	@Override public T visitCol(HBaseSQLParser.ColContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitRowKey_FunctionName(HBaseSQLParser.RowKey_FunctionNameContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFuncname(HBaseSQLParser.FuncnameContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -482,6 +489,13 @@ public class HBaseSQLBaseVisitor<T> extends AbstractParseTreeVisitor<T> implemen
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitConstant(HBaseSQLParser.ConstantContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitTimestamp(HBaseSQLParser.TimestampContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

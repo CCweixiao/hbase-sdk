@@ -11,9 +11,9 @@ import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseColumnSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void initIHBaseSqlTemplate() {
-        List<HBaseColumnSchema> hBaseColumnSchemas = createHBaseColumnSchemaList();
+        List<HBaseColumn> hBaseColumnSchemas = createHBaseColumnSchemaList();
 
         HBaseTableSchema hBaseTableSchema = new HBaseTableSchema();
         hBaseTableSchema.setTableName("test:test_sql");
@@ -54,25 +54,25 @@ public abstract class AbstractHBaseTemplateTest {
                 .properties(getProperties()).build();
     }
 
-    public List<HBaseColumnSchema> createHBaseColumnSchemaList() {
-        List<HBaseColumnSchema> hBaseColumnSchemas = new ArrayList<>();
+    public List<HBaseColumn> createHBaseColumnSchemaList() {
+        List<HBaseColumn> hBaseColumnSchemas = new ArrayList<>();
 
-        HBaseColumnSchema hBaseColumnSchema1 = new HBaseColumnSchema();
+        HBaseColumn hBaseColumnSchema1 = new HBaseColumn();
         hBaseColumnSchema1.setFamily("f1");
         hBaseColumnSchema1.setQualifier("id");
         hBaseColumnSchema1.setTypeName("string");
 
-        HBaseColumnSchema hBaseColumnSchema2 = new HBaseColumnSchema();
+        HBaseColumn hBaseColumnSchema2 = new HBaseColumn();
         hBaseColumnSchema2.setFamily("f1");
         hBaseColumnSchema2.setQualifier("name");
         hBaseColumnSchema2.setTypeName("string");
 
-        HBaseColumnSchema hBaseColumnSchema3 = new HBaseColumnSchema();
+        HBaseColumn hBaseColumnSchema3 = new HBaseColumn();
         hBaseColumnSchema3.setFamily("f1");
         hBaseColumnSchema3.setQualifier("age");
         hBaseColumnSchema3.setTypeName("int");
 
-        HBaseColumnSchema hBaseColumnSchema4 = new HBaseColumnSchema();
+        HBaseColumn hBaseColumnSchema4 = new HBaseColumn();
         hBaseColumnSchema4.setFamily("f2");
         hBaseColumnSchema4.setQualifier("address");
         hBaseColumnSchema4.setTypeName("string");

@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type;
 
+import com.github.CCweixiao.hbase.sdk.common.HBaseColumnTypeCastException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 
@@ -78,4 +79,15 @@ public abstract class AbstractTypeHandler implements TypeHandler {
         }
         return toObject(type, bytes);
     }
+
+    @Override
+    public <T> Object toObjectFromStr(String value, TypeConverter<T> typeConverter) {
+        try {
+            return typeConverter.convertTo(value);
+        } catch (Exception e) {
+            throw new HBaseColumnTypeCastException(String.format("The value %s cast type error", value), e);
+        }
+    }
+
+    protected abstract Object convertObjectFromStr(String value);
 }

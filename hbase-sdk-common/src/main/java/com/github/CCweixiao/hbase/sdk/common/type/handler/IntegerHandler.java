@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 
+import com.alibaba.fastjson2.JSON;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
@@ -43,5 +44,9 @@ public class IntegerHandler extends AbstractTypeHandler {
     public String convertToString(Object val) {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Integer or int.");
         return val.toString();
+    }
+
+    public Object convertObjectFromStr(String value) {
+        return toObjectFromStr(value, Integer::parseInt);
     }
 }

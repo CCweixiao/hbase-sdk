@@ -2,7 +2,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.util;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 
 /**
  * @author leojie 2022/11/13 21:18

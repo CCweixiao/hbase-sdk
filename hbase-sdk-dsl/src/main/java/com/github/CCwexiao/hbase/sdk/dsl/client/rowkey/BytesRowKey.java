@@ -1,25 +1,35 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
 
 import java.util.Arrays;
 
 /**
  * @author leojie 2020/11/28 11:58 上午
  */
-public class BytesRowKey implements RowKey {
-    private final byte[] key;
+public class BytesRowKey implements RowKey<byte[]> {
+    private final byte[] value;
 
-    public BytesRowKey(byte[] key) {
-        MyAssert.checkNotNull(key);
-        this.key = key.clone();
+    public BytesRowKey(byte[] value) {
+        MyAssert.checkNotNull(value);
+        this.value = value.clone();
     }
 
     @Override
     public byte[] toBytes() {
-        return key.clone();
+        return this.value.clone();
+    }
+
+    @Override
+    public byte[] extractValue() {
+        return this.value;
+    }
+
+    @Override
+    public ColumnType columnType() {
+        return null;
     }
 
     @Override
@@ -31,18 +41,18 @@ public class BytesRowKey implements RowKey {
             return false;
         }
         BytesRowKey that = (BytesRowKey) o;
-        return Arrays.equals(key, that.key);
+        return Arrays.equals(value, that.value);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(key);
+        return Arrays.hashCode(value);
     }
 
 
     @Override
     public String toString() {
-        return "BytesRowKey [key=" + EncodingUtil.toHexString(key) + "]";
+        return "BytesRowKey [key=" + EncodingUtil.toHexString(value) + "]";
     }
 
 }

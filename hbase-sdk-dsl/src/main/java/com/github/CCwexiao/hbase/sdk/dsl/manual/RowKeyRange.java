@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.manual;
 
-import com.github.CCwexiao.hbase.sdk.dsl.client.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkeytextfunc.RowKeyTextFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 
 import java.util.List;
 
@@ -12,7 +12,7 @@ public class RowKeyRange {
     private RowKey start;
     private RowKey end;
     private List<RowKey> containsSomeKeys;
-    private RowKeyTextFunc rowKeyFunc;
+    private RowKeyFunc rowKeyFunc;
 
     public RowKey getStart() {
         return start;
@@ -38,11 +38,11 @@ public class RowKeyRange {
         this.containsSomeKeys = containsSomeKeys;
     }
 
-    public RowKeyTextFunc getRowKeyFunc() {
+    public RowKeyFunc getRowKeyFunc() {
         return rowKeyFunc;
     }
 
-    public void setRowKeyFunc(RowKeyTextFunc rowKeyFunc) {
+    public void setRowKeyFunc(RowKeyFunc rowKeyFunc) {
         this.rowKeyFunc = rowKeyFunc;
     }
 }
