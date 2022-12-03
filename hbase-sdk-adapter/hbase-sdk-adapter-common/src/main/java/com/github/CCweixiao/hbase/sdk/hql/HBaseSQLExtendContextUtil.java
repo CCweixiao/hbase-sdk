@@ -3,7 +3,7 @@ package com.github.CCweixiao.hbase.sdk.hql;
 import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.filter.FilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import org.apache.hadoop.hbase.filter.Filter;
 
@@ -16,7 +16,7 @@ public class HBaseSQLExtendContextUtil {
 
     public static Filter parseFilter(HBaseSQLParser.WherecContext wherecContext,
                                      HBaseTableConfig hBaseTableConfig,
-                                     HBaseSQLRuntimeSetting runtimeSetting){
+                                     TableQuerySetting runtimeSetting){
         ObjUtil.checkIsNull(hBaseTableConfig);
         ObjUtil.checkIsNull(runtimeSetting);
 
@@ -26,7 +26,7 @@ public class HBaseSQLExtendContextUtil {
     private static Filter parseFilter(HBaseSQLParser.WherecContext wherecContext,
                                       HBaseTableConfig hBaseTableConfig,
                                       Map<String, Object> para,
-                                      HBaseSQLRuntimeSetting runtimeSetting) {
+                                      TableQuerySetting runtimeSetting) {
         ObjUtil.checkIsNull(hBaseTableConfig);
         ObjUtil.checkIsNull(runtimeSetting);
 

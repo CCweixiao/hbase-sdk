@@ -33,7 +33,7 @@ public enum RowKeyFunction {
         return rowKeyFunc;
     }
 
-    public RowKeyFunction findFunc(String funcName) {
+    public static RowKeyFunction findRowKeyFunc(String funcName) {
         MyAssert.checkArgument(StringUtil.isNotBlank(funcName), "The function name must not ne empty");
         funcName = funcName.trim().toLowerCase();
         for (RowKeyFunction function : RowKeyFunction.values()) {

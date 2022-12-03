@@ -9,8 +9,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.visitor.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -171,7 +170,7 @@ public class HBaseSQLContextUtil {
         return Long.parseLong(value);
     }
 
-    public static Date parseTimeStampDate(HBaseSQLParser.TsExpContext tsExpContext, HBaseSQLRuntimeSetting runtimeSetting) {
+    public static Date parseTimeStampDate(HBaseSQLParser.TsExpContext tsExpContext, TableQuerySetting runtimeSetting) {
         MyAssert.checkNotNull(tsExpContext);
         MyAssert.checkNotNull(runtimeSetting);
 
@@ -210,7 +209,7 @@ public class HBaseSQLContextUtil {
      * @param hBaseSQLRuntimeSetting HBase SQL 运行时配置
      * @return rowKey
      */
-    public static RowKey parseRowKey(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
+    public static RowKey parseRowKey(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, TableQuerySetting hBaseSQLRuntimeSetting) {
         ObjUtil.checkIsNull(rowKeyExpContext);
         ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         RowKeyConstantVisitor visitor = new RowKeyConstantVisitor(hBaseSQLRuntimeSetting);
@@ -225,7 +224,7 @@ public class HBaseSQLContextUtil {
      * @param hBaseSQLRuntimeSetting HBase SQL运行时配置
      * @return rowKey列表
      */
-    public static List<RowKey> parseRowKeyList(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
+    public static List<RowKey> parseRowKeyList(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, TableQuerySetting hBaseSQLRuntimeSetting) {
         ObjUtil.checkIsNull(rowKeyExpContext);
         ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         //RowKeyInSomeKeysVisitor visitor = new RowKeyInSomeKeysVisitor(hBaseSQLRuntimeSetting);
@@ -243,7 +242,7 @@ public class HBaseSQLContextUtil {
      * @param hBaseSQLRuntimeSetting HBase SQL 运行时配置
      * @return RowKeyTextFunc
      */
-    public static RowKeyFunc parseRowKeyFunction(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
+    public static RowKeyFunc parseRowKeyFunction(HBaseSQLParser.RowKeyExpContext rowKeyExpContext, TableQuerySetting hBaseSQLRuntimeSetting){
         ObjUtil.checkIsNull(rowKeyExpContext);
         ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
         RowKeyFunctionVisitor visitor = new RowKeyFunctionVisitor(hBaseSQLRuntimeSetting);
@@ -259,7 +258,7 @@ public class HBaseSQLContextUtil {
      * @param hBaseSQLRuntimeSetting HBase SQL 运行时配置
      * @return rowKeyRange
      */
-    public static RowKeyRange parseRowKeyRange(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting) {
+    public static RowKeyRange parseRowKeyRange(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, TableQuerySetting hBaseSQLRuntimeSetting) {
         ObjUtil.checkIsNull(rowKeyRangeContext);
         ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
 
@@ -272,7 +271,7 @@ public class HBaseSQLContextUtil {
 
     }
 
-    public static RowKeyRange parseRowKeyRange2(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, HBaseSQLRuntimeSetting hBaseSQLRuntimeSetting){
+    public static RowKeyRange parseRowKeyRange2(HBaseSQLParser.RowKeyRangeContext rowKeyRangeContext, TableQuerySetting hBaseSQLRuntimeSetting){
         ObjUtil.checkIsNull(rowKeyRangeContext);
         ObjUtil.checkIsNull(hBaseSQLRuntimeSetting);
 
@@ -286,7 +285,7 @@ public class HBaseSQLContextUtil {
 
     public static Object parseInsertConstantValue(HBaseColumn hbaseColumnSchema,
                                                   HBaseSQLParser.InsertValueContext insertValueContext,
-                                                  HBaseSQLRuntimeSetting runtimeSetting) {
+                                                  TableQuerySetting runtimeSetting) {
         ObjUtil.checkIsNull(hbaseColumnSchema);
         ObjUtil.checkIsNull(insertValueContext);
         ObjUtil.checkIsNull(runtimeSetting);
@@ -305,7 +304,7 @@ public class HBaseSQLContextUtil {
      */
     public static Object parseConstant(HBaseColumn hBaseColumnSchema,
                                        HBaseSQLParser.ConstantContext constantContext,
-                                       HBaseSQLRuntimeSetting runtimeSetting) {
+                                       TableQuerySetting runtimeSetting) {
         ObjUtil.checkIsNull(hBaseColumnSchema);
         ObjUtil.checkIsNull(constantContext);
         ObjUtil.checkIsNull(runtimeSetting);
@@ -338,7 +337,7 @@ public class HBaseSQLContextUtil {
 
     public static List<Object> parseConstantList(HBaseColumn hBaseColumnSchema,
                                                  List<HBaseSQLParser.ConstantContext> constantContextList,
-                                                 HBaseSQLRuntimeSetting runtimeSetting) {
+                                                 TableQuerySetting runtimeSetting) {
         ObjUtil.checkIsNull(hBaseColumnSchema);
         ObjUtil.checkIsNull(constantContextList);
         ObjUtil.checkIsNull(runtimeSetting);

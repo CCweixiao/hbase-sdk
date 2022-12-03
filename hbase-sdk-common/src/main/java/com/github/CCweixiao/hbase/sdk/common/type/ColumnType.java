@@ -35,12 +35,12 @@ public enum ColumnType {
     EnumType("enum", Enum.class, new EnumHandler());
 
     private final String typeName;
-    private final Class<?> clazz;
-    private final AbstractTypeHandler typeHandler;
+    private final Class<?> typeClass;
+    private final AbstractTypeHandler<?> typeHandler;
 
-    ColumnType(String typeName, Class<?> clazz, AbstractTypeHandler typeHandler) {
+    ColumnType(String typeName, Class<?> typeClass, AbstractTypeHandler<?> typeHandler) {
         this.typeName = typeName;
-        this.clazz = clazz;
+        this.typeClass = typeClass;
         this.typeHandler = typeHandler;
     }
 
@@ -48,11 +48,11 @@ public enum ColumnType {
         return typeName;
     }
 
-    public Class<?> getClazz() {
-        return clazz;
+    public Class<?> getTypeClass() {
+        return typeClass;
     }
 
-    public AbstractTypeHandler getTypeHandler() {
+    public AbstractTypeHandler<?> getTypeHandler() {
         return typeHandler;
     }
 }

@@ -6,7 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 /**
  * @author leojie 2020/11/28 7:54 下午
  */
-public class CharHandler extends AbstractTypeHandler {
+public class CharHandler extends AbstractTypeHandler<Character> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == char.class || type == Character.class;
@@ -31,9 +31,13 @@ public class CharHandler extends AbstractTypeHandler {
     }
 
     @Override
+    public String extractTargetTypeStrValue(String value) {
+        return toObjectFromStr(value, v -> v.toCharArray()[0]);
+    }
+
+    @Override
     public String convertToString(Object val) {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Character or char.");
-
         char c = (char) val;
         return String.valueOf(c);
     }

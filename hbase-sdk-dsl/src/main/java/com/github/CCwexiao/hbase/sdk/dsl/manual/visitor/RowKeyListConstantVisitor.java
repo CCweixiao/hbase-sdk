@@ -1,10 +1,9 @@
 package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
-import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,27 +11,20 @@ import java.util.List;
 /**
  * @author leojie 2020/12/6 8:27 下午
  */
-public class RowKeyListConstantVisitor extends HBaseSQLBaseVisitor<List<RowKey>> {
+public class RowKeyListConstantVisitor extends BaseVisitor<List<RowKey<?>>> {
 
-    private final HBaseSQLRuntimeSetting runtimeSetting;
-
-    public RowKeyListConstantVisitor(HBaseSQLRuntimeSetting runtimeSetting) {
-        this.runtimeSetting = runtimeSetting;
+    public RowKeyListConstantVisitor(HBaseTableSchema tableSchema) {
+        super(tableSchema);
     }
 
     @Override
-    public List<RowKey> visitRowkey_inRangeKey(HBaseSQLParser.Rowkey_inRangeKeyContext ctx) {
-        String funcName = ctx.funcname().getText();
-        final RowKeyFunc rowKeyTextFunc = runtimeSetting.findRowKeyTextFunc(funcName);
-        List<RowKey> rowKeyList = new ArrayList<>();
-
-        for (HBaseSQLParser.ConstantContext constantContext : ctx.constant()) {
-            String rowKeyText = constantContext.STRING().getText();
-            final RowKey rowKey = rowKeyTextFunc.func(rowKeyText);
-            rowKeyList.add(rowKey);
+    public List<RowKey<?>> visitRowkeyrange_insomekeys(HBaseSQLParser.Rowkeyrange_insomekeysContext ctx) {
+        MyAssert.checkNotNull(ctx);
+        List<RowKey<?>> rowKeyList = new ArrayList<>(4);
+        RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
+        for (HBaseSQLParser.RowKeyExpContext rowKeyExpContext : ctx.rowKeyExp()) {
+            rowKeyList.add(rowKeyConstantVisitor.parseRowKey(rowKeyExpContext));
         }
         return rowKeyList;
     }
-
-
 }

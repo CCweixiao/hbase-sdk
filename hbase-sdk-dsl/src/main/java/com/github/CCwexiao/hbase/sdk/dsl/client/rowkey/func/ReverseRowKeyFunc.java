@@ -1,29 +1,38 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func;
 
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.Md5PrefixRowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.BaseRowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 
 /**
  * @author leojie 2022/12/3 13:50
  */
-public class ReverseRowKeyFunc implements RowKeyFunc<String>{
+public class ReverseRowKeyFunc implements RowKeyFunc<String> {
+
     @Override
-    public RowKey<String> convert(String text) {
-        return new Md5PrefixRowKey(text);
+    public String evalFuncReturnRowValue(BaseRowKey<String> rowKey) {
+        String oriValue = rowKey.getOriValue();
+        if (StringUtil.isBlank(oriValue)) {
+            return oriValue;
+        }
+        return StringUtil.reverse(oriValue);
     }
 
     @Override
-    public String reverse(RowKey<String> rowKey) {
-        return rowKey.extractValue();
+    public String evalFuncReturnRowValue(HBaseColumn row, String value) {
+        if (StringUtil.isBlank(value)) {
+            return value;
+        }
+        return StringUtil.reverse(value);
     }
 
     @Override
-    public String funcName() {
+    public String showFuncName() {
         return "reverse";
     }
 
     @Override
-    public String desc() {
+    public String showDesc() {
         return "Reverse the row key, example reverse ( 'abcd' ) ";
     }
 }

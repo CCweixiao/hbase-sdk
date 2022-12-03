@@ -331,26 +331,12 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitRowkey_Constant(HBaseSQLParser.Rowkey_ConstantContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code rowkey_inRangeKey}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkey_inRangeKey(HBaseSQLParser.Rowkey_inRangeKeyContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code rowkey_FuncConstant}
 	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkey_inRangeFuncKey}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkey_inRangeFuncKey(HBaseSQLParser.Rowkey_inRangeFuncKeyContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code tsrange_startAndEnd}
 	 * labeled alternative in {@link HBaseSQLParser#tsRange}.

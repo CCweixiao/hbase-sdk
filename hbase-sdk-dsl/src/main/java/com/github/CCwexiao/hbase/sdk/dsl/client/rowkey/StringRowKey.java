@@ -5,11 +5,9 @@ import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 /**
  * @author leojie 2022/12/3 12:51
  */
-public class StringRowKey implements RowKey<String> {
-    protected String value;
-
+public class StringRowKey extends BaseRowKey<String> {
     public StringRowKey(String value) {
-        this.value = value;
+        super(value, null);
     }
 
     @Override
@@ -18,7 +16,7 @@ public class StringRowKey implements RowKey<String> {
     }
 
     @Override
-    public String extractValue() {
+    public String computeRowValue() {
         return this.value;
     }
 

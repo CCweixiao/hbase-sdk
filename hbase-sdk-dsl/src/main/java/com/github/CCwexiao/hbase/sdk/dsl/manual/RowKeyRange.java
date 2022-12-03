@@ -1,48 +1,37 @@
 package com.github.CCwexiao.hbase.sdk.dsl.manual;
 
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
-
 import java.util.List;
 
 /**
  * @author leojie 2020/11/28 10:59 上午
  */
 public class RowKeyRange {
-    private RowKey start;
-    private RowKey end;
-    private List<RowKey> containsSomeKeys;
-    private RowKeyFunc rowKeyFunc;
+    private RowKey<?> start;
+    private RowKey<?> end;
+    private List<RowKey<?>> containsSomeKeys;
 
-    public RowKey getStart() {
+    public RowKey<?> getStart() {
         return start;
     }
 
-    public void setStart(RowKey start) {
+    public void setStart(RowKey<?> start) {
         this.start = start;
     }
 
-    public RowKey getEnd() {
+    public RowKey<?> getEnd() {
         return end;
     }
 
-    public void setEnd(RowKey end) {
+    public void setEnd(RowKey<?> end) {
         this.end = end;
     }
 
-    public List<RowKey> getContainsSomeKeys() {
+    public List<RowKey<?>> getContainsSomeKeys() {
         return containsSomeKeys;
     }
 
-    public void setContainsSomeKeys(List<RowKey> containsSomeKeys) {
+    public void setContainsSomeKeys(List<RowKey<?>> containsSomeKeys) {
         this.containsSomeKeys = containsSomeKeys;
-    }
-
-    public RowKeyFunc getRowKeyFunc() {
-        return rowKeyFunc;
-    }
-
-    public void setRowKeyFunc(RowKeyFunc rowKeyFunc) {
-        this.rowKeyFunc = rowKeyFunc;
     }
 }

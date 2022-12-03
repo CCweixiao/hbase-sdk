@@ -5,8 +5,8 @@ import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser.*;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
 import org.apache.hadoop.hbase.filter.*;
@@ -23,10 +23,10 @@ import java.util.Map;
 public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
     private HBaseTableConfig hBaseTableConfig;
     private Map<String, Object> para;
-    private HBaseSQLRuntimeSetting runtimeSetting;
+    private TableQuerySetting runtimeSetting;
 
     public FilterVisitor(HBaseTableConfig hBaseTableConfig,
-                         Map<String, Object> para, HBaseSQLRuntimeSetting runtimeSetting) {
+                         Map<String, Object> para, TableQuerySetting runtimeSetting) {
         this.hBaseTableConfig = hBaseTableConfig;
         this.para = para;
         this.runtimeSetting = runtimeSetting;

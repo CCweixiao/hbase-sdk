@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 /**
  * @author leojie 2022/11/13 13:03
  */
-public abstract class AbstractTypeHandler implements TypeHandler {
+public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
     /**
      * Determine whether the type meets the conditions for processing.
      *
@@ -18,12 +18,13 @@ public abstract class AbstractTypeHandler implements TypeHandler {
      */
     protected abstract boolean matchTypeHandler(Class<?> type);
 
-    protected abstract byte[] convertToBytes(Class<?> type, Object value);
+    protected abstract byte[] convertToBytes(Class<?> type, Object obj);
 
     protected abstract Object convertToObject(Class<?> type, byte[] bytes);
 
+    @Override
     public byte[] toBytes(Class<?> type, Object value) {
-        MyAssert.notNull(type, "The type of value must be not null.");
+        MyAssert.notNull(type, "The class type of value must be not null.");
         if (value == null) {
             return null;
         }
@@ -34,13 +35,13 @@ public abstract class AbstractTypeHandler implements TypeHandler {
     }
 
     @Override
-    public byte[] convertToBytes(Object val) {
-        return toBytes(val.getClass(), val);
+    public byte[] convertToBytes(Object value) {
+        return toBytes(value.getClass(), value);
     }
 
     @Override
-    public ByteBuffer toByteBuffer(Class<?> type, Object val) {
-        byte[] bytes = toBytes(type, val);
+    public ByteBuffer toByteBuffer(Class<?> type, Object value) {
+        byte[] bytes = toBytes(type, value);
         if (bytes == null || bytes.length == 0) {
             return null;
         }
@@ -51,10 +52,11 @@ public abstract class AbstractTypeHandler implements TypeHandler {
     }
 
     @Override
-    public ByteBuffer convertToByteBuffer(Object val) {
-        return toByteBuffer(val.getClass(), val);
+    public ByteBuffer convertToByteBuffer(Object value) {
+        return toByteBuffer(value.getClass(), value);
     }
 
+    @Override
     public Object toObject(Class<?> type, byte[] bytes) {
         MyAssert.notNull(type, "The type of value must be not null.");
         if (!matchTypeHandler(type)) {
@@ -81,13 +83,13 @@ public abstract class AbstractTypeHandler implements TypeHandler {
     }
 
     @Override
-    public <T> Object toObjectFromStr(String value, TypeConverter<T> typeConverter) {
+    public String toObjectFromStr(String value, TypeConverter<T> typeConverter) {
         try {
-            return typeConverter.convertTo(value);
+            return String.valueOf(typeConverter.convertTo(value));
         } catch (Exception e) {
             throw new HBaseColumnTypeCastException(String.format("The value %s cast type error", value), e);
         }
     }
 
-    protected abstract Object convertObjectFromStr(String value);
+    public abstract String extractTargetTypeStrValue(String value);
 }

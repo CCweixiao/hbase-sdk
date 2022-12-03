@@ -20,8 +20,8 @@ import java.util.Map;
  */
 public final class TypeHandlerFactory {
     private static final EnumHandler ENUM_HANDLER = new EnumHandler();
-    private static final Map<Class<?>, AbstractTypeHandler> DEFAULT_HANDLERS = new HashMap<>(10);
-    private static volatile Map<String, AbstractTypeHandler> typeHandlerCache;
+    private static final Map<Class<?>, AbstractTypeHandler<?>> DEFAULT_HANDLERS = new HashMap<>(10);
+    private static volatile Map<String, AbstractTypeHandler<?>> typeHandlerCache;
 
     private TypeHandlerFactory() {
 
@@ -51,7 +51,7 @@ public final class TypeHandlerFactory {
         DEFAULT_HANDLERS.put(HexBytes.class, new HexBytesHandler());
     }
 
-    public static AbstractTypeHandler findTypeHandler(Class<?> type) {
+    public static AbstractTypeHandler<?> findTypeHandler(Class<?> type) {
         MyAssert.notNull(type);
         if (type.isEnum()) {
             return ENUM_HANDLER;
@@ -60,12 +60,12 @@ public final class TypeHandlerFactory {
     }
 
     public static byte[] toBytes(Class<?> type, Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(type);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(type);
         return typeHandler.toBytes(type, val);
     }
 
     public static Object toObject(Class<?> type, byte[] bytes) {
-        AbstractTypeHandler typeHandler = findTypeHandler(type);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(type);
         return typeHandler.toObject(type, bytes);
     }
 
@@ -74,22 +74,22 @@ public final class TypeHandlerFactory {
     }
 
     public static byte[] toBytes(Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(val.getClass());
         return typeHandler.convertToBytes(val);
     }
 
     public static ByteBuffer toByteBuffer(Class<?> type, Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(type);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(type);
         return typeHandler.toByteBuffer(type, val);
     }
 
     public static Object toObject(Class<?> type, ByteBuffer buffer) {
-        AbstractTypeHandler typeHandler = findTypeHandler(type);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(type);
         return typeHandler.toObject(type, buffer);
     }
 
     public static String toStrFromBuffer(ByteBuffer buffer) {
-        AbstractTypeHandler typeHandler = new StringHandler();
+        AbstractTypeHandler<?> typeHandler = new StringHandler();
         Object val = typeHandler.toObject(String.class, buffer);
         if (val == null) {
             return "";
@@ -98,23 +98,23 @@ public final class TypeHandlerFactory {
     }
 
     public static ByteBuffer toByteBuffer(Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(val.getClass());
         return typeHandler.convertToByteBuffer(val);
     }
 
     public static ByteBuffer toStrByteBuffer(Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(val.getClass());
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(val.getClass());
         String strVal = typeHandler.convertToString(val);
         return toByteBufferFromStr(strVal);
     }
 
     public static ByteBuffer toByteBufferFromStr(String val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(String.class);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(String.class);
         return typeHandler.convertToByteBuffer(val);
     }
 
     @Deprecated
-    public static AbstractTypeHandler findTypeHandler(String type) {
+    public static AbstractTypeHandler<?> findTypeHandler(String type) {
         ObjUtil.checkEmptyString(type);
         if (typeHandlerCache == null || !typeHandlerCache.containsKey(type)) {
             synchronized (TypeHandlerFactory.class) {
@@ -139,13 +139,13 @@ public final class TypeHandlerFactory {
 
     @Deprecated
     public static byte[] toBytes(String typeClassName, Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(typeClassName);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(typeClassName);
         return typeHandler.convertToBytes(val);
     }
 
     @Deprecated
     public static ByteBuffer toByteBuffer(String typeClassName, Object val) {
-        AbstractTypeHandler typeHandler = findTypeHandler(typeClassName);
+        AbstractTypeHandler<?> typeHandler = findTypeHandler(typeClassName);
         return typeHandler.convertToByteBuffer(val);
     }
 
@@ -169,7 +169,7 @@ public final class TypeHandlerFactory {
 
 
         byte[] bytes4 = TypeHandlerFactory.toBytes(new BigInteger("10000001112121"));
-        BigInteger o2 = (BigInteger)TypeHandlerFactory.toObject(BigInteger.class, bytes4);
+        BigInteger o2 = (BigInteger) TypeHandlerFactory.toObject(BigInteger.class, bytes4);
         System.out.println(o2);
     }
 }

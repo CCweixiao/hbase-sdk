@@ -1,13 +1,13 @@
-package com.github.CCwexiao.hbase.sdk.dsl.config;
+package com.github.CCwexiao.hbase.sdk.dsl.model;
 
 /**
  * @author leojie 2022/12/3 11:13
  */
-public class HBaseSQLRuntimeSetting {
-    private int scanCaching;
-    private int scanBatch;
-    private boolean scanCacheBlocks;
-    private int deleteBatch;
+public class TableQuerySetting {
+    private int scanCaching = 1000;
+    private int scanBatch = 100;
+    private boolean scanCacheBlocks = true;
+    private int deleteBatch = 100;
 
     public int getScanCaching() {
         return scanCaching;

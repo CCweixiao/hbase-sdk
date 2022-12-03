@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 /**
  * @author leojie 2020/11/28 7:48 下午
  */
-public class StringHandler extends AbstractTypeHandler {
+public class StringHandler extends AbstractTypeHandler<String> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == String.class;
@@ -19,7 +19,7 @@ public class StringHandler extends AbstractTypeHandler {
     }
 
     @Override
-    protected Object convertToObject(Class<?> type, byte[] bytes) {
+    protected String convertToObject(Class<?> type, byte[] bytes) {
         return new String(bytes, Charset.defaultCharset());
     }
 
@@ -28,7 +28,8 @@ public class StringHandler extends AbstractTypeHandler {
         return val.toString();
     }
 
-    public Object convertObjectFromStr(String value) {
+    @Override
+    public String extractTargetTypeStrValue(String value) {
         return value;
     }
 }

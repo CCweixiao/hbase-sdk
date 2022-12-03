@@ -4,11 +4,11 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlColValueAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.*;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -22,18 +22,26 @@ import java.util.Map;
  */
 public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
     protected HBaseTableSchema tableSchema;
-    protected HBaseSQLRuntimeSetting sqlRuntimeSetting;
+    protected HBaseColumn column;
+
+    public BaseVisitor() {
+        this(null, null);
+    }
 
     public BaseVisitor(HBaseTableSchema tableSchema) {
-        this.tableSchema = tableSchema;
+        this(tableSchema, null);
     }
 
-    public BaseVisitor(HBaseTableSchema tableSchema, HBaseSQLRuntimeSetting sqlRuntimeSetting) {
-        this.tableSchema = tableSchema;
-        this.sqlRuntimeSetting = sqlRuntimeSetting;
+    public BaseVisitor(HBaseColumn column) {
+        this(null, column);
     }
 
-    protected HBaseColumn extractColumnSchema(HBaseSQLParser.ColContext colContext) {
+    public BaseVisitor(HBaseTableSchema tableSchema, HBaseColumn column) {
+        this.tableSchema = tableSchema;
+        this.column = column;
+    }
+
+    public HBaseColumn extractColumnSchema(HBaseSQLParser.ColContext colContext) {
         MyAssert.checkNotNull(colContext);
 
         String col = colContext.STRING().getText();
@@ -47,7 +55,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         throw new HBaseSqlAnalysisException("Parse hbase column schema error. col=" + col);
     }
 
-    protected List<HBaseColumn> extractColumnSchemaList(HBaseSQLParser.ColListContext colListContext) {
+    public List<HBaseColumn> extractColumnSchemaList(HBaseSQLParser.ColListContext colListContext) {
         MyAssert.checkNotNull(colListContext);
 
         List<HBaseColumn> columnList = new ArrayList<>();
@@ -57,7 +65,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return columnList;
     }
 
-    protected Object extractParams(HBaseSQLParser.VarContext varContext, Map<String, Object> params) {
+    public Object extractParam(HBaseSQLParser.VarContext varContext, Map<String, Object> params) {
         MyAssert.checkNotNull(varContext);
         MyAssert.checkNotNull(params);
         String var = varContext.STRING().getText();
@@ -67,7 +75,18 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return obj;
     }
 
-    protected HBaseSQLParser.SelecthqlcContext parseSelectHqlContext(HBaseSQLParser.ProgContext progContext) {
+    public List<Object> extractParasList(List<HBaseSQLParser.VarContext> varContextList, Map<String, Object> para) {
+        MyAssert.checkNotNull(varContextList);
+        MyAssert.checkNotNull(para);
+
+        List<Object> result = new ArrayList<>();
+        for (HBaseSQLParser.VarContext varContext : varContextList) {
+            result.add(extractParam(varContext, para));
+        }
+        return result;
+    }
+
+    public HBaseSQLParser.SelecthqlcContext parseSelectHqlContext(HBaseSQLParser.ProgContext progContext) {
         MyAssert.checkNotNull(progContext);
         HBaseSQLParser.SelectHqlClContext selectHqlClContext = (HBaseSQLParser.SelectHqlClContext) progContext;
         HBaseSQLParser.SelecthqlcContext result = selectHqlClContext.selecthqlc();
@@ -75,7 +94,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return result;
     }
 
-    protected HBaseSQLParser.InserthqlcContext parseInsertHqlContext(HBaseSQLParser.ProgContext progContext) {
+    public HBaseSQLParser.InserthqlcContext parseInsertHqlContext(HBaseSQLParser.ProgContext progContext) {
         MyAssert.checkNotNull(progContext);
         HBaseSQLParser.InsertHqlClContext insertHqlClContext = (HBaseSQLParser.InsertHqlClContext) progContext;
         HBaseSQLParser.InserthqlcContext result = insertHqlClContext.inserthqlc();
@@ -83,7 +102,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return result;
     }
 
-    protected HBaseSQLParser.DeletehqlcContext parseDeleteHqlContext(HBaseSQLParser.ProgContext progContext) {
+    public HBaseSQLParser.DeletehqlcContext parseDeleteHqlContext(HBaseSQLParser.ProgContext progContext) {
         MyAssert.checkNotNull(progContext);
         HBaseSQLParser.DeleteHqlClContext deleteHqlClContext = (HBaseSQLParser.DeleteHqlClContext) progContext;
         HBaseSQLParser.DeletehqlcContext result = deleteHqlClContext.deletehqlc();
@@ -91,7 +110,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return result;
     }
 
-    protected long parseTimeStamp(HBaseSQLParser.TsExpContext tsExpContext) {
+    public long parseTimeStamp(HBaseSQLParser.TsExpContext tsExpContext) {
         MyAssert.checkNotNull(tsExpContext);
         String value = tsExpContext.timestamp().getText();
         MyAssert.checkArgument(StringUtil.isNotBlank(value), "The value of timestamp must not be empty.");
@@ -103,26 +122,22 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         }
     }
 
-    protected Date parseTimeStampDate(HBaseSQLParser.TsExpContext tsExpContext) {
+    public Date parseTimeStampDate(HBaseSQLParser.TsExpContext tsExpContext) {
         long timestamp = parseTimeStamp(tsExpContext);
         Date date = new Date(timestamp);
         MyAssert.checkNotNull(date);
         return date;
     }
 
-    protected Object parseConstant(HBaseColumn column, HBaseSQLParser.ConstantContext constantContext) {
+    public Object parseConstant(HBaseColumn column, HBaseSQLParser.ConstantContext constantContext) {
         MyAssert.checkNotNull(column);
         MyAssert.checkNotNull(constantContext);
-
         String constant = constantContext.STRING().getText();
-        MyAssert.checkArgument(StringUtil.isNotBlank(constant), "The constant must not be empty.");
-
-
-        Object obj = runtimeSetting.interpret(hBaseColumnSchema.getType(), constant);
-        ObjUtil.checkIsNull(obj);
+        MyAssert.checkArgument(StringUtil.isNotBlank(constant), "The constant value must not be empty.");
+        Object obj = column.getColumnType().getTypeHandler().extractTargetTypeStrValue(constant);
+        MyAssert.checkNotNull(obj);
         return obj;
     }
-
 
 
     public HBaseTableSchema getTableSchema() {
@@ -133,11 +148,15 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         this.tableSchema = tableSchema;
     }
 
-    public HBaseSQLRuntimeSetting getSqlRuntimeSetting() {
-        return sqlRuntimeSetting;
+    public TableQuerySetting getSqlRuntimeSetting() {
+        return this.tableSchema.getTableQuerySetting();
     }
 
-    public void setSqlRuntimeSetting(HBaseSQLRuntimeSetting sqlRuntimeSetting) {
-        this.sqlRuntimeSetting = sqlRuntimeSetting;
+    public RowKey<byte[]> startRow() {
+        return new BytesRowKey(new byte[0]);
+    }
+
+    public RowKey<byte[]> endRow() {
+        return new BytesRowKey(new byte[0]);
     }
 }

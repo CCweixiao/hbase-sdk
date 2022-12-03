@@ -1,7 +1,10 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func;
 
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.Md5PrefixRowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
+import cn.hutool.crypto.digest.DigestUtil;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.BaseRowKey;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 
 /**
  * @author leojie 2022/12/3 13:42
@@ -24,22 +27,27 @@ public class Md5PrefixRowKeyFunc implements RowKeyFunc<String> {
     }
 
     @Override
-    public RowKey<String> convert(String text) {
-        return new Md5PrefixRowKey(text, this.prefixLength, this.prefixContactChar);
+    public String evalFuncReturnRowValue(BaseRowKey<String> rowKey) {
+        String oriValue = rowKey.getOriValue();
+        MyAssert.checkArgument(StringUtil.isNotBlank(oriValue), "The value of row is not empty.");
+        String prefix = DigestUtil.md5Hex(oriValue).substring(0, prefixLength);
+        return prefix.concat(prefixContactChar).concat(oriValue);
     }
 
     @Override
-    public String reverse(RowKey<String> rowKey) {
-        return rowKey.extractValue();
+    public String evalFuncReturnRowValue(HBaseColumn row, String value) {
+        MyAssert.checkArgument(StringUtil.isNotBlank(value), "The value of row is not empty.");
+        String prefix = DigestUtil.md5Hex(value).substring(0, prefixLength);
+        return prefix.concat(prefixContactChar).concat(value);
     }
 
     @Override
-    public String funcName() {
+    public String showFuncName() {
         return "md5_prefix";
     }
 
     @Override
-    public String desc() {
+    public String showDesc() {
         return "Prefix the fixed bits after the rowkey splicing MD5. example: md5_prefix ( 'abcdef' ) " +
                 ", md5_prefix ( abcdef , 4), md5_prefix ( abcdef , 4, '|')";
     }

@@ -1,11 +1,13 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.ByteUtil;
 
 /**
  * @author leojie 2020/11/28 7:53 下午
  */
-public class DoubleHandler extends LongHandler {
+public class DoubleHandler extends AbstractTypeHandler<Double> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == double.class || type == Double.class;
@@ -17,7 +19,7 @@ public class DoubleHandler extends LongHandler {
     }
 
     protected byte[] double2Bytes(double longValue) {
-        return long2Bytes(Double.doubleToLongBits(longValue));
+        return ByteUtil.long2Bytes(Double.doubleToLongBits(longValue));
     }
 
     @Override
@@ -26,7 +28,7 @@ public class DoubleHandler extends LongHandler {
     }
 
     protected double bytes2Double(byte[] bytes) {
-        return Double.longBitsToDouble(bytes2Long(bytes));
+        return Double.longBitsToDouble(ByteUtil.bytes2Long(bytes));
     }
 
     @Override
@@ -34,8 +36,8 @@ public class DoubleHandler extends LongHandler {
         MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Double or double.");
         return val.toString();
     }
-
-    public Object convertObjectFromStr(String value) {
+    @Override
+    public String extractTargetTypeStrValue(String value) {
         return toObjectFromStr(value, Double::parseDouble);
     }
 }

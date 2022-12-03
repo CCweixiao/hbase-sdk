@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler.ext;
 
 
+import com.github.CCweixiao.hbase.sdk.common.HBaseColumnTypeCastException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
@@ -9,7 +10,7 @@ import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 /**
  * @author leojie 2020/11/28 7:58 下午
  */
-public class HexBytesHandler extends AbstractTypeHandler {
+public class HexBytesHandler extends AbstractTypeHandler<HexBytes> {
     private static final char[] HEX_CHARS = new char[]{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
 
     @Override
@@ -25,6 +26,11 @@ public class HexBytesHandler extends AbstractTypeHandler {
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
         return new String(encode(bytes));
+    }
+
+    @Override
+    public String extractTargetTypeStrValue(String value) {
+        throw new HBaseColumnTypeCastException("The string value cast to enum is unsupported");
     }
 
     public char[] encode(byte[] data) {

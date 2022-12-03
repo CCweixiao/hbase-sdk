@@ -58,15 +58,13 @@ rowKeyRangeExp : LB STARTKEY EQ rowKeyExp COMMA_CHAR ENDKEY EQ rowKeyExp RB   # 
                 | STARTKEY EQ rowKeyExp                                       # rowkeyrange_start
                 | ENDKEY EQ rowKeyExp		                                  # rowkeyrange_end
                 | ROWKEY EQ rowKeyExp 			                              # rowkeyrange_onerowkey
-                | ROWKEY IN rowKeyExp                                         # rowkeyrange_insomekeys
+                | ROWKEY IN LB rowKeyExp ( ',' rowKeyExp )* RB                # rowkeyrange_insomekeys
                 | ROWKEY LIKE rowKeyExp                                       # rowkeyrange_prefix
                 ;
 
 rowKeyExp :  LB rowKeyExp RB                              # rowkey_Wrapper
 	| constant                                            # rowkey_Constant
-	| LB constant ( ',' constant )* RB                    # rowkey_inRangeKey
 	| funcname LB constant RB                             # rowkey_FuncConstant
-    | LB rowKeyExp ( ',' rowKeyExp )* RB                  # rowkey_inRangeFuncKey
     ;
 
 tsRange : LB STARTTS EQ tsExp COMMA_CHAR ENDTS EQ tsExp RB      # tsrange_startAndEnd

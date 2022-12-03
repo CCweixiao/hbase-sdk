@@ -1,13 +1,16 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.alibaba.fastjson2.JSON;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeConverter;
+import com.github.CCweixiao.hbase.sdk.common.HBaseColumnTypeCastException;
+import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+
+import java.nio.charset.Charset;
 
 
 /**
  * @author leojie 2022/11/20 18:50
  */
-public class JsonHandler extends StringHandler {
+public class JsonHandler extends AbstractTypeHandler<Object> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return true;
@@ -15,13 +18,17 @@ public class JsonHandler extends StringHandler {
 
     @Override
     protected byte[] convertToBytes(Class<?> type, Object value) {
-        String jsonVal = JSON.toJSONString(value);
-        return super.convertToBytes(String.class, jsonVal);
+        try {
+            String jsonVal = JSON.toJSONString(value);
+            return jsonVal.getBytes(Charset.defaultCharset());
+        } catch (Exception e) {
+            throw new HBaseColumnTypeCastException(e);
+        }
     }
 
     @Override
     protected Object convertToObject(Class<?> type, byte[] bytes) {
-        String jsonVal = super.convertToObject(String.class, bytes).toString();
+        String jsonVal = new String(bytes, Charset.defaultCharset());
         return JSON.parseObject(jsonVal, type);
     }
 
@@ -31,7 +38,7 @@ public class JsonHandler extends StringHandler {
     }
 
     @Override
-    public Object convertObjectFromStr(String value) {
+    public String extractTargetTypeStrValue(String value) {
         return toObjectFromStr(value, JSON::toJSONString);
     }
 }

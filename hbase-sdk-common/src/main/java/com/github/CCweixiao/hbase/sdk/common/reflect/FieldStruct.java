@@ -18,7 +18,7 @@ public class FieldStruct {
 
     private Class<?> type;
 
-    private AbstractTypeHandler typeHandler;
+    private AbstractTypeHandler<?> typeHandler;
 
     public FieldStruct() {
     }
@@ -87,11 +87,11 @@ public class FieldStruct {
         this.getterMethodName = getterMethodName;
     }
 
-    public AbstractTypeHandler getTypeHandler() {
+    public AbstractTypeHandler<?> getTypeHandler() {
         return typeHandler;
     }
 
-    public void setTypeHandler(AbstractTypeHandler typeHandler) {
+    public void setTypeHandler(AbstractTypeHandler<?> typeHandler) {
         this.typeHandler = typeHandler;
     }
 

@@ -3,12 +3,10 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
-import java.util.Date;
-
 /**
  * @author leojie 2020/11/28 7:56 下午
  */
-public class BooleanHandler extends AbstractTypeHandler {
+public class BooleanHandler extends AbstractTypeHandler<Boolean> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == boolean.class || type == Boolean.class;
@@ -30,7 +28,8 @@ public class BooleanHandler extends AbstractTypeHandler {
         return val.toString();
     }
 
-    public Object convertObjectFromStr(String value) {
+    @Override
+    public String extractTargetTypeStrValue(String value) {
         return toObjectFromStr(value, Boolean::new);
     }
 }

@@ -2,12 +2,11 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeConverter;
 
 /**
  * @author leojie 2020/11/28 7:49 下午
  */
-public class ShortHandler extends AbstractTypeHandler {
+public class ShortHandler extends AbstractTypeHandler<Short> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type == short.class || type == Short.class;
@@ -23,7 +22,7 @@ public class ShortHandler extends AbstractTypeHandler {
     }
 
     @Override
-    protected Object convertToObject(Class<?> type, byte[] bytes) {
+    protected Short convertToObject(Class<?> type, byte[] bytes) {
         return (short) (bytes[0] & 0xff | (bytes[1] & 0xff) << Byte.SIZE);
     }
 
@@ -33,7 +32,8 @@ public class ShortHandler extends AbstractTypeHandler {
         return val.toString();
     }
 
-    public Object convertObjectFromStr(String value) {
+    @Override
+    public String extractTargetTypeStrValue(String value) {
         return toObjectFromStr(value, Short::parseShort);
     }
 }

@@ -2,7 +2,6 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -14,13 +13,8 @@ import java.util.List;
  */
 public class SelectColListVisitor extends BaseVisitor<List<HBaseColumn>> {
 
-
     public SelectColListVisitor(HBaseTableSchema tableSchema) {
         super(tableSchema);
-    }
-
-    public SelectColListVisitor(HBaseTableSchema tableSchema, HBaseSQLRuntimeSetting sqlRuntimeSetting) {
-        super(tableSchema, sqlRuntimeSetting);
     }
 
     @Override

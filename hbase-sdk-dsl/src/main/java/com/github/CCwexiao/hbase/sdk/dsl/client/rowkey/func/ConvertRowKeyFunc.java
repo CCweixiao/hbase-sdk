@@ -14,17 +14,12 @@ public abstract class ConvertRowKeyFunc<T> implements RowKeyFunc<T> {
     }
 
     @Override
-    public T reverse(RowKey<T> rowKey) {
-        return rowKey.extractValue();
-    }
-
-    @Override
-    public String funcName() {
+    public String showFuncName() {
         return "convert_to_" + this.targetColumnType.getTypeName();
     }
 
     @Override
-    public String desc() {
+    public String showDesc() {
         return "Convert string row value to " + this.targetColumnType.getTypeName() + " .";
     }
 }

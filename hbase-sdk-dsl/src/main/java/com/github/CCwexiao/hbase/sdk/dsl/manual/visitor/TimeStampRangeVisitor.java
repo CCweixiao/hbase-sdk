@@ -3,7 +3,6 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSQLRuntimeSetting;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.TimeStampRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -14,10 +13,6 @@ public class TimeStampRangeVisitor extends BaseVisitor<TimeStampRange> {
 
     public TimeStampRangeVisitor(HBaseTableSchema tableSchema) {
         super(tableSchema);
-    }
-
-    public TimeStampRangeVisitor(HBaseTableSchema tableSchema, HBaseSQLRuntimeSetting sqlRuntimeSetting) {
-        super(tableSchema, sqlRuntimeSetting);
     }
 
     @Override

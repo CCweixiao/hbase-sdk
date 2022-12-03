@@ -1,6 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 
 /**
  * @author leojie 2020/11/28 10:58 上午
@@ -8,8 +9,7 @@ import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 public interface RowKey<T> {
     /**
      * byte arr of row key
-     *
-     * @return byte arr
+     * @return row value byte arr
      */
     byte[] toBytes();
 
@@ -18,7 +18,11 @@ public interface RowKey<T> {
      *
      * @return object value
      */
-    T extractValue();
+    T computeRowValue();
+
+    String getOriValue();
+
+    void setValueBytes(byte[] valueBytes);
 
     /**
      * column type
@@ -27,11 +31,10 @@ public interface RowKey<T> {
      */
     ColumnType columnType();
 
-    default RowKey<byte[]> startRow () {
-        return new BytesRowKey(new byte[0]);
-    }
-
-    default RowKey<byte[]> endRow () {
-        return new BytesRowKey(new byte[0]);
-    }
+    /**
+     * set function by name
+     *
+     * @param rowKeyFunc function
+     */
+    void setRowKeyFunc(RowKeyFunc<T> rowKeyFunc);
 }

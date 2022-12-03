@@ -1,32 +1,17 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlColValueAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.ConvertIntRowKeyFunc;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunction;
 
 import java.util.Objects;
 
 /**
  * @author leojie 2022/12/3 12:43
  */
-public class IntRowKey implements RowKey<Integer> {
-    private final int value;
-
+public class IntRowKey extends BaseRowKey<Integer> {
     public IntRowKey(String value) {
-        try {
-            this.value = Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new HBaseSqlColValueAnalysisException("The value of " + value + " can not be converted int number.");
-        }
-    }
-
-    @Override
-    public byte[] toBytes() {
-        return this.columnType().getTypeHandler().toBytes(Integer.class, value);
-    }
-
-    @Override
-    public Integer extractValue() {
-        return this.value;
+        super(value, new ConvertIntRowKeyFunc());
     }
 
     @Override
@@ -43,7 +28,7 @@ public class IntRowKey implements RowKey<Integer> {
             return false;
         }
         IntRowKey intRowKey = (IntRowKey) o;
-        return value == intRowKey.value;
+        return this.computeRowValue().intValue() == intRowKey.computeRowValue().intValue();
     }
 
     @Override

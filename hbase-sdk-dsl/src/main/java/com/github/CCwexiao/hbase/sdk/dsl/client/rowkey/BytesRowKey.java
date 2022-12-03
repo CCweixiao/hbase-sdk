@@ -3,12 +3,14 @@ package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.EncodingUtil;
+import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 
 import java.util.Arrays;
 
 /**
  * @author leojie 2020/11/28 11:58 上午
  */
+@Deprecated
 public class BytesRowKey implements RowKey<byte[]> {
     private final byte[] value;
 
@@ -17,19 +19,35 @@ public class BytesRowKey implements RowKey<byte[]> {
         this.value = value.clone();
     }
 
+
     @Override
     public byte[] toBytes() {
-        return this.value.clone();
+        return new byte[0];
     }
 
     @Override
-    public byte[] extractValue() {
+    public byte[] computeRowValue() {
         return this.value;
+    }
+
+    @Override
+    public String getOriValue() {
+        return null;
+    }
+
+    @Override
+    public void setValueBytes(byte[] valueBytes) {
+
     }
 
     @Override
     public ColumnType columnType() {
         return null;
+    }
+
+    @Override
+    public void setRowKeyFunc(RowKeyFunc<byte[]> rowKeyFunc) {
+
     }
 
     @Override

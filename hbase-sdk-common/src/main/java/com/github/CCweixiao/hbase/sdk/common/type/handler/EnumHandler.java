@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
+import com.github.CCweixiao.hbase.sdk.common.HBaseColumnTypeCastException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
@@ -8,7 +9,7 @@ import java.nio.charset.Charset;
 /**
  * @author leojie 2020/11/28 7:40 下午
  */
-public class EnumHandler extends AbstractTypeHandler {
+public class EnumHandler extends AbstractTypeHandler<Enum<?>> {
     @Override
     protected boolean matchTypeHandler(Class<?> type) {
         return type.isEnum();
@@ -18,6 +19,11 @@ public class EnumHandler extends AbstractTypeHandler {
     protected byte[] convertToBytes(Class<?> type, Object value) {
         String name = ((Enum<?>) value).name();
         return (name).getBytes(Charset.defaultCharset());
+    }
+
+    @Override
+    public String extractTargetTypeStrValue(String value) {
+        throw new HBaseColumnTypeCastException("The string value cast to enum is unsupported");
     }
 
     @Override
