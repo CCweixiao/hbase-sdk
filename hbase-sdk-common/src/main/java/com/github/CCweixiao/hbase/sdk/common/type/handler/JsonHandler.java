@@ -12,12 +12,12 @@ import java.nio.charset.Charset;
  */
 public class JsonHandler extends AbstractTypeHandler<Object> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return true;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
         try {
             String jsonVal = JSON.toJSONString(value);
             return jsonVal.getBytes(Charset.defaultCharset());
@@ -27,18 +27,18 @@ public class JsonHandler extends AbstractTypeHandler<Object> {
     }
 
     @Override
-    protected Object convertToObject(Class<?> type, byte[] bytes) {
+    protected Object convertByteArrToObjVal(Class<?> type, byte[] bytes) {
         String jsonVal = new String(bytes, Charset.defaultCharset());
         return JSON.parseObject(jsonVal, type);
     }
 
     @Override
-    public String convertToString(Object val) {
+    public String toString(Object val) {
         return JSON.toJSONString(val);
     }
 
     @Override
-    public String extractTargetTypeStrValue(String value) {
-        return toObjectFromStr(value, JSON::toJSONString);
+    public String extractMatchTtypeValue(String value) {
+        return toString(value, JSON::toJSONString);
     }
 }

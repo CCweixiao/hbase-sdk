@@ -15,12 +15,12 @@ public class ConvertIntRowKeyFunc extends ConvertRowKeyFunc<Integer> {
 
     @Override
     public Integer evalFuncReturnRowValue(BaseRowKey<Integer> rowKey) {
-        return Integer.parseInt(rowKey.columnType().getTypeHandler().extractTargetTypeStrValue(rowKey.getOriValue()));
+        return Integer.parseInt(rowKey.columnType().getTypeHandler().extractMatchTtypeValue(rowKey.getOriValue()));
     }
 
     @Override
     public Integer evalFuncReturnRowValue(HBaseColumn row, String value) {
-        return Integer.parseInt(row.getColumnType().getTypeHandler().extractTargetTypeStrValue(value));
+        return Integer.parseInt(row.getColumnType().getTypeHandler().extractMatchTtypeValue(value));
     }
 
 }

@@ -14,11 +14,11 @@ public class ConvertLongRowKeyFunc extends ConvertRowKeyFunc<Long> {
 
     @Override
     public Long evalFuncReturnRowValue(BaseRowKey<Long> rowKey) {
-        return Long.parseLong(rowKey.columnType().getTypeHandler().extractTargetTypeStrValue(rowKey.getOriValue()));
+        return Long.parseLong(rowKey.columnType().getTypeHandler().extractMatchTtypeValue(rowKey.getOriValue()));
     }
 
     @Override
     public Long evalFuncReturnRowValue(HBaseColumn row, String value) {
-        return Long.parseLong(row.getColumnType().getTypeHandler().extractTargetTypeStrValue(value));
+        return Long.parseLong(row.getColumnType().getTypeHandler().extractMatchTtypeValue(value));
     }
 }

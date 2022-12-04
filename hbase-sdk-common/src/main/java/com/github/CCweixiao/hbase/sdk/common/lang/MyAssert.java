@@ -50,4 +50,12 @@ public class MyAssert extends Assert {
             return reference;
         }
     }
+
+    public static <T> T checkNotNull(T reference, String obj) {
+        if (reference == null) {
+            throw new NullPointerException(obj + " is not null.");
+        } else {
+            return reference;
+        }
+    }
 }

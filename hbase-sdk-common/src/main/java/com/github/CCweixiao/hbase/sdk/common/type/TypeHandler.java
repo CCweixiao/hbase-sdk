@@ -9,17 +9,19 @@ public interface TypeHandler<T> {
 
     byte[] toBytes(Class<?> type, Object value);
 
-    byte[] convertToBytes(Object value);
+    byte[] toBytes(Object value);
 
-    String convertToString(Object value);
+    String toString(Object value);
 
     ByteBuffer toByteBuffer(Class<?> type, Object value);
 
-    ByteBuffer convertToByteBuffer(Object value);
+    ByteBuffer toByteBuffer(Object value);
 
     Object toObject(Class<?> type, byte[] bytes);
 
     Object toObject(Class<?> type, ByteBuffer buffer);
 
-    String toObjectFromStr(String value, TypeConverter<T> typeConverter);
+    String toString(String value, TypeConverter<T> typeConverter);
+
+    String extractMatchTtypeValue(String value);
 }

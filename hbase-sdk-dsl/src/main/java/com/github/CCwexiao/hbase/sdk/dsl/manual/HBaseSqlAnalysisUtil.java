@@ -73,7 +73,7 @@ public final class HBaseSqlAnalysisUtil {
         MyAssert.checkNotNull(constantContext);
         String constant = constantContext.STRING().getText();
         MyAssert.checkArgument(StringUtil.isNotBlank(constant), "The constant value must not be empty.");
-        Object obj = column.getColumnType().getTypeHandler().extractTargetTypeStrValue(constant);
+        Object obj = column.getColumnType().getTypeHandler().extractMatchTtypeValue(constant);
         MyAssert.checkNotNull(obj);
         return obj;
     }

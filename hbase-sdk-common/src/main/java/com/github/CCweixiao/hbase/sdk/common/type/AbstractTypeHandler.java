@@ -5,22 +5,22 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 
 import java.nio.ByteBuffer;
-
 /**
  * @author leojie 2022/11/13 13:03
  */
 public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
+
     /**
      * Determine whether the type meets the conditions for processing.
      *
      * @param type variable type
      * @return true or false
      */
-    protected abstract boolean matchTypeHandler(Class<?> type);
+    protected abstract boolean matchConverterType(Class<?> type);
 
-    protected abstract byte[] convertToBytes(Class<?> type, Object obj);
+    protected abstract byte[] convertObjValToByteArr(Class<?> type, Object obj);
 
-    protected abstract Object convertToObject(Class<?> type, byte[] bytes);
+    protected abstract Object convertByteArrToObjVal(Class<?> type, byte[] bytes);
 
     @Override
     public byte[] toBytes(Class<?> type, Object value) {
@@ -28,14 +28,14 @@ public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
         if (value == null) {
             return null;
         }
-        if (!matchTypeHandler(type)) {
+        if (!matchConverterType(type)) {
             throw new HBaseTypeHandlerException(String.format("Wrong type %s to handle.", type.getName()));
         }
-        return convertToBytes(type, value);
+        return convertObjValToByteArr(type, value);
     }
 
     @Override
-    public byte[] convertToBytes(Object value) {
+    public byte[] toBytes(Object value) {
         return toBytes(value.getClass(), value);
     }
 
@@ -52,20 +52,20 @@ public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
     }
 
     @Override
-    public ByteBuffer convertToByteBuffer(Object value) {
+    public ByteBuffer toByteBuffer(Object value) {
         return toByteBuffer(value.getClass(), value);
     }
 
     @Override
     public Object toObject(Class<?> type, byte[] bytes) {
         MyAssert.notNull(type, "The type of value must be not null.");
-        if (!matchTypeHandler(type)) {
+        if (!matchConverterType(type)) {
             throw new HBaseTypeHandlerException(String.format("Wrong type %s to handle.", type.getName()));
         }
         if (bytes == null || bytes.length == 0) {
             return null;
         }
-        return convertToObject(type, bytes);
+        return convertByteArrToObjVal(type, bytes);
     }
 
     @Override
@@ -83,13 +83,27 @@ public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
     }
 
     @Override
-    public String toObjectFromStr(String value, TypeConverter<T> typeConverter) {
+    public String toString(String value, TypeConverter<T> typeConverter) {
         try {
             return String.valueOf(typeConverter.convertTo(value));
         } catch (Exception e) {
-            throw new HBaseColumnTypeCastException(String.format("The value %s cast type error", value), e);
+            throw new HBaseColumnTypeCastException(String.format("The value [%s] cast another type error.", value), e);
         }
     }
 
-    public abstract String extractTargetTypeStrValue(String value);
+    protected T convertByteArrToObjVal(String value, TypeConverter<T> typeConverter) {
+        try {
+            return typeConverter.convertTo(value);
+        } catch (Exception e) {
+            throw new HBaseColumnTypeCastException(String.format("The value [%s] cast another type error.", value), e);
+        }
+    }
+
+    @Override
+    public String toString(Object val) {
+        if (val == null) {
+            return null;
+        }
+        return val.toString();
+    }
 }

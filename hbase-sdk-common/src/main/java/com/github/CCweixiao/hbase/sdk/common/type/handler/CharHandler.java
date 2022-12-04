@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
 
 /**
@@ -8,13 +7,16 @@ import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
  */
 public class CharHandler extends AbstractTypeHandler<Character> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return type == char.class || type == Character.class;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
-        char c = (Character) value;
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
+        if (value == null) {
+            return null;
+        }
+        char c = value.toString().charAt(0);
         byte[] result = new byte[2];
         result[1] = (byte) c;
         result[0] = (byte) (c >>> 8);
@@ -22,7 +24,10 @@ public class CharHandler extends AbstractTypeHandler<Character> {
     }
 
     @Override
-    protected Object convertToObject(Class<?> type, byte[] bytes) {
+    protected Object convertByteArrToObjVal(Class<?> type, byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
         int c = 0;
         c ^= (bytes[0] & 0xFF);
         c = c << 8;
@@ -31,14 +36,7 @@ public class CharHandler extends AbstractTypeHandler<Character> {
     }
 
     @Override
-    public String extractTargetTypeStrValue(String value) {
-        return toObjectFromStr(value, v -> v.toCharArray()[0]);
-    }
-
-    @Override
-    public String convertToString(Object val) {
-        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Character or char.");
-        char c = (char) val;
-        return String.valueOf(c);
+    public String extractMatchTtypeValue(String value) {
+        return toString(value, v -> v.toCharArray()[0]);
     }
 }

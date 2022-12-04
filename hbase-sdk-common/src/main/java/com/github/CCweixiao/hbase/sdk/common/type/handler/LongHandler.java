@@ -1,35 +1,36 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.util.ByteUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 
 /**
  * @author leojie 2020/11/28 7:50 下午
  */
 public class LongHandler extends AbstractTypeHandler<Long> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return type == long.class || type == Long.class;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
-        return ByteUtil.long2Bytes((Long) value);
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
+        if (value == null) {
+            return null;
+        }
+        long val = convertByteArrToObjVal(value.toString(), Long::parseLong);
+        return BytesUtil.toBytes(val);
     }
 
     @Override
-    protected Long convertToObject(Class<?> type, byte[] bytes) {
-        return ByteUtil.bytes2Long(bytes);
+    protected Long convertByteArrToObjVal(Class<?> type, byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        return BytesUtil.toLong(bytes);
     }
 
     @Override
-    public String convertToString(Object val) {
-        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Long or long.");
-        return val.toString();
-    }
-    @Override
-    public String extractTargetTypeStrValue(String value) {
-        return toObjectFromStr(value, Long::parseLong);
+    public String extractMatchTtypeValue(String value) {
+        return toString(value, Long::parseLong);
     }
 }

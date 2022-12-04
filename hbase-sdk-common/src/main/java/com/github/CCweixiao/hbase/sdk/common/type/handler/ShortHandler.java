@@ -1,39 +1,36 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 
 /**
  * @author leojie 2020/11/28 7:49 下午
  */
 public class ShortHandler extends AbstractTypeHandler<Short> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return type == short.class || type == Short.class;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
-        short shortValue = (Short) value;
-        byte[] b = new byte[Short.BYTES];
-        b[0] = (byte) (shortValue & 0xff);
-        b[1] = (byte) ((shortValue >> Byte.SIZE) & 0xff);
-        return b;
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
+        if (value == null) {
+            return null;
+        }
+        short val = convertByteArrToObjVal(value.toString(), Short::parseShort);
+        return BytesUtil.toBytes(val);
     }
 
     @Override
-    protected Short convertToObject(Class<?> type, byte[] bytes) {
-        return (short) (bytes[0] & 0xff | (bytes[1] & 0xff) << Byte.SIZE);
+    protected Short convertByteArrToObjVal(Class<?> type, byte[] bytes) {
+        if (null == bytes) {
+            return null;
+        }
+        return BytesUtil.toShort(bytes);
     }
 
     @Override
-    public String convertToString(Object val) {
-        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Short or short.");
-        return val.toString();
-    }
-
-    @Override
-    public String extractTargetTypeStrValue(String value) {
-        return toObjectFromStr(value, Short::parseShort);
+    public String extractMatchTtypeValue(String value) {
+        return toString(value, Short::parseShort);
     }
 }

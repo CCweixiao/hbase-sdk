@@ -1,35 +1,35 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-
-import java.nio.charset.Charset;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 
 /**
  * @author leojie 2020/11/28 7:48 下午
  */
 public class StringHandler extends AbstractTypeHandler<String> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return type == String.class;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
-        return ((String) value).getBytes(Charset.defaultCharset());
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
+        if (value == null) {
+            return null;
+        }
+        return BytesUtil.toBytes(value.toString());
     }
 
     @Override
-    protected String convertToObject(Class<?> type, byte[] bytes) {
-        return new String(bytes, Charset.defaultCharset());
+    protected String convertByteArrToObjVal(Class<?> type, byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        return BytesUtil.toString(bytes);
     }
 
     @Override
-    public String convertToString(Object val) {
-        return val.toString();
-    }
-
-    @Override
-    public String extractTargetTypeStrValue(String value) {
+    public String extractMatchTtypeValue(String value) {
         return value;
     }
 }

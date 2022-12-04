@@ -17,13 +17,13 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testInsert() {
-        String hql = "insert into test:test_sql ( f1:id , f1:name , f1:age , f2:address ) values ( '10001', 'leo2' , '17', 'beijing' ) where rowKey is stringkey ( 'a10001' )";
+        String hql = "insert into test:test_sql ( f1:id , f1:name , f1:age , f2:address ) values ( '10002', 'leo2' , 17 , 'beijing' ) where rowKey = 'a10002'";
         sqlTemplate.insert(hql);
     }
 
     @Test
     public void testSelect() {
-        String sql = "select * from test:test_sql where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10002' ) ";
+        String sql = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10003' )";
         List<List<HBaseCellResult>> select = sqlTemplate.select(sql);
         System.out.println(select);
     }

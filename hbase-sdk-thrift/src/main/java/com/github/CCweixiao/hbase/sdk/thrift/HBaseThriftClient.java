@@ -7,8 +7,7 @@ import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
-import com.github.CCweixiao.hbase.sdk.common.util.ByteBufferUtil;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.HBaseThriftProtocol;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.thrift.generated.*;
@@ -62,8 +61,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
         List<Mutation> mutations = new ArrayList<>(data.size());
         data.forEach((key, value) -> {
             checkFamilyAndQualifierName(key);
-            mutations.add(new Mutation(false, ByteBufferUtil.toByteBufferFromStr(key),
-                            ByteBufferUtil.toStrByteBuffer(value), true));
+            mutations.add(new Mutation(false, ColumnType.toByteBufferFromStr(key),
+                            ColumnType.toStrByteBuffer(value), true));
         });
         this.save(tableName, rowKey, mutations);
     }
@@ -82,11 +81,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 colAndValMap.forEach((col, value) -> {
                     checkFamilyAndQualifierName(col);
                     mutations.add(new Mutation(false,
-                            ByteBufferUtil.toByteBuffer(col),
-                            ByteBufferUtil.toStrByteBuffer(value), true));
+                            ColumnType.toByteBuffer(col),
+                            ColumnType.toStrByteBuffer(value), true));
                 });
 
-                batchMutations.add(new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations));
+                batchMutations.add(new BatchMutation(ColumnType.toByteBuffer(rowKey), mutations));
             }
         });
         return this.saveBatch(tableName, batchMutations);
@@ -345,9 +344,9 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                         Map<String, Map<String, String>> data = new HashMap<>();
                         Map<String, String> tmpValue = new HashMap<>();
                         scannerResult.columns.forEach((colName, value) ->
-                                tmpValue.put(TypeHandlerFactory.toString(colName.array()),
-                                        TypeHandlerFactory.toString(value.value.array())));
-                        data.put(TypeHandlerFactory.toString(scannerResult.row.array()), tmpValue);
+                                tmpValue.put(ColumnType.toString(colName.array()),
+                                        ColumnType.toString(value.value.array())));
+                        data.put(ColumnType.toString(scannerResult.row.array()), tmpValue);
                         results.add(data);
                         nReturned.addAndGet(1);
                     });
@@ -389,21 +388,21 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
             if (qualifiers != null && !qualifiers.isEmpty()) {
                 List<Mutation> mutations = new ArrayList<>(qualifiers.size());
                 for (String qualifier : qualifiers) {
-                    mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier),
+                    mutations.add(new Mutation(true, ColumnType.toByteBuffer(familyName + ":" + qualifier),
                             null, true));
                 }
                 try {
-                    hbaseClient.mutateRow(ByteBufferUtil.toByteBuffer(tableName),
-                            ByteBufferUtil.toByteBuffer(rowKey),
+                    hbaseClient.mutateRow(ColumnType.toByteBuffer(tableName),
+                            ColumnType.toByteBuffer(rowKey),
                             mutations, getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
                 }
             } else {
                 try {
-                    hbaseClient.deleteAll(ByteBufferUtil.toByteBuffer(tableName),
-                            ByteBufferUtil.toByteBuffer(rowKey),
-                            ByteBufferUtil.toByteBuffer(familyName),
+                    hbaseClient.deleteAll(ColumnType.toByteBuffer(tableName),
+                            ColumnType.toByteBuffer(rowKey),
+                            ColumnType.toByteBuffer(familyName),
                             getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
@@ -412,8 +411,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
             }
         } else {
             try {
-                hbaseClient.deleteAllRow(ByteBufferUtil.toByteBuffer(tableName),
-                        ByteBufferUtil.toByteBuffer(rowKey),
+                hbaseClient.deleteAllRow(ColumnType.toByteBuffer(tableName),
+                        ColumnType.toByteBuffer(rowKey),
                         getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
@@ -452,30 +451,30 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 rowKeys.forEach(rowKey -> {
                     List<Mutation> mutations = new ArrayList<>(rowKeys.size());
                     for (String qualifier : qualifiers) {
-                        mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName + ":" + qualifier),
+                        mutations.add(new Mutation(true, ColumnType.toByteBuffer(familyName + ":" + qualifier),
                                 null, true));
                     }
-                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations);
+                    BatchMutation batchMutation = new BatchMutation(ColumnType.toByteBuffer(rowKey), mutations);
                     rowBatches.add(batchMutation);
                 });
             } else {
                 rowKeys.forEach(rowKey -> {
                     List<Mutation> mutations = new ArrayList<>(rowKeys.size());
-                    mutations.add(new Mutation(true, ByteBufferUtil.toByteBuffer(familyName), null, true));
-                    BatchMutation batchMutation = new BatchMutation(ByteBufferUtil.toByteBuffer(rowKey), mutations);
+                    mutations.add(new Mutation(true, ColumnType.toByteBuffer(familyName), null, true));
+                    BatchMutation batchMutation = new BatchMutation(ColumnType.toByteBuffer(rowKey), mutations);
                     rowBatches.add(batchMutation);
                 });
             }
             try {
-                hbaseClient.mutateRows(ByteBufferUtil.toByteBuffer(tableName), rowBatches, getAttributesMap(new HashMap<>()));
+                hbaseClient.mutateRows(ColumnType.toByteBuffer(tableName), rowBatches, getAttributesMap(new HashMap<>()));
             } catch (TException e) {
                 throw new HBaseThriftException(e);
             }
         } else {
             rowKeys.forEach(rowKey -> {
                 try {
-                    hbaseClient.deleteAllRow(ByteBufferUtil.toByteBuffer(tableName),
-                            ByteBufferUtil.toByteBuffer(rowKey), getAttributesMap(new HashMap<>()));
+                    hbaseClient.deleteAllRow(ColumnType.toByteBuffer(tableName),
+                            ColumnType.toByteBuffer(rowKey), getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     e.printStackTrace();
                 }
@@ -496,7 +495,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     private int scannerOpen(String tableName, ScanQueryParamsBuilder scanQueryParams, Map<String, String> attributes) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
         TScan scan = buildScan(scanQueryParams);
-        ByteBuffer tableNameByte = ByteBufferUtil.toByteBuffer(tableName);
+        ByteBuffer tableNameByte = ColumnType.toByteBuffer(tableName);
         try {
             return hbaseClient.scannerOpenWithScan(tableNameByte, scan, getAttributesMap(attributes));
         } catch (TException e) {
@@ -507,8 +506,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
 
     public List<String> getMetaTableRegions() {
         try {
-            List<TRegionInfo> regions = hbaseClient.getTableRegions(ByteBufferUtil.toByteBufferFromStr(HMHBaseConstants.META_TABLE_NAME));
-            return regions.stream().map(r -> TypeHandlerFactory.toStrFromBuffer(r.bufferForName()))
+            List<TRegionInfo> regions = hbaseClient.getTableRegions(ColumnType.toByteBufferFromStr(HMHBaseConstants.META_TABLE_NAME));
+            return regions.stream().map(r -> ColumnType.toStrFromBuffer(r.bufferForName()))
                     .collect(Collectors.toList());
         } catch (TException e) {
             throw new HBaseThriftException(e);

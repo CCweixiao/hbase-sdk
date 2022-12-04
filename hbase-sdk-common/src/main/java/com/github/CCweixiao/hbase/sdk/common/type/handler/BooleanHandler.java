@@ -1,35 +1,36 @@
 package com.github.CCweixiao.hbase.sdk.common.type.handler;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 
 /**
  * @author leojie 2020/11/28 7:56 下午
  */
 public class BooleanHandler extends AbstractTypeHandler<Boolean> {
     @Override
-    protected boolean matchTypeHandler(Class<?> type) {
+    protected boolean matchConverterType(Class<?> type) {
         return type == boolean.class || type == Boolean.class;
     }
 
     @Override
-    protected byte[] convertToBytes(Class<?> type, Object value) {
-        return new byte[]{(byte) ((Boolean) value ? -1 : 0)};
+    protected byte[] convertObjValToByteArr(Class<?> type, Object value) {
+        if (value == null) {
+            return null;
+        }
+        boolean val = convertByteArrToObjVal(value.toString(), Boolean::parseBoolean);
+        return BytesUtil.toBytes(val);
     }
 
     @Override
-    protected Object convertToObject(Class<?> type, byte[] bytes) {
-        return bytes[0] != 0;
+    protected Object convertByteArrToObjVal(Class<?> type, byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        return BytesUtil.toBoolean(bytes);
     }
 
     @Override
-    public String convertToString(Object val) {
-        MyAssert.checkArgument(this.matchTypeHandler(val.getClass()), "The type of value " + val + " is not Boolean or boolean.");
-        return val.toString();
-    }
-
-    @Override
-    public String extractTargetTypeStrValue(String value) {
-        return toObjectFromStr(value, Boolean::new);
+    public String extractMatchTtypeValue(String value) {
+        return toString(value, Boolean::new);
     }
 }

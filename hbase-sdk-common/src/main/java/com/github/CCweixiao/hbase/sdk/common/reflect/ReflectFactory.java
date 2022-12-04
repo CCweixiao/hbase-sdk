@@ -8,7 +8,7 @@ import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.lang.reflect.Field;
@@ -81,7 +81,7 @@ public class ReflectFactory {
                             int getMethodIndex = methodAccess.getIndex(getterMethodName);
                             fieldStruct.setGetterMethodIndex(getMethodIndex);
                             // 设置列数据转换器
-                            fieldStruct.setTypeHandler(TypeHandlerFactory.findTypeHandler(field.getType()));
+                            fieldStruct.setTypeHandler(ColumnType.findTypeHandler(field.getType()));
 
                             if (fieldIsRowKey) {
                                 fieldStructList.add(0, fieldStruct);

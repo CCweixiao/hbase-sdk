@@ -11,7 +11,8 @@ import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
@@ -415,12 +416,11 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
             throw new HBaseOperationsException("RowKey must not be empty.");
         }
         Put put = new Put(Bytes.toBytes(rowKey));
-        AbstractTypeHandler stringTypeHandler = TypeHandlerFactory.findTypeHandler(String.class);
         data.forEach((fieldName, fieldValue) -> {
             String[] familyQualifierArr = fieldName.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
-            AbstractTypeHandler fieldTypeHandler = TypeHandlerFactory.findTypeHandler(fieldValue.getClass());
+            TypeHandler<?> fieldTypeHandler = ColumnType.findTypeHandler(fieldValue.getClass());
             put.addColumn(Bytes.toBytes(familyQualifierArr[0]), Bytes.toBytes(familyQualifierArr[1]),
-                    stringTypeHandler.convertToBytes(fieldTypeHandler.convertToString(fieldValue)));
+                    ColumnType.StringType.getTypeHandler().toBytes(fieldTypeHandler.toString(fieldValue)));
         });
         return put;
     }

@@ -170,6 +170,9 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
      */
     protected void applyRequestFamilyAndQualifier(List<HBaseColumn> hbaseColumnSchemaList, Scan scan) {
         for (HBaseColumn hbaseColumnSchema : hbaseColumnSchemaList) {
+            if (hbaseColumnSchema.columnIsRow()) {
+                continue;
+            }
             scan.addColumn(Bytes.toBytes(hbaseColumnSchema.getFamilyName()),
                     Bytes.toBytes(hbaseColumnSchema.getColumnName()));
         }

@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift.example;
 
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandlerFactory;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import org.apache.hadoop.hbase.thrift.generated.Hbase;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -31,15 +31,15 @@ public class HBaseThriftApiTest {
 
         try {
             socket.open();
-            allTableNames = hbaseClient.getTableNames().stream().map(t -> TypeHandlerFactory.toString(t.array())).collect(Collectors.toList());
+            allTableNames = hbaseClient.getTableNames().stream().map(t -> ColumnType.toString(t.array())).collect(Collectors.toList());
             System.out.println(allTableNames);
             Thread.sleep(60000L);
             System.out.println("此处停顿了一分钟......");
-            allTableNames = hbaseClient.getTableNames().stream().map(t -> TypeHandlerFactory.toString(t.array())).collect(Collectors.toList());
+            allTableNames = hbaseClient.getTableNames().stream().map(t -> ColumnType.toString(t.array())).collect(Collectors.toList());
             System.out.println(allTableNames);
             Thread.sleep(120000L);
             System.out.println("此处停顿了两分钟......");
-            allTableNames = hbaseClient.getTableNames().stream().map(t -> TypeHandlerFactory.toString(t.array())).collect(Collectors.toList());
+            allTableNames = hbaseClient.getTableNames().stream().map(t -> ColumnType.toString(t.array())).collect(Collectors.toList());
             System.out.println(allTableNames);
         } catch (Exception e) {
             e.printStackTrace();
@@ -61,7 +61,7 @@ public class HBaseThriftApiTest {
 
             try {
                 socket.open();
-                List<String> allTableNames = hbaseClient.getTableNames().stream().map(t -> TypeHandlerFactory.toString(t.array())).collect(Collectors.toList());
+                List<String> allTableNames = hbaseClient.getTableNames().stream().map(t -> ColumnType.toString(t.array())).collect(Collectors.toList());
                 System.out.println(allTableNames);
                 System.out.println(x);
             } catch (TException e) {

@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.reflect;
 
-import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 
 /**
  * @author leojie 2022/11/20 16:49
@@ -18,7 +18,7 @@ public class FieldStruct {
 
     private Class<?> type;
 
-    private AbstractTypeHandler<?> typeHandler;
+    private TypeHandler<?> typeHandler;
 
     public FieldStruct() {
     }
@@ -87,11 +87,11 @@ public class FieldStruct {
         this.getterMethodName = getterMethodName;
     }
 
-    public AbstractTypeHandler<?> getTypeHandler() {
+    public TypeHandler<?> getTypeHandler() {
         return typeHandler;
     }
 
-    public void setTypeHandler(AbstractTypeHandler<?> typeHandler) {
+    public void setTypeHandler(TypeHandler<?> typeHandler) {
         this.typeHandler = typeHandler;
     }
 
