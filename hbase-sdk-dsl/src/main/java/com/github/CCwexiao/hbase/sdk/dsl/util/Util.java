@@ -1,8 +1,5 @@
 package com.github.CCwexiao.hbase.sdk.dsl.util;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 
 /**
@@ -10,10 +7,8 @@ import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
  */
 public class Util {
     public static void checkRowKey(RowKey<?> rowKey) {
-        MyAssert.checkNotNull(rowKey);
-
-        if (rowKey.toBytes() == null) {
-            throw new HBaseOperationsException("row key bytes is null. rowKey = " + rowKey);
+        if (rowKey == null || rowKey.toBytes() == null) {
+            throw new NullPointerException("The row key must not be null.");
         }
     }
 }

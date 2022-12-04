@@ -7,7 +7,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSqlContext;
+import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
@@ -27,56 +27,75 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
 
     @Override
     protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo) {
-        Util.checkRowKey(startRowKey);
-        Util.checkRowKey(endRowKey);
-
         Scan scan = new Scan();
-        scan.withStartRow(startRowKey.toBytes());
-        scan.withStopRow(endRowKey.toBytes());
+        if (startRowKey != null && startRowKey.toBytes() != null) {
+            scan.withStartRow(startRowKey.toBytes());
+        }
+        if (endRowKey != null && endRowKey.toBytes() != null) {
+            scan.withStopRow(endRowKey.toBytes());
+        }
         scan.setCaching(getScanCaching(tableName));
-        scan.setBatch(getScanBatch(tableName));
         scan.setCacheBlocks(scanCacheBlocks(tableName));
-
         if (filter != null) {
             scan.setFilter(filter);
+        } else {
+            scan.setBatch(getScanBatch(tableName));
         }
-
         return scan;
     }
 
-
     @Override
     public List<List<HBaseCellResult>> select(String hql, Map<String, Object> params) {
-        checkSql(hql);
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
-        HBaseSQLParser.SelecthqlcContext context = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
-        MyAssert.checkNotNull(context);
+        HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
+        MyAssert.checkNotNull(selectHqlContext);
         String tableName = parseTableName(progContext);
         checkTableName(tableName);
         HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
-        // cid List
-        HBaseSQLParser.SelectColListContext selectColListContext = context.selectColList();
+        // col List
+        HBaseSQLParser.SelectColListContext selectColListContext = selectHqlContext.selectColList();
         final List<HBaseColumn> queryColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
-        MyAssert.checkArgument(!queryColumnSchemaList.isEmpty(), "The column list of select is not empty");
-
+        MyAssert.checkArgument(!queryColumnSchemaList.isEmpty(), "The column list of query is not empty.");
         // filter
-        Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(), tableSchema, params);
-
-        // rowKeys
-        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, context.rowKeyRangeExp());
+        Filter filter = HBaseSQLExtendContextUtil.parseFilter(selectHqlContext.wherec(), tableSchema, params);
+        // row key range
+        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, selectHqlContext.rowKeyRangeExp());
         RowKey<?> startRowKey = rowKeyRange.getStart();
+        List<RowKey<?>> queryInRows = rowKeyRange.getInSomeKeys();
         RowKey<?> endRowKey = rowKeyRange.getEnd();
-        List<RowKey<?>> queryInRows = rowKeyRange.getContainsSomeKeys();
-        QueryExtInfo queryExtInfo = HBaseSqlAnalysisUtil.parseQueryExtInfo(tableSchema, context);
+        RowKey<?> eqRowKey = rowKeyRange.getEqRow();
+        QueryExtInfo queryExtInfo = HBaseSqlAnalysisUtil.parseQueryExtInfo(tableSchema, selectHqlContext);
 
-        // in 查询
+        // = row key; get row
+        if (eqRowKey != null) {
+            Get get = constructGet(eqRowKey, queryExtInfo, queryColumnSchemaList);
+            return Collections.singletonList(this.execute(tableName, table -> {
+                Result result = table.get(get);
+                if (result == null) {
+                    return null;
+                }
+                return convertToHBaseCellResultList(tableName, result, tableSchema);
+            }).orElse(new ArrayList<>(0)));
+        }
+
+        // in row keys; get rows
         if (queryInRows != null && !queryInRows.isEmpty()) {
+            long limit = 0;
             if (queryExtInfo.isLimitSet()) {
-                throw new HBaseOperationsException("select in query should not with limit.");
+                limit = queryExtInfo.getLimit();
             }
-            List<Get> queryGetList = new ArrayList<>();
-            queryInRows.forEach(rowKey -> queryGetList.add(constructGet(rowKey, queryExtInfo, queryColumnSchemaList)));
-
+            if (limit > queryInRows.size()) {
+                limit = queryInRows.size();
+            }
+            List<Get> queryGetList = new ArrayList<>((int) limit);
+            int index = 0;
+            for (RowKey<?> rowKey : queryInRows) {
+                index += 1;
+                queryGetList.add(constructGet(rowKey, queryExtInfo, queryColumnSchemaList));
+                if (index >= limit) {
+                    break;
+                }
+            }
             return this.execute(tableName, table -> {
                 List<List<HBaseCellResult>> resultList = new ArrayList<>();
                 final Result[] results = table.get(queryGetList);
@@ -153,9 +172,9 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     }
 
     @Override
-    public void insert(String hql) {
-        checkSql(hql);
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
+    public void insert(String hsql) {
+        checkSql(hsql);
+        HBaseSQLParser.ProgContext progContext = parseProgContext(hsql);
         HBaseSQLParser.InserthqlcContext context = HBaseSqlAnalysisUtil.parseInsertHqlContext(progContext);
         MyAssert.checkNotNull(context);
         String tableName = parseTableName(progContext);
@@ -200,65 +219,60 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     }
 
     @Override
-    public void delete(String hql) {
-        checkSql(hql);
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
-        HBaseSQLParser.DeletehqlcContext context = HBaseSqlAnalysisUtil.parseDeleteHqlContext(progContext);
+    public void delete(String hsql) {
+        HBaseSQLParser.ProgContext progContext = parseProgContext(hsql);
+        HBaseSQLParser.DeletehqlcContext deleteHqlContext = HBaseSqlAnalysisUtil.parseDeleteHqlContext(progContext);
         String tableName = parseTableName(progContext);
         checkTableName(tableName);
         HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
-        //cid list
-        HBaseSQLParser.SelectColListContext selectColListContext = context.selectColList();
+        //col list
+        HBaseSQLParser.SelectColListContext selectColListContext = deleteHqlContext.selectColList();
         List<HBaseColumn> deleteHbaseColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
         MyAssert.checkArgument(!deleteHbaseColumnSchemaList.isEmpty(), "The column will to delete must not be empty.");
-        //filter
-        Filter filter = HBaseSQLExtendContextUtil.parseFilter(context.wherec(), tableSchema);
-
-        //row keys.
-        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, context.rowKeyRangeExp());
+        //Row in start row and end row
+        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, deleteHqlContext.rowKeyRangeExp());
         RowKey<?> startRowKey = rowKeyRange.getStart();
         RowKey<?> endRowKey = rowKeyRange.getEnd();
-        List<RowKey<?>> inRowKeyList = rowKeyRange.getContainsSomeKeys();
+        // row in row keys
+        List<RowKey<?>> inRowKeyList = rowKeyRange.getInSomeKeys();
+        //filter
+        Filter filter = HBaseSQLExtendContextUtil.parseFilter(deleteHqlContext.wherec(), tableSchema);
 
         Date ts = null;
-        HBaseSQLParser.TsExpContext tsExpContext = context.tsExp();
+        HBaseSQLParser.TsExpContext tsExpContext = deleteHqlContext.tsExp();
         if (tsExpContext != null) {
             ts = HBaseSqlAnalysisUtil.extractTimeStampDate(tsExpContext);
         }
         // delete in rowKeys
         if (inRowKeyList != null && !inRowKeyList.isEmpty()) {
-            deleteInRowKeys(tableName, inRowKeyList, filter, deleteHbaseColumnSchemaList, ts);
-
-        } else {
+            deleteInRowKeys(tableName, inRowKeyList, deleteHbaseColumnSchemaList, ts);
+            return;
+        }
+        if (startRowKey != null && endRowKey != null) {
             Util.checkRowKey(startRowKey);
             Util.checkRowKey(endRowKey);
-            deleteInternalWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteHbaseColumnSchemaList, ts);
+            deleteWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteHbaseColumnSchemaList, ts);
         }
+
 
     }
 
-    private void deleteInRowKeys(String tableName, List<RowKey<?>> rowKeys, Filter filter, List<HBaseColumn> columnList, Date ts) {
+    private void deleteInRowKeys(String tableName, List<RowKey<?>> rowKeys,
+                                 List<HBaseColumn> deleteHbaseColumnSchemaList, Date ts) {
         if (rowKeys == null || rowKeys.isEmpty()) {
             return;
         }
-        List<Get> getList = new ArrayList<>();
-        rowKeys.forEach(rowKey -> getList.add(constructGet(rowKey)));
-        List<Delete> deletes = new LinkedList<>();
-        this.execute(tableName, table -> {
-            Result[] results = table.get(getList);
-            for (Result result : results) {
-                deletes.add(constructDelete(result, columnList, ts));
-            }
-            return null;
-        });
-
+        List<Delete> deletes = new ArrayList<>();
+        for (RowKey<?> rowKey : rowKeys) {
+            deletes.add(constructDelete(rowKey, deleteHbaseColumnSchemaList, ts));
+        }
         this.execute(tableName, table -> {
             table.mutate(deletes);
         });
     }
 
-    private void deleteInternalWithScanFirst(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey,
-                                             Filter filter, List<HBaseColumn> columnList, Date ts) {
+    private void deleteWithScanFirst(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey,
+                                     Filter filter, List<HBaseColumn> columnList, Date ts) {
 
         final int deleteBatch = getDeleteBatch(tableName);
 

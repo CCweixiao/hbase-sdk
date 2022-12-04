@@ -53,7 +53,6 @@ public final class HBaseSqlAnalysisUtil {
     public static List<HBaseColumn> extractColumnSchemaList(HBaseTableSchema tableSchema,
                                                             HBaseSQLParser.SelectColListContext selectColListContext) {
         MyAssert.checkNotNull(selectColListContext);
-
         SelectColListVisitor visitor = new SelectColListVisitor(tableSchema);
         return selectColListContext.accept(visitor);
     }

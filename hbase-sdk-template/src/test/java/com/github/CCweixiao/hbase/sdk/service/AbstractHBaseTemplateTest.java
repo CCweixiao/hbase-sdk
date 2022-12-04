@@ -11,7 +11,7 @@ import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSqlContext;
+import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.ArrayList;
@@ -40,6 +40,9 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void initIHBaseSqlTemplate() {
+        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.quorum", "myhbase");
+        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.property.clientPort", "2181");
+        HBaseSqlContext.appendOrReplaceConnProp("hbase.client.retries.number", "3");
         HBaseTableSchema tableSchema = new HBaseTableSchema.Builder("test:test_sql")
                 .addColumn("f1", "id")
                 .addColumn("f1", "name")
@@ -54,8 +57,6 @@ public abstract class AbstractHBaseTemplateTest {
 
 
         HBaseSqlContext.registerTableSchema(tableSchema);
-        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.quorum", "myhbase");
-        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.property.clientPort", "2181");
         sqlTemplate = new HBaseSqlTemplateImpl();
     }
 

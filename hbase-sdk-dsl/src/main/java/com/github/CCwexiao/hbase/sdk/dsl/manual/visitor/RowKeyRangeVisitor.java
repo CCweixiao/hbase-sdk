@@ -55,8 +55,7 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyRange rowKeyRange = new RowKeyRange();
         RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> rowKey = rowKeyConstantVisitor.parseRowKey(onerowkeyContext.rowKeyExp());
-        rowKeyRange.setStart(rowKey);
-        rowKeyRange.setEnd(rowKey);
+        rowKeyRange.setEqRow(rowKey);
         return rowKeyRange;
     }
 
@@ -65,7 +64,7 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyRange rowKeyRange = new RowKeyRange();
         RowKeyListConstantVisitor rowKeyListConstantVisitor = new RowKeyListConstantVisitor(tableSchema);
         List<RowKey<?>> rowKeyList = insomekeysContext.accept(rowKeyListConstantVisitor);
-        rowKeyRange.setContainsSomeKeys(rowKeyList);
+        rowKeyRange.setInSomeKeys(rowKeyList);
         rowKeyRange.setStart(null);
         rowKeyRange.setEnd(null);
         return rowKeyRange;

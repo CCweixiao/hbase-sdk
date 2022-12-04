@@ -10,7 +10,7 @@ import com.github.CCweixiao.hbase.sdk.connection.ConnectionFactory;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseSqlContext;
+import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLErrorStrategy;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLStatementsLexer;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
@@ -41,17 +41,17 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
 
     abstract List<List<HBaseCellResult>> select(String hsql, Map<String, Object> params);
 
-    abstract void insert(String hql);
+    abstract void insert(String hsql);
 
-    abstract void delete(String hql);
+    abstract void delete(String hsql);
 
     @Override
     public Connection getConnection() {
         return ConnectionFactory.getConnection(HBaseSqlContext.getConnProperties());
     }
 
-    protected HBaseColumn findColumnSchema(String tableName, String family, String qualifier) {
-        return HBaseSqlContext.getTableSchema(tableName).findColumn(family, qualifier);
+    protected HBaseColumn findColumnSchema(String tableName, String familyName, String columnName) {
+        return HBaseSqlContext.getTableSchema(tableName).findColumn(familyName, columnName);
     }
 
     protected int getScanCaching(String tableName) {
@@ -70,7 +70,7 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
         return getTableQuerySetting(tableName).isScanCacheBlocks();
     }
 
-    protected Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, List<HBaseColumn> hbaseColumnSchemaList) {
+    protected Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnSchemaList) {
         Get get = constructGet(rowKey);
         if (queryExtInfo != null) {
             if (queryExtInfo.isMaxVersionSet()) {
@@ -88,27 +88,48 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
                 }
             }
         }
-        if (hbaseColumnSchemaList != null && !hbaseColumnSchemaList.isEmpty()) {
-            hbaseColumnSchemaList.forEach(hBaseColumnSchema -> {
-                get.addColumn(Bytes.toBytes(hBaseColumnSchema.getFamilyName()),
-                        Bytes.toBytes(hBaseColumnSchema.getColumnName()));
-            });
+        if (filter != null) {
+            get.setFilter(filter);
+        }
+        if (columnSchemaList != null && !columnSchemaList.isEmpty()) {
+            for (HBaseColumn column : columnSchemaList) {
+                if (column.columnIsRow()) {
+                    continue;
+                }
+                get.addColumn(Bytes.toBytes(column.getFamilyName()), Bytes.toBytes(column.getColumnName()));
+            }
         }
         return get;
     }
 
-    protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo);
-
+    protected Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, List<HBaseColumn> columnSchemaList) {
+        return constructGet(rowKey, queryExtInfo, null, columnSchemaList);
+    }
 
     protected Get constructGet(RowKey<?> rowKey) {
         Util.checkRowKey(rowKey);
         return new Get(rowKey.toBytes());
     }
 
+    protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo);
 
-    protected Delete constructDelete(Result result, List<HBaseColumn> hbaseColumnSchemaList, Date ts) {
-        Delete delete = new Delete(result.getRow());
-        for (HBaseColumn hBaseColumnSchema : hbaseColumnSchemaList) {
+    protected Delete constructDelete(RowKey<?> rowKey, List<HBaseColumn> columnSchemaList, Date ts) {
+        return constructDelete(rowKey.toBytes(), columnSchemaList, ts);
+    }
+
+    protected Delete constructDelete(Result result, List<HBaseColumn> columnSchemaList, Date ts) {
+        return constructDelete(result.getRow(), columnSchemaList, ts);
+    }
+
+    private Delete constructDelete(byte[] row, List<HBaseColumn> columnSchemaList, Date ts) {
+        Delete delete = new Delete(row);
+        if (columnSchemaList == null || columnSchemaList.isEmpty()) {
+            return delete;
+        }
+        for (HBaseColumn hBaseColumnSchema : columnSchemaList) {
+            if (hBaseColumnSchema.columnIsRow()) {
+                continue;
+            }
             byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamilyName());
             byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getColumnName());
             if (ts == null) {
@@ -211,16 +232,13 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
         MyAssert.checkNotNull(progContext);
 
         if (progContext instanceof HBaseSQLParser.InsertHqlClContext) {
-            return ((HBaseSQLParser.InsertHqlClContext) progContext)
-                    .inserthqlc().tableName().STRING().getText();
+            return ((HBaseSQLParser.InsertHqlClContext) progContext).inserthqlc().tableName().STRING().getText();
         }
         if (progContext instanceof HBaseSQLParser.SelectHqlClContext) {
-            return ((HBaseSQLParser.SelectHqlClContext) progContext)
-                    .selecthqlc().tableName().STRING().getText();
+            return ((HBaseSQLParser.SelectHqlClContext) progContext).selecthqlc().tableName().STRING().getText();
         }
         if (progContext instanceof HBaseSQLParser.DeleteHqlClContext) {
-            return ((HBaseSQLParser.DeleteHqlClContext) progContext)
-                    .deletehqlc().tableName().STRING().getText();
+            return ((HBaseSQLParser.DeleteHqlClContext) progContext).deletehqlc().tableName().STRING().getText();
         }
         throw new HBaseOperationsException("can't parse the name of hbase table.");
     }

@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.config;
+package com.github.CCwexiao.hbase.sdk.dsl.context;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
@@ -15,7 +15,6 @@ public class HBaseSqlContext {
     private volatile static Map<String, HBaseTableSchema> tableSchemaMap;
 
     private HBaseSqlContext() {
-
     }
 
     public static void registerTableSchema(HBaseTableSchema tableSchema) {
@@ -26,9 +25,7 @@ public class HBaseSqlContext {
                     if (tableSchemaMap == null) {
                         tableSchemaMap = new HashMap<>(2);
                     }
-                    if (!tableSchemaMap.containsKey(tableName)) {
-                        tableSchemaMap.put(tableName, tableSchema);
-                    }
+                    tableSchemaMap.put(tableName, tableSchema);
                 }
             }
         }
@@ -36,8 +33,8 @@ public class HBaseSqlContext {
 
     public static HBaseTableSchema getTableSchema(String tableName) {
         if (tableSchemaMap == null || tableName.isEmpty() || !tableSchemaMap.containsKey(tableName)) {
-            throw new HBaseSqlTableSchemaMissingException("The table " +
-                    tableName + " has no table schema, please register first.");
+            throw new HBaseSqlTableSchemaMissingException(
+                    String.format("The table [%s] has no table schema, please register first.", tableName));
         }
         return tableSchemaMap.get(tableName);
     }
@@ -49,6 +46,21 @@ public class HBaseSqlContext {
                     connProperties = new Properties();
                 }
                 connProperties.setProperty(key, value);
+            }
+        }
+    }
+
+    public static void appendOrReplaceConnProp(Properties properties) {
+        if (connProperties == null) {
+            synchronized (HBaseSqlContext.class) {
+                if (connProperties == null) {
+                    connProperties = new Properties();
+                }
+                if (properties != null && !properties.isEmpty()) {
+                    properties.forEach((key, value) -> {
+                        connProperties.setProperty(key.toString(), value.toString());
+                    });
+                }
             }
         }
     }

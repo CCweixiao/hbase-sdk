@@ -25,9 +25,10 @@ public abstract class BaseRowKey<T> implements RowKey<T> {
         // convert order 2
         T v = this.computeRowValue();
         if (v == null) {
-            this.valueBytes = new byte[0];
+            this.valueBytes = null;
+        } else {
+            this.valueBytes = this.columnType().getTypeHandler().toBytes(this.columnType().getTypeClass(), v);
         }
-        this.valueBytes = this.columnType().getTypeHandler().toBytes(this.columnType().getTypeClass(), v);
         return this.valueBytes;
     }
 

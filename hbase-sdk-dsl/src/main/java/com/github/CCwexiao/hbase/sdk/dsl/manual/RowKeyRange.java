@@ -7,9 +7,18 @@ import java.util.List;
  * @author leojie 2020/11/28 10:59 上午
  */
 public class RowKeyRange {
+    private RowKey<?> eqRow;
     private RowKey<?> start;
     private RowKey<?> end;
-    private List<RowKey<?>> containsSomeKeys;
+    private List<RowKey<?>> inSomeKeys;
+
+    public RowKey<?> getEqRow() {
+        return eqRow;
+    }
+
+    public void setEqRow(RowKey<?> eqRow) {
+        this.eqRow = eqRow;
+    }
 
     public RowKey<?> getStart() {
         return start;
@@ -27,11 +36,11 @@ public class RowKeyRange {
         this.end = end;
     }
 
-    public List<RowKey<?>> getContainsSomeKeys() {
-        return containsSomeKeys;
+    public List<RowKey<?>> getInSomeKeys() {
+        return inSomeKeys;
     }
 
-    public void setContainsSomeKeys(List<RowKey<?>> containsSomeKeys) {
-        this.containsSomeKeys = containsSomeKeys;
+    public void setInSomeKeys(List<RowKey<?>> inSomeKeys) {
+        this.inSomeKeys = inSomeKeys;
     }
 }
