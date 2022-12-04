@@ -9,7 +9,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
  * @author leojie 2022/11/13 21:18
  */
 public class Util {
-    public static void checkRowKey(RowKey rowKey) {
+    public static void checkRowKey(RowKey<?> rowKey) {
         MyAssert.checkNotNull(rowKey);
 
         if (rowKey.toBytes() == null) {

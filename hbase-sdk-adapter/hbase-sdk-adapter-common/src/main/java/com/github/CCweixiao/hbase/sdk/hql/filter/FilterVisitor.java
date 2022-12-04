@@ -1,14 +1,13 @@
 package com.github.CCweixiao.hbase.sdk.hql.filter;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser.*;
-import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
+import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
+import com.github.CCwexiao.hbase.sdk.dsl.manual.visitor.BaseVisitor;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLContextUtil;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -20,16 +19,17 @@ import java.util.Map;
 /**
  * @author leojie 2020/11/28 2:34 下午
  */
-public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
-    private HBaseTableConfig hBaseTableConfig;
-    private Map<String, Object> para;
-    private TableQuerySetting runtimeSetting;
+public class FilterVisitor extends BaseVisitor<Filter> {
 
-    public FilterVisitor(HBaseTableConfig hBaseTableConfig,
-                         Map<String, Object> para, TableQuerySetting runtimeSetting) {
-        this.hBaseTableConfig = hBaseTableConfig;
-        this.para = para;
-        this.runtimeSetting = runtimeSetting;
+    private final Map<String, Object> queryParams;
+
+    public FilterVisitor(HBaseTableSchema tableSchema, Map<String, Object> queryParams) {
+        super(tableSchema);
+        this.queryParams = queryParams;
+    }
+
+    public Map<String, Object> getQueryParams() {
+        return queryParams;
     }
 
     @Override
@@ -63,205 +63,173 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     @Override
     public Filter visitEqualvar(EqualvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
 
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL, object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+
+        return constructFilter(columnSchema, CompareFilter.CompareOp.EQUAL, object);
     }
 
     @Override
     public Filter visitEqualconstant(EqualconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         final ConstantContext constantContext = ctx.constant();
-        final HBaseColumn hBaseColumnSchema = HBaseSQLContextUtil.parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        final Object obj = HBaseSQLContextUtil.parseConstant(hBaseColumnSchema, constantContext, runtimeSetting);
-        return constructFilter(hBaseColumnSchema, CompareFilter.CompareOp.EQUAL, obj);
+        final HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        final Object obj = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.EQUAL, obj);
     }
 
     @Override
     public Filter visitIsnullc(IsnullcContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
+        ColContext colContext = ctx.col();
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.EQUAL,
                 new byte[0], true);
     }
 
     @Override
     public Filter visitIsnotnullc(IsnotnullcContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL,
-                new byte[0], true);
+        ColContext colContext = ctx.col();
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.NOT_EQUAL, new byte[0], true);
     }
 
     @Override
     public Filter visitNotequalconstant(NotequalconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL, object);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.NOT_EQUAL, object);
     }
 
     @Override
     public Filter visitNotequalvar(NotequalvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
-
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL, object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.NOT_EQUAL, object);
     }
 
     @Override
     public Filter visitLessvar(LessvarContext ctx) {
-
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
-
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
-
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS, object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.LESS, object);
     }
 
     @Override
     public Filter visitLessconstant(LessconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS, object);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.LESS, object);
 
     }
 
     @Override
     public Filter visitLessequalconstant(LessequalconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
-
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS_OR_EQUAL,
-                object);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.LESS_OR_EQUAL, object);
     }
 
     @Override
     public Filter visitLessequalvar(LessequalvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS_OR_EQUAL, object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.LESS_OR_EQUAL, object);
     }
 
     @Override
     public Filter visitGreaterconstant(GreaterconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER, object);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.GREATER, object);
     }
 
     @Override
     public Filter visitGreatervar(GreatervarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER, object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.GREATER, object);
     }
 
 
     @Override
     public Filter visitGreaterequalvar(GreaterequalvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL, object);
     }
 
     @Override
     public Filter visitGreaterequalconstant(GreaterequalconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
-
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
-
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                object);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL, object);
     }
 
 
     @Override
     public Filter visitIsnotmissingc(IsnotmissingcContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                new byte[0], true);
+        ColContext colContext = ctx.col();
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.GREATER_OR_EQUAL, new byte[0], true);
     }
 
     @Override
     public Filter visitIsmissingc(IsmissingcContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        return constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS,
+        ColContext colContext = ctx.col();
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.LESS,
                 new byte[0], false);
     }
 
-    private static Filter constructFilter(HBaseColumn hBaseColumnSchema,
-                                          CompareFilter.CompareOp compareOp, Object object) {
-        ObjUtil.checkIsNull(hBaseColumnSchema);
-
-        byte[] value = hBaseColumnSchema.getTypeHandler().toBytes(hBaseColumnSchema.getType(), object);
-        return constructFilter(hBaseColumnSchema, compareOp, value, true);
+    private static Filter constructFilter(HBaseColumn columnSchema, CompareFilter.CompareOp compareOp, Object object) {
+        MyAssert.checkNotNull(columnSchema);
+        byte[] value = columnSchema.getColumnType().getTypeHandler().toBytes(columnSchema.getColumnType().getTypeClass(), object);
+        return constructFilter(columnSchema, compareOp, value, true);
     }
 
     private static Filter constructFilter(HBaseColumn hBaseColumnSchema,
                                           CompareFilter.CompareOp compareOp,
                                           byte[] value,
                                           boolean filterIfMissing) {
-        ObjUtil.checkIsNull(hBaseColumnSchema);
-        ObjUtil.checkIsNull(compareOp);
-        ObjUtil.checkIsNull(value);
+        MyAssert.checkNotNull(hBaseColumnSchema);
+        MyAssert.checkNotNull(compareOp);
+        MyAssert.checkNotNull(value);
 
-        byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
-        byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getQualifier());
+        byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamilyName());
+        byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getColumnName());
 
 
         SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(
@@ -273,79 +241,69 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     @Override
     public Filter visitNotmatchconstant(NotmatchconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        return constructFilterWithRegex(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL,
-                object);
+        return constructFilterWithRegex(columnSchema, CompareFilter.CompareOp.NOT_EQUAL, object);
     }
 
     @Override
     public Filter visitNotmatchvar(NotmatchvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
 
-        return constructFilterWithRegex(hbaseColumnSchema, CompareFilter.CompareOp.NOT_EQUAL,
+        return constructFilterWithRegex(columnSchema, CompareFilter.CompareOp.NOT_EQUAL,
                 object);
     }
 
     @Override
     public Filter visitMatchvar(MatchvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
 
-        return constructFilterWithRegex(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
+        return constructFilterWithRegex(columnSchema, CompareFilter.CompareOp.EQUAL,
                 object);
     }
 
     @Override
     public Filter visitMatchconstant(MatchconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         ConstantContext constantContext = ctx.constant();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parseConstant(hbaseColumnSchema,
-                constantContext, runtimeSetting);
+        HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractConstant(columnSchema, constantContext);
 
-        return constructFilterWithRegex(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
-                object);
+        return constructFilterWithRegex(columnSchema, CompareFilter.CompareOp.EQUAL, object);
     }
 
     private static Filter constructFilterWithRegex(
-            HBaseColumn hbaseColumnSchema, CompareFilter.CompareOp compareOp,
+            HBaseColumn columnSchema, CompareFilter.CompareOp compareOp,
             Object object) {
-        ObjUtil.checkIsNull(hbaseColumnSchema);
-        ObjUtil.checkIsNull(compareOp);
-        ObjUtil.checkIsNull(object);
+        MyAssert.checkNotNull(columnSchema);
+        MyAssert.checkNotNull(compareOp);
+        MyAssert.checkNotNull(object);
 
         if (compareOp != CompareFilter.CompareOp.EQUAL && compareOp != CompareFilter.CompareOp.NOT_EQUAL) {
-            throw new HBaseOperationsException("only EQUAL or NOT_EQUAL can use regex match. compareOp = "
-                    + compareOp);
+            throw new HBaseOperationsException("only EQUAL or NOT_EQUAL can use regex match. compareOp = " + compareOp);
         }
         if (object.getClass() != String.class) {
             throw new HBaseOperationsException("only string can use regex match. object = " + object);
         }
-        if (hbaseColumnSchema.getType() != String.class) {
-            throw new HBaseOperationsException("only string can use regex match. hbaseColumnSchema = "
-                    + hbaseColumnSchema);
+        if (columnSchema.getColumnType().getTypeClass() != String.class) {
+            throw new HBaseOperationsException("only string can use regex match. columnSchema = " + columnSchema);
         }
 
-        byte[] familyBytes = Bytes.toBytes(hbaseColumnSchema.getFamily());
-        byte[] qualifierBytes = Bytes.toBytes(hbaseColumnSchema.getQualifier());
+        byte[] familyBytes = Bytes.toBytes(columnSchema.getFamilyName());
+        byte[] qualifierBytes = Bytes.toBytes(columnSchema.getColumnName());
 
         RegexStringComparator regexStringComparator = new RegexStringComparator(
                 (String) object);
@@ -359,69 +317,61 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     @Override
     public Filter visitNotinconstantlist(NotinconstantlistContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
+        ColContext colContext = ctx.col();
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
 
         ConstantListContext constantListContext = ctx.constantList();
-        List<ConstantContext> constantContextList = constantListContext
-                .constant();
-        List<Object> list = HBaseSQLContextUtil.parseConstantList(hbaseColumnSchema,
-                constantContextList, runtimeSetting);
+        List<ConstantContext> constantContextList = constantListContext.constant();
+        List<Object> list = HBaseSqlAnalysisUtil.extractConstantList(hbaseColumn, constantContextList);
 
-        return constructFilterForContain(hbaseColumnSchema,
-                CompareFilter.CompareOp.NOT_EQUAL, list, FilterList.Operator.MUST_PASS_ALL);
+        return constructFilterForContain(hbaseColumn, CompareFilter.CompareOp.NOT_EQUAL, list, FilterList.Operator.MUST_PASS_ALL);
     }
 
     @Override
     public Filter visitNotinvarlist(NotinvarlistContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
 
-        return constructFilterForContain(hbaseColumnSchema,
+        return constructFilterForContain(hbaseColumn,
                 CompareFilter.CompareOp.NOT_EQUAL, (List<Object>) object,
                 FilterList.Operator.MUST_PASS_ALL);
     }
 
     @Override
     public Filter visitInvarlist(InvarlistContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         VarContext varContext = ctx.var();
 
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        Object object = HBaseSQLContextUtil.parsePara(varContext, para);
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        Object object = HBaseSqlAnalysisUtil.extractParam(varContext, queryParams);
 
-        return constructFilterForContain(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
+        return constructFilterForContain(hbaseColumn, CompareFilter.CompareOp.EQUAL,
                 (List<Object>) object, FilterList.Operator.MUST_PASS_ONE);
     }
 
     @Override
     public Filter visitInconstantlist(InconstantlistContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-
+        ColContext colContext = ctx.col();
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
         ConstantListContext constantListContext = ctx.constantList();
         List<ConstantContext> constantContextList = constantListContext
                 .constant();
-        List<Object> list = HBaseSQLContextUtil.parseConstantList(hbaseColumnSchema, constantContextList, runtimeSetting);
+        List<Object> list = HBaseSqlAnalysisUtil.extractConstantList(hbaseColumn, constantContextList);
 
-        return constructFilterForContain(hbaseColumnSchema, CompareFilter.CompareOp.EQUAL,
+        return constructFilterForContain(hbaseColumn, CompareFilter.CompareOp.EQUAL,
                 list, FilterList.Operator.MUST_PASS_ONE);
     }
 
     private static Filter constructFilterForContain(
             HBaseColumn hbaseColumnSchema, CompareFilter.CompareOp compareOp,
             List<Object> list, FilterList.Operator operator) {
-        ObjUtil.checkIsNull(hbaseColumnSchema);
-        ObjUtil.checkIsNull(compareOp);
-        ObjUtil.checkIsNull(list);
-        ObjUtil.checkIsNull(operator);
+        MyAssert.checkNotNull(hbaseColumnSchema);
+        MyAssert.checkNotNull(compareOp);
+        MyAssert.checkNotNull(list);
+        MyAssert.checkNotNull(operator);
 
         List<Filter> filters = new ArrayList<>();
         for (Object obj : list) {
@@ -433,52 +383,36 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     @Override
     public Filter visitNotbetweenconstant(NotbetweenconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-
+        ColContext colContext = ctx.col();
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
         List<ConstantContext> constantContextList = ctx.constant();
-
-        List<Object> list = HBaseSQLContextUtil.parseConstantList(hbaseColumnSchema,
-                constantContextList, runtimeSetting);
-
-        Filter startFilter = constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS,
-                list.get(0));
-        Filter endFilter = constructFilter(hbaseColumnSchema,
-                CompareFilter.CompareOp.GREATER, list.get(1));
-
+        List<Object> list = HBaseSqlAnalysisUtil.extractConstantList(hbaseColumn, constantContextList);
+        Filter startFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.LESS, list.get(0));
+        Filter endFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.GREATER, list.get(1));
         return new FilterList(FilterList.Operator.MUST_PASS_ONE, Arrays.asList(startFilter, endFilter));
     }
 
     @Override
     public Filter visitNotbetweenvar(NotbetweenvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         List<VarContext> varContextList = ctx.var();
-
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        List<Object> list = HBaseSQLContextUtil.parseParaList(varContextList, para);
-
-        Filter startFilter = constructFilter(hbaseColumnSchema, CompareFilter.CompareOp.LESS,
-                list.get(0));
-        Filter endFilter = constructFilter(hbaseColumnSchema,
-                CompareFilter.CompareOp.GREATER, list.get(1));
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        List<Object> list = HBaseSqlAnalysisUtil.extractParasList(varContextList, queryParams);
+        Filter startFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.LESS, list.get(0));
+        Filter endFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.GREATER, list.get(1));
 
         return new FilterList(FilterList.Operator.MUST_PASS_ONE, Arrays.asList(startFilter, endFilter));
     }
 
     @Override
     public Filter visitBetweenvar(BetweenvarContext ctx) {
-        CidContext cidContext = ctx.cid();
+        ColContext colContext = ctx.col();
         List<VarContext> varContextList = ctx.var();
-
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-        List<Object> list = HBaseSQLContextUtil.parseParaList(varContextList, para);
-
-        Filter startFilter = constructFilter(hbaseColumnSchema,
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
+        List<Object> list = HBaseSqlAnalysisUtil.extractParasList(varContextList, queryParams);
+        Filter startFilter = constructFilter(hbaseColumn,
                 CompareFilter.CompareOp.GREATER_OR_EQUAL, list.get(0));
-        Filter endFilter = constructFilter(hbaseColumnSchema,
+        Filter endFilter = constructFilter(hbaseColumn,
                 CompareFilter.CompareOp.LESS_OR_EQUAL, list.get(1));
 
         return new FilterList(FilterList.Operator.MUST_PASS_ALL, Arrays.asList(startFilter, endFilter));
@@ -486,20 +420,12 @@ public class FilterVisitor extends HBaseSQLBaseVisitor<Filter> {
 
     @Override
     public Filter visitBetweenconstant(BetweenconstantContext ctx) {
-        CidContext cidContext = ctx.cid();
-        HBaseColumn hbaseColumnSchema = HBaseSQLContextUtil
-                .parseHBaseColumnSchema(hBaseTableConfig, cidContext);
-
+        ColContext colContext = ctx.col();
+        HBaseColumn hbaseColumn = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
         List<ConstantContext> constantContextList = ctx.constant();
-
-        List<Object> list = HBaseSQLContextUtil.parseConstantList(hbaseColumnSchema,
-                constantContextList, runtimeSetting);
-
-        Filter startFilter = constructFilter(hbaseColumnSchema,
-                CompareFilter.CompareOp.GREATER_OR_EQUAL, list.get(0));
-        Filter endFilter = constructFilter(hbaseColumnSchema,
-                CompareFilter.CompareOp.LESS_OR_EQUAL, list.get(1));
-
+        List<Object> list = HBaseSqlAnalysisUtil.extractConstantList(hbaseColumn, constantContextList);
+        Filter startFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.GREATER_OR_EQUAL, list.get(0));
+        Filter endFilter = constructFilter(hbaseColumn, CompareFilter.CompareOp.LESS_OR_EQUAL, list.get(1));
         return new FilterList(FilterList.Operator.MUST_PASS_ALL, Arrays.asList(startFilter, endFilter));
     }
 

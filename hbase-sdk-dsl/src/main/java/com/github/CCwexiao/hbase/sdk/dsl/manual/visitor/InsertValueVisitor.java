@@ -2,6 +2,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
+import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 
 /**
@@ -19,7 +20,7 @@ public class InsertValueVisitor extends BaseVisitor<Object> {
 
     @Override
     public Object visitInsertValue_NotNull(HBaseSQLParser.InsertValue_NotNullContext ctx) {
-        return parseConstant(column, ctx.constant());
+        return HBaseSqlAnalysisUtil.extractConstant(column, ctx.constant());
     }
 
     public Object parseInsertConstantValue(HBaseColumn column, HBaseSQLParser.InsertValueContext insertValueContext) {

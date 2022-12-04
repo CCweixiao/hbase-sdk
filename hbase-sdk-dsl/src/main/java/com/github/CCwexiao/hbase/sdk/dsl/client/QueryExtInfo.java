@@ -17,8 +17,7 @@ public class QueryExtInfo {
     private long maxStamp;
 
     private boolean isLimitSet;
-    private long startIndex;
-    private long length;
+    private long limit;
 
     public QueryExtInfo() {
 
@@ -53,17 +52,12 @@ public class QueryExtInfo {
         this.isTimeRangeSet = true;
     }
 
-    public void setLimit(long startIndex, long length) {
-        if (startIndex < 0) {
-            throw new HBaseOperationsException("startIndex is smaller than zero. startIndex=" + startIndex);
+    public void setLimit(long limit) {
+        if (limit < 0) {
+            throw new HBaseOperationsException("The value of limit is must be bigger than zero.");
         }
 
-        if (length < 1) {
-            throw new HBaseOperationsException("length is should bigger than one. length=" + length);
-        }
-
-        this.startIndex = startIndex;
-        this.length = length;
+        this.limit = limit;
         this.isLimitSet = true;
     }
 
@@ -72,12 +66,8 @@ public class QueryExtInfo {
         return isLimitSet;
     }
 
-    public long getStartIndex() {
-        return startIndex;
-    }
-
-    public long getLength() {
-        return length;
+    public long getLimit() {
+        return limit;
     }
 
     public boolean isMaxVersionSet() {
@@ -109,8 +99,7 @@ public class QueryExtInfo {
                 ", minStamp=" + minStamp +
                 ", maxStamp=" + maxStamp +
                 ", isLimitSet=" + isLimitSet +
-                ", startIndex=" + startIndex +
-                ", length=" + length +
+                ", limit=" + limit +
                 '}';
     }
 }

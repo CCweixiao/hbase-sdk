@@ -16,8 +16,7 @@ public class HBaseSQLErrorStrategy extends DefaultErrorStrategy {
 
     @Override
     public Token recoverInline(Parser recognizer) throws RecognitionException {
-        throw new HBaseOperationsException("parser error.",
-                new InputMismatchException(recognizer));
+        throw new HBaseOperationsException("parser error.", new InputMismatchException(recognizer));
     }
 
     @Override

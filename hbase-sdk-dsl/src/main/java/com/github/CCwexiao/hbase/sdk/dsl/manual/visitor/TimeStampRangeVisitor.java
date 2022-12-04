@@ -3,6 +3,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
+import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.TimeStampRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -18,7 +19,7 @@ public class TimeStampRangeVisitor extends BaseVisitor<TimeStampRange> {
     @Override
     public TimeStampRange visitTsrange_start(HBaseSQLParser.Tsrange_startContext startContext) {
         TimeStampRange timeStampRange = new TimeStampRange();
-        timeStampRange.setStart(parseTimeStamp(startContext.tsExp()));
+        timeStampRange.setStart(HBaseSqlAnalysisUtil.extractTimeStamp(startContext.tsExp()));
         timeStampRange.setEnd(Long.MAX_VALUE);
         return timeStampRange;
     }
@@ -27,15 +28,15 @@ public class TimeStampRangeVisitor extends BaseVisitor<TimeStampRange> {
     public TimeStampRange visitTsrange_end(HBaseSQLParser.Tsrange_endContext endContext) {
         TimeStampRange timeStampRange = new TimeStampRange();
         timeStampRange.setStart(0L);
-        timeStampRange.setEnd(parseTimeStamp(endContext.tsExp()));
+        timeStampRange.setEnd(HBaseSqlAnalysisUtil.extractTimeStamp(endContext.tsExp()));
         return timeStampRange;
     }
 
     @Override
     public TimeStampRange visitTsrange_startAndEnd(HBaseSQLParser.Tsrange_startAndEndContext startAndEndContext) {
         TimeStampRange timeStampRange = new TimeStampRange();
-        timeStampRange.setStart(parseTimeStamp(startAndEndContext.tsExp(0)));
-        timeStampRange.setEnd(parseTimeStamp(startAndEndContext.tsExp(1)));
+        timeStampRange.setStart(HBaseSqlAnalysisUtil.extractTimeStamp(startAndEndContext.tsExp(0)));
+        timeStampRange.setEnd(HBaseSqlAnalysisUtil.extractTimeStamp(startAndEndContext.tsExp(1)));
         return timeStampRange;
     }
 

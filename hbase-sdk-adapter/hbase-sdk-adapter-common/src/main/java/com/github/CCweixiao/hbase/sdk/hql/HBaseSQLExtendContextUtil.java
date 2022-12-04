@@ -1,12 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.hql;
 
-import com.github.CCweixiao.hbase.sdk.common.util.ObjUtil;
 import com.github.CCweixiao.hbase.sdk.hql.filter.FilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
-import com.github.CCwexiao.hbase.sdk.dsl.config.HBaseTableConfig;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import org.apache.hadoop.hbase.filter.Filter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,30 +13,30 @@ import java.util.Map;
  */
 public class HBaseSQLExtendContextUtil {
 
-    public static Filter parseFilter(HBaseSQLParser.WherecContext wherecContext,
-                                     HBaseTableConfig hBaseTableConfig,
-                                     TableQuerySetting runtimeSetting){
-        ObjUtil.checkIsNull(hBaseTableConfig);
-        ObjUtil.checkIsNull(runtimeSetting);
 
-        return parseFilter(wherecContext, hBaseTableConfig, null, runtimeSetting);
+    public static Filter parseFilter(HBaseSQLParser.WherecContext whereContext, HBaseTableSchema tableSchema) {
+
+        if (whereContext == null) {
+            return null;
+        }
+        if (whereContext.conditionc() == null) {
+            return null;
+        }
+        FilterVisitor visitor = new FilterVisitor(tableSchema, new HashMap<>(0));
+        return whereContext.conditionc().accept(visitor);
     }
 
-    private static Filter parseFilter(HBaseSQLParser.WherecContext wherecContext,
-                                      HBaseTableConfig hBaseTableConfig,
-                                      Map<String, Object> para,
-                                      TableQuerySetting runtimeSetting) {
-        ObjUtil.checkIsNull(hBaseTableConfig);
-        ObjUtil.checkIsNull(runtimeSetting);
+    public static Filter parseFilter(HBaseSQLParser.WherecContext whereContext, HBaseTableSchema tableSchema,
+                                      Map<String, Object> queryParams) {
 
-        if (wherecContext == null) {
+        if (whereContext == null) {
             return null;
         }
-        if (wherecContext.conditionc() == null) {
+        if (whereContext.conditionc() == null) {
             return null;
         }
-        FilterVisitor visitor = new FilterVisitor(hBaseTableConfig, para, runtimeSetting);
-        return wherecContext.conditionc().accept(visitor);
+        FilterVisitor visitor = new FilterVisitor(tableSchema, queryParams);
+        return whereContext.conditionc().accept(visitor);
 
     }
 }
