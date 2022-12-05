@@ -169,6 +169,7 @@ public final class HBaseSqlAnalysisUtil {
         RowKeyConstantVisitor visitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> rowKey = rowKeyExpContext.accept(visitor);
         MyAssert.checkNotNull(rowKey);
+        MyAssert.checkNotNull(rowKey.toBytes());
         return rowKey;
     }
 
@@ -179,7 +180,13 @@ public final class HBaseSqlAnalysisUtil {
         // 解析最大版本号
         HBaseSQLParser.MaxVersionExpContext maxVersionExpContext = selectHqlContext.maxVersionExp();
         if (maxVersionExpContext != null) {
-            queryExtInfo.setMaxVersions(Integer.parseInt(maxVersionExpContext.maxversion().STRING().getText()));
+            int maxVersion;
+            try {
+                maxVersion = Integer.parseInt(maxVersionExpContext.maxversion().STRING().getText());
+            } catch (NumberFormatException e) {
+                throw new HBaseSqlAnalysisException("The value of max version must be one integer number.");
+            }
+            queryExtInfo.setMaxVersions(maxVersion);
         }
 
         // 解析起止时间戳范围
@@ -192,10 +199,15 @@ public final class HBaseSqlAnalysisUtil {
         // 解析limit
         HBaseSQLParser.LimitExpContext limitExpContext = selectHqlContext.limitExp();
         if (limitExpContext != null) {
+            long limit;
             final TerminalNode terminalNode = limitExpContext.STRING();
-            queryExtInfo.setLimit(Long.parseLong(terminalNode.getText()));
+            try {
+                limit = Long.parseLong(terminalNode.getText());
+            } catch (NumberFormatException e) {
+                throw new HBaseSqlAnalysisException("The value of limit must be one integer number.");
+            }
+            queryExtInfo.setLimit(limit);
         }
-
         return queryExtInfo;
     }
 }

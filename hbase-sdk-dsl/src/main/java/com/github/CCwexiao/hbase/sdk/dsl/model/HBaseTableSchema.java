@@ -151,13 +151,13 @@ public class HBaseTableSchema {
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
             return null;
         }
-        if (StringUtil.isBlank(familyName) && columnSchemaMap.containsKey(columnName)) {
-            return columnSchemaMap.get(columnName);
+        if (StringUtil.isBlank(familyName) && this.columnSchemaMap.containsKey(columnName)) {
+            return this.columnSchemaMap.get(columnName);
         }
         if (StringUtil.isBlank(familyName)) {
-            familyName = defaultFamily;
+            familyName = this.defaultFamily;
         }
-        HBaseColumn column = columnSchemaMap.get(familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + columnName);
+        HBaseColumn column = this.columnSchemaMap.get(familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + columnName);
         if (column == null) {
             throw new HBaseColumnNotFoundException(String.format("The col of %s:%s is undefined.", familyName, columnName));
         }
@@ -165,19 +165,19 @@ public class HBaseTableSchema {
     }
 
     public HBaseColumn findColumn(String columnName) {
-        return findColumn(defaultFamily, columnName);
+        return findColumn(this.defaultFamily, columnName);
     }
 
     public HBaseColumn findRow() {
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
-            throw new HBaseColumnNotFoundException("Please set column schema for table: " + tableName);
+            throw new HBaseColumnNotFoundException("Please set column schema for table: " + this.getTableName());
         }
-        for (HBaseColumn column : columnSchemaMap.values()) {
+        for (HBaseColumn column : this.columnSchemaMap.values()) {
             if (column.columnIsRow()) {
                 return column;
             }
         }
-        throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s.", tableName));
+        throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s.", this.getTableName()));
     }
 
     /**

@@ -5,6 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlFamilyMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.Objects;
@@ -98,6 +99,14 @@ public class HBaseColumn {
         return familyName;
     }
 
+    public byte[] getFamilyNameBytes() {
+        return BytesUtil.toBytes(this.getFamilyName());
+    }
+
+    public byte[] getColumnNameBytes() {
+        return BytesUtil.toBytes(this.getColumnName());
+    }
+
     public String getColumnName() {
         return columnName;
     }
@@ -144,8 +153,10 @@ public class HBaseColumn {
         StringBuilder sb = new StringBuilder();
         sb.append("|");
         sb.append("—— ");
-        sb.append(familyName);
-        sb.append(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
+        if (!this.columnIsRow()) {
+            sb.append(familyName);
+            sb.append(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
+        }
         sb.append(this.getColumnName());
         sb.append(": ");
         sb.append("(");

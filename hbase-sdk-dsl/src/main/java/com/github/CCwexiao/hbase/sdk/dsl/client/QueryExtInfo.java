@@ -21,7 +21,7 @@ public class QueryExtInfo {
     public QueryExtInfo() {}
 
     public void setMaxVersions(int maxVersions) {
-        MyAssert.checkArgument(maxVersions > 0, String.format("The max version must >= 1, " +
+        MyAssert.checkArgument(maxVersions > 0, String.format("The max version must > 0, but the " +
                 "current max version is %s.", maxVersions));
         this.maxVersions = maxVersions;
         this.isMaxVersionSet = true;
@@ -46,8 +46,8 @@ public class QueryExtInfo {
     }
 
     public void setLimit(long limit) {
-        MyAssert.checkArgument(limit >= 0, "The value of limit must bi >= 0," +
-                " but current limit is "+ limit);
+        MyAssert.checkArgument(limit > 0, "The value of limit must be > 0," +
+                " but the current limit is "+ limit);
         this.limit = limit;
         this.isLimitSet = true;
     }

@@ -45,6 +45,10 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
         String sql = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) and f1:age <= 18";
         List<List<HBaseCellResult>> select = sqlTemplate.select(sql);
         System.out.println(select);
+
+        String sql2 = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) and f1:age <= 18 limit 2";
+        List<List<HBaseCellResult>> select2 = sqlTemplate.select(sql2);
+        System.out.println(select2);
     }
 
     @Test
