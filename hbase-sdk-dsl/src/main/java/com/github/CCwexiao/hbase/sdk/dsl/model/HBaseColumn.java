@@ -127,6 +127,10 @@ public class HBaseColumn {
         return this.getColumnType().getTypeHandler().toBytes(this.getColumnType().getTypeClass(), value);
     }
 
+    public Object toObject(byte[] row) {
+        return this.getColumnType().getTypeHandler().toObject(this.getColumnType().getTypeClass(), row);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

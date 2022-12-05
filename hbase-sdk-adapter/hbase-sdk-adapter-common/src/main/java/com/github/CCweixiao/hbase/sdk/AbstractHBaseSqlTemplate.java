@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
@@ -133,42 +134,39 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
     }
 
     protected List<HBaseCellResult> convertToHBaseCellResultList(String tableName, Result result, HBaseTableSchema tableSchema) {
-        HBaseColumn row = tableSchema.findRow();
+        HBaseColumn rowColumn = tableSchema.findRow();
+        Object rowKey = rowColumn.toObject(result.getRow());
         final Cell[] cells = result.rawCells();
         if (cells == null || cells.length == 0) {
             return new ArrayList<>();
         }
-        String familyStr = null;
-        String qualifierStr = null;
+        String familyName = null;
+        String columnName = null;
 
         try {
             List<HBaseCellResult> resultList = new ArrayList<>();
-
             for (Cell cell : cells) {
-                familyStr = Bytes.toString(CellUtil.cloneFamily(cell));
-                qualifierStr = Bytes.toString(CellUtil.cloneQualifier(cell));
-                byte[] hbaseVal = CellUtil.cloneValue(cell);
-                final HBaseColumn column = findColumnSchema(tableName, familyStr, qualifierStr);
+                familyName = Bytes.toString(CellUtil.cloneFamily(cell));
+                columnName = Bytes.toString(CellUtil.cloneQualifier(cell));
+                byte[] valueByteArr = CellUtil.cloneValue(cell);
+                final HBaseColumn column = findColumnSchema(tableName, familyName, columnName);
                 final TypeHandler<?> typeHandler = column.getColumnType().getTypeHandler();
-                Object valueObject = typeHandler.toObject(column.getColumnType().getTypeClass(), hbaseVal);
-
-                long ts = cell.getTimestamp();
+                Object value = typeHandler.toObject(column.getColumnType().getTypeClass(), valueByteArr);
+                long timestamp = cell.getTimestamp();
                 HBaseCellResult cellResult = new HBaseCellResult();
-                cellResult.setFamilyStr(familyStr);
-                cellResult.setQualifierStr(qualifierStr);
-                cellResult.setColumnName(familyStr + ":" + qualifierStr);
-                cellResult.setValue(valueObject);
-                cellResult.setTimestamp(ts);
-                Object rowKey = row.getColumnType().getTypeHandler().toObject(row.getColumnType().getTypeClass(), result.getRow());
+                cellResult.setFamilyName(familyName);
+                cellResult.setColumnName(columnName);
+                cellResult.setValue(value);
+                cellResult.setTimestamp(timestamp);
                 cellResult.setRowKey(rowKey);
                 resultList.add(cellResult);
             }
             return resultList;
 
         } catch (Exception e) {
-            throw new HBaseOperationsException(
-                    "convert result exception. familyStr=" + familyStr
-                            + " qualifierStr=" + qualifierStr
+            throw new HBaseSqlExecuteException(
+                    "Convert result exception. familyName=" + familyName
+                            + " columnName=" + columnName
                             + " result="
                             + result, e);
         }

@@ -5,8 +5,7 @@ package com.github.CCweixiao.hbase.sdk.common.model;
  */
 public class HBaseCellResult {
     private Object rowKey;
-    private String familyStr;
-    private String qualifierStr;
+    private String familyName;
     private String columnName;
     private Object value;
     private long timestamp;
@@ -19,12 +18,8 @@ public class HBaseCellResult {
         this.rowKey = rowKey;
     }
 
-    public void setFamilyStr(String familyStr) {
-        this.familyStr = familyStr;
-    }
-
-    public void setQualifierStr(String qualifierStr) {
-        this.qualifierStr = qualifierStr;
+    public void setFamilyName(String familyName) {
+        this.familyName = familyName;
     }
 
     public void setValue(Object value) {
@@ -35,14 +30,9 @@ public class HBaseCellResult {
         this.timestamp = timestamp;
     }
 
-    public String getFamilyStr() {
-        return familyStr;
+    public String getFamilyName() {
+        return familyName;
     }
-
-    public String getQualifierStr() {
-        return qualifierStr;
-    }
-
 
     public String getColumnName() {
         return columnName;
