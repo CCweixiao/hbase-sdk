@@ -1,24 +1,23 @@
 package com.github.CCwexiao.hbase.sdk.dsl.model.row;
 
-import java.lang.reflect.Type;
-
 /**
  * @author leojie 2022/12/5 23:03
  */
 public class Column {
     private String family;
     private String qualifier;
-    private Type type;
     private Object value;
+
+    private Long timestamp;
 
     public Column() {
     }
 
-    public Column(String family, String qualifier, Type type, Object value) {
+    public Column(String family, String qualifier, Object value, Long timestamp) {
         this.family = family;
         this.qualifier = qualifier;
-        this.type = type;
         this.value = value;
+        this.timestamp = timestamp;
     }
 
     public String getFamily() {
@@ -37,19 +36,18 @@ public class Column {
         this.qualifier = qualifier;
     }
 
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
-    }
-
     public Object getValue() {
         return value;
     }
 
     public void setValue(Object value) {
         this.value = value;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(Long timestamp) {
+        this.timestamp = timestamp;
     }
 }
