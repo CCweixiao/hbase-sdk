@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.common.model;
 /**
  * @author leojie 2022/11/27 18:10
  */
+@Deprecated
 public class HBaseCellResult {
     private Object rowKey;
     private String familyName;

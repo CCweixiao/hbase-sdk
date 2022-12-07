@@ -1,14 +1,16 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.github.CCweixiao.hbase.sdk.connection.ConnectionFactory;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -21,34 +23,33 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 
 /**
  * @author leojie 2020/11/28 8:34 下午
  */
-public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
+public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations implements IHBaseSqlOperations {
 
-    abstract List<List<HBaseCellResult>> select(String hsql);
+    public AbstractHBaseSqlTemplate(Properties properties) {
+        super(properties);
+    }
 
-    abstract List<List<HBaseCellResult>> select(String hsql, Map<String, Object> params);
+    public AbstractHBaseSqlTemplate(String zkHost, String zkPort) {
+        super(zkHost, zkPort);
+    }
 
-    abstract void insert(String hsql);
-
-    abstract void delete(String hsql);
-
-    @Override
-    public Connection getConnection() {
-        return ConnectionFactory.getConnection(HBaseSqlContext.getConnProperties());
+    public AbstractHBaseSqlTemplate(Configuration configuration) {
+        super(configuration);
     }
 
     protected HBaseColumn findColumnSchema(String tableName, String familyName, String columnName) {
@@ -133,6 +134,27 @@ public abstract class AbstractHBaseSqlTemplate implements IHBaseOperations {
         return delete;
     }
 
+    protected HBaseDataRow convertToHBaseDataRow(Result result, HBaseTableSchema tableSchema) {
+        HBaseColumn rowColumn = tableSchema.findRow();
+        Object rowKey = rowColumn.toObject(result.getRow());
+        final Cell[] cells = result.rawCells();
+        if (cells == null || cells.length == 0) {
+            return HBaseDataRow.of(rowKey);
+        }
+        HBaseDataRow row = HBaseDataRow.of(rowColumn.getColumnName(), rowKey);
+        for (HBaseColumn columnSchema : tableSchema.findAllColumns()) {
+            if (columnSchema.columnIsRow()) {
+                continue;
+            }
+            byte[] bytes = result.getValue(columnSchema.getFamilyNameBytes(), columnSchema.getColumnNameBytes());
+            Object value = columnSchema.getColumnType().getTypeHandler().
+                    toObject(columnSchema.getColumnType().getTypeClass(), bytes);
+            row.appendColumn(columnSchema.getFamilyName(), columnSchema.getColumnName(), value);
+        }
+        return row;
+    }
+
+    @Deprecated
     protected List<HBaseCellResult> convertToHBaseCellResultList(String tableName, Result result, HBaseTableSchema tableSchema) {
         HBaseColumn rowColumn = tableSchema.findRow();
         Object rowKey = rowColumn.toObject(result.getRow());

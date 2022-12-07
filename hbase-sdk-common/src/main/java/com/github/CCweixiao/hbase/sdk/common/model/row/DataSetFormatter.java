@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.model.row;
+package com.github.CCweixiao.hbase.sdk.common.model.row;
 
 import java.awt.Font;
 import java.util.*;
@@ -96,9 +96,7 @@ public class DataSetFormatter {
     }
 
     public static Integer getStrPixelsLength(String str) {
-        int s = str.length();
-        int s2 =  sun.font.FontDesignMetrics.getMetrics(FONT).stringWidth(str) / 8;
-        return s2;
+        return sun.font.FontDesignMetrics.getMetrics(FONT).stringWidth(str) / 8;
     }
 
     private String makeValueCenter(String columnValue, Integer repairStrLength) {
@@ -243,9 +241,9 @@ public class DataSetFormatter {
     }
 
     public static void main(String[] args) {
-        List<String> cols = Arrays.asList("name", "age");
-        List<List<String>> values = Arrays.asList(Arrays.asList("张三", "18"),
-                Arrays.asList("李四", "17"));
+        List<String> cols = Arrays.asList("name", "age", "name", "age", "name", "age");
+        List<List<String>> values = Arrays.asList(Arrays.asList("leo1", "18", "leo2", "18", "leo3", "18"),
+                Arrays.asList("leo3", "17", "leo4", "18", "leo5", "18"));
         DataSetFormatter dataSetFormatter = new DataSetFormatter(cols, values);
         System.out.println(dataSetFormatter.printTable());
         System.out.println();

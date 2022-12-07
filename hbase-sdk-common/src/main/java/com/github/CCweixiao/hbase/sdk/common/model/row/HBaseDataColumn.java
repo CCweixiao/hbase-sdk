@@ -1,19 +1,18 @@
-package com.github.CCwexiao.hbase.sdk.dsl.model.row;
+package com.github.CCweixiao.hbase.sdk.common.model.row;
 
 /**
  * @author leojie 2022/12/5 23:03
  */
-public class Column {
+public class HBaseDataColumn {
     private String family;
     private String qualifier;
     private Object value;
-
     private Long timestamp;
 
-    public Column() {
+    public HBaseDataColumn() {
     }
 
-    public Column(String family, String qualifier, Object value, Long timestamp) {
+    public HBaseDataColumn(String family, String qualifier, Object value, Long timestamp) {
         this.family = family;
         this.qualifier = qualifier;
         this.value = value;

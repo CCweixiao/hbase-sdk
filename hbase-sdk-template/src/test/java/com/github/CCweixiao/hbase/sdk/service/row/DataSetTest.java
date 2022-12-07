@@ -1,8 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.service.row;
 
-import com.github.CCwexiao.hbase.sdk.dsl.model.row.DataSet;
-import com.github.CCwexiao.hbase.sdk.dsl.model.row.DataSetFormatter;
-import com.github.CCwexiao.hbase.sdk.dsl.model.row.Row;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
+import com.github.CCweixiao.hbase.sdk.common.model.row.DataSetFormatter;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -15,15 +15,18 @@ public class DataSetTest {
     @Test
     public void testDataSet() {
 
-        Row row1 = Row.of("10001")
+        HBaseDataRow row1 = HBaseDataRow.of("10001")
                 .appendColumn("f1", "name", "leo")
-                .appendColumn("f1", "age", 12);
+                .appendColumn("f1", "age", 12)
+                .appendColumn("f1", "address", "上海市");
 
-        Row row2 = Row.of("10002")
+        HBaseDataRow row2 = HBaseDataRow.of("10002")
                 .appendColumn("f1", "name", "leo1")
-                .appendColumn("f1", "age", 14);
-        DataSet dataSet = DataSet.of("test:test_sql")
+                .appendColumn("f1", "age", 14)
+                .appendColumn("f1", "address", "北京市");
+        HBaseDataSet dataSet = HBaseDataSet.of("test:test_sql")
                 .appendRow(row1).appendRow(row2);
+        dataSet.show();
 
     }
 

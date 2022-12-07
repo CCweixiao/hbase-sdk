@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractHBaseTemplateTest {
     protected IHBaseAdminTemplate adminTemplate;
     protected IHBaseTableTemplate tableTemplate;
-
     protected IHBaseSqlTemplate sqlTemplate;
 
     protected void initIHBaseAdminTemplate() {
@@ -40,9 +39,6 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void initIHBaseSqlTemplate() {
-        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.quorum", "myhbase");
-        HBaseSqlContext.appendOrReplaceConnProp("hbase.zookeeper.property.clientPort", "2181");
-        HBaseSqlContext.appendOrReplaceConnProp("hbase.client.retries.number", "3");
         HBaseTableSchema tableSchema = new HBaseTableSchema.Builder("test:test_sql")
                 .addColumn("f1", "id")
                 .addColumn("f1", "name")
@@ -55,9 +51,10 @@ public abstract class AbstractHBaseTemplateTest {
                 .scanCacheBlocks(false)
                 .build();
 
-        System.out.println(tableSchema.toString());
+        tableSchema.printSchema();
         HBaseSqlContext.registerTableSchema(tableSchema);
-        sqlTemplate = new HBaseSqlTemplateImpl();
+        sqlTemplate = new HBaseSqlTemplateImpl.Builder()
+                .properties(getProperties()).build();
     }
 
     protected Properties getProperties() {

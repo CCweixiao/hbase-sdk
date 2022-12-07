@@ -2,7 +2,8 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
-import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
@@ -14,6 +15,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import java.io.IOException;
@@ -23,6 +25,18 @@ import java.util.*;
  * @author leojie 2020/11/28 8:36 下午
  */
 public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
+
+    public HBaseSqlTemplate(Properties properties) {
+        super(properties);
+    }
+
+    public HBaseSqlTemplate(String zkHost, String zkPort) {
+        super(zkHost, zkPort);
+    }
+
+    public HBaseSqlTemplate(Configuration configuration) {
+        super(configuration);
+    }
 
     @Override
     protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo) {
@@ -44,7 +58,7 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
     }
 
     @Override
-    public List<List<HBaseCellResult>> select(String hql, Map<String, Object> params) {
+    public HBaseDataSet select(String hql, Map<String, Object> params) {
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
         MyAssert.checkNotNull(selectHqlContext);
@@ -70,13 +84,14 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         // = row key; get row
         if (eqRowKey != null) {
             Get get = constructGet(eqRowKey, queryExtInfo, filter, queryColumnSchemaList);
-            return Collections.singletonList(this.execute(tableName, table -> {
+            return this.execute(tableName, table -> {
                 Result result = table.get(get);
                 if (result == null) {
                     return null;
                 }
-                return convertToHBaseCellResultList(tableName, result, tableSchema);
-            }).orElse(new ArrayList<>(0)));
+                HBaseDataRow row = convertToHBaseDataRow(tableName, result, tableSchema);
+                return HBaseDataSet.of(tableName).appendRow(row);
+            }).orElse(HBaseDataSet.of(tableName));
         }
 
         // in row keys; get rows
@@ -93,18 +108,16 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                 getArr[i] = constructGet(queryInRows.get(i), queryExtInfo, filter, queryColumnSchemaList);
             }
             return this.execute(tableName, table -> {
-                List<List<HBaseCellResult>> resultList = new ArrayList<>();
+                HBaseDataSet dataSet = HBaseDataSet.of(tableName);
                 final Result[] results = table.get(Arrays.asList(getArr));
                 if (results != null && results.length > 0) {
                     for (Result result : results) {
-                        List<HBaseCellResult> temp = convertToHBaseCellResultList(tableName, result, tableSchema);
-                        if (!temp.isEmpty()) {
-                            resultList.add(temp);
-                        }
+                        HBaseDataRow row = convertToHBaseDataRow(tableName, result, tableSchema);
+                        dataSet.appendRow(row);
                     }
                 }
-                return resultList;
-            }).orElse(new ArrayList<>(0));
+                return dataSet;
+            }).orElse(HBaseDataSet.of(tableName));
         }
 
         // scan 查询
@@ -133,30 +146,28 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                     limit = queryExtInfo.getLimit();
                 }
 
-                List<List<HBaseCellResult>> resultList = new ArrayList<>();
+                HBaseDataSet dataSet = HBaseDataSet.of(tableName);
 
                 try (ResultScanner scanner = table.getScanner(scan)) {
                     long resultCounter = 0L;
                     Result result;
                     while ((result = scanner.next()) != null) {
-                        List<HBaseCellResult> temp = convertToHBaseCellResultList(tableName, result, tableSchema);
-                        if (!temp.isEmpty()) {
-                            resultList.add(temp);
-                            if (++resultCounter >= limit) {
-                                break;
-                            }
+                        HBaseDataRow row = convertToHBaseDataRow(tableName, result, tableSchema);
+                        dataSet.appendRow(row);
+                        if (++resultCounter >= limit) {
+                            break;
                         }
                     }
-                    return resultList;
+                    return dataSet;
                 }
-            }).orElse(new ArrayList<>(0));
+            }).orElse(HBaseDataSet.of(tableName));
         } catch (Exception e) {
             throw new HBaseSqlExecuteException("Select error. hql=" + hql, e);
         }
     }
 
     @Override
-    public List<List<HBaseCellResult>> select(String hsql) {
+    public HBaseDataSet select(String hsql) {
         return select(hsql, new HashMap<>(0));
     }
 

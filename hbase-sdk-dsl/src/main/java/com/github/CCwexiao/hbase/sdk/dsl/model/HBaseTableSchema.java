@@ -56,7 +56,7 @@ public class HBaseTableSchema {
 
         public Builder addColumn(HBaseColumn column) {
             if (this.columnSchemaMap == null) {
-                this.columnSchemaMap = new HashMap<>(4);
+                this.columnSchemaMap = new LinkedHashMap<>(4);
             }
             if (column.columnIsRow()) {
                 this.columnSchemaMap.put(column.getColumnName(), column);
@@ -234,5 +234,9 @@ public class HBaseTableSchema {
         }
         sb.append("---------------table--------------------------\n");
         return sb.toString();
+    }
+
+    public void printSchema() {
+        System.out.println(this.toString());
     }
 }

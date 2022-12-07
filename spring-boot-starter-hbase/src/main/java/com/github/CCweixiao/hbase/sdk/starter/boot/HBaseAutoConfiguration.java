@@ -46,7 +46,8 @@ public class HBaseAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(IHBaseSqlTemplate.class)
     public IHBaseSqlTemplate hbaseSqlTemplate() {
-        return new HBaseSqlTemplateImpl();
+        return new HBaseSqlTemplateImpl.Builder()
+                .properties(createHBaseProperties()).build();
     }
 
     @Bean
