@@ -7,6 +7,7 @@ import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author leojie 2020/11/27 10:53 下午
@@ -186,7 +187,20 @@ public class HBaseTableSchema {
      * @return All HBaseColumnSchema List
      */
     public Set<HBaseColumn> findAllColumns() {
-        return new HashSet<>(columnSchemaMap.values());
+        if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
+            return new HashSet<>();
+        }
+        return columnSchemaMap.values().stream().filter(c->!c.columnIsRow()).collect(Collectors.toSet());
+    }
+
+    public Map<KeyValue, HBaseColumn> createColumnsMap() {
+        if (this.findAllColumns().isEmpty()) {
+            return new HashMap<>(0);
+        }
+        Map<KeyValue, HBaseColumn> columnMap = new HashMap<>(this.findAllColumns().size());
+        this.findAllColumns().forEach(column ->
+                columnMap.put(new KeyValue(column.getFamilyNameBytes(), column.getColumnNameBytes()), column));
+        return columnMap;
     }
 
     public String getTableName() {

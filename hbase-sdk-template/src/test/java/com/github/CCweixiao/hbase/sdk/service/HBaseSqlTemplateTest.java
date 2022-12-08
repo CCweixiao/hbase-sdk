@@ -38,20 +38,58 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
     }
 
     @Test
+    public void testInsertByRowFunction() {
+        String hsql1 = "insert into test:test_sql ( f1:id , f1:name , f1:age , f2:address ) values ( '11111' , 'a_leo' , 15 , 'bj' ) where rowKey = md5 ( 'a1111' )";
+        String hsql2 = "insert into test:test_sql ( f1:id , f1:name , f1:age , f2:address ) values ( '11111' , 'a_leo' , 15 , 'bj' ) where rowKey = md5_prefix ( 'a1111' )";
+        sqlTemplate.insert(hsql1);
+        sqlTemplate.insert(hsql2);
+
+        String sql1 = "select * from test:test_sql where rowKey = md5 ( 'a1111' )";
+        HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
+        dataSet1.show();
+
+        System.out.println("============================================================");
+
+        String sql2 = "select * from test:test_sql where rowKey = md5_prefix ( 'a1111' )";
+        HBaseDataSet dataSet2 = sqlTemplate.select(sql2);
+        dataSet2.show();
+
+    }
+
+    @Test
     public void testSelect() {
+        String sql1 = "select * from test:test_sql where rowKey = 'a10001'";
+        HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
+        dataSet1.show();
+
+        System.out.println("============================================================");
+
         String sql = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'b20006' )";
         HBaseDataSet dataSet = sqlTemplate.select(sql);
         dataSet.show();
 
         System.out.println("============================================================");
+        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
+        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
+        dataSet32.show();
+    }
 
-        String sql1 = "select * from test:test_sql where rowKey = 'a10001'";
-        HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
-        dataSet1.show();
+    @Test
+    public void testSelectMaxVersion() {
+        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
+        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
+        dataSet32.show();
     }
 
     @Test
     public void testSelectByFilter() {
+
+        String sql3 = "select * from test:test_sql where rowKey in ( 'a10001' , 'a10002' , 'a10003' )";
+        HBaseDataSet dataSet2 = sqlTemplate.select(sql3);
+        dataSet2.show();
+
+        System.out.println("============================================================");
+
         String sql = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) and f1:age <= 18";
         HBaseDataSet dataSet = sqlTemplate.select(sql);
         dataSet.show();
@@ -61,6 +99,8 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
         String sql2 = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) and f1:age <= 18 limit 2";
         HBaseDataSet dataSet1 = sqlTemplate.select(sql2);
         dataSet1.show();
+
+
     }
 
     @Test

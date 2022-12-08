@@ -19,6 +19,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLErrorStrategy;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLStatementsLexer;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
+import com.github.CCwexiao.hbase.sdk.dsl.model.KeyValue;
 import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -134,22 +136,27 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         return delete;
     }
 
-    protected HBaseDataRow convertToHBaseDataRow(Result result, HBaseTableSchema tableSchema) {
-        HBaseColumn rowColumn = tableSchema.findRow();
+    protected HBaseDataRow convertToHBaseDataRow(Result result, HBaseColumn rowColumn,
+                                                 Map<KeyValue, HBaseColumn> columnsMap) {
         Object rowKey = rowColumn.toObject(result.getRow());
         final Cell[] cells = result.rawCells();
         if (cells == null || cells.length == 0) {
             return HBaseDataRow.of(rowKey);
         }
+        if (columnsMap.isEmpty()) {
+            return HBaseDataRow.of(rowKey);
+        }
         HBaseDataRow row = HBaseDataRow.of(rowColumn.getColumnName(), rowKey);
-        for (HBaseColumn columnSchema : tableSchema.findAllColumns()) {
-            if (columnSchema.columnIsRow()) {
+        for (Cell cell : result.listCells()) {
+
+            KeyValue tmp = new KeyValue(CellUtil.cloneFamily(cell), CellUtil.cloneQualifier(cell));
+            if (!columnsMap.containsKey(tmp)) {
                 continue;
             }
-            byte[] bytes = result.getValue(columnSchema.getFamilyNameBytes(), columnSchema.getColumnNameBytes());
-            Object value = columnSchema.getColumnType().getTypeHandler().
-                    toObject(columnSchema.getColumnType().getTypeClass(), bytes);
-            row.appendColumn(columnSchema.getFamilyName(), columnSchema.getColumnName(), value);
+            HBaseColumn column = columnsMap.get(tmp);
+            Object value = column.getColumnType().getTypeHandler().
+                    toObject(column.getColumnType().getTypeClass(), CellUtil.cloneValue(cell));
+            row.appendColumn(column.getFamilyName(), column.getColumnName(), value);
         }
         return row;
     }

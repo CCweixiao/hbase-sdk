@@ -50,7 +50,7 @@ public abstract class AbstractHBaseTemplateTest {
                 .deleteBatch(100)
                 .scanCacheBlocks(false)
                 .build();
-
+        System.out.println("tableSchema.printSchema();");
         tableSchema.printSchema();
         HBaseSqlContext.registerTableSchema(tableSchema);
         sqlTemplate = new HBaseSqlTemplateImpl.Builder()
