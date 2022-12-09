@@ -101,13 +101,10 @@ public class DataSetFormatter {
 
     private String makeValueCenter(String columnValue, Integer repairStrLength) {
         StringBuilder sb = new StringBuilder();
-        if (repairStrLength % 2 == 1) {
-            sb.append(getRepairStr(' ', repairStrLength / 2));
-        } else {
-            sb.append(getRepairStr(' ', repairStrLength / 2));
-        }
+        boolean con = repairStrLength % 2 != 0;
+        sb.append(getRepairStr(' ', repairStrLength / 2));
         sb.append(columnValue);
-        if (repairStrLength % 2 == 1) {
+        if (con) {
             sb.append(getRepairStr(' ', repairStrLength / 2 + 1));
         } else {
             sb.append(getRepairStr(' ', repairStrLength / 2));

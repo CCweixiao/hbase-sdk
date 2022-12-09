@@ -21,6 +21,11 @@
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-template_${hbase.sdk.adapter.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-shaded-client</artifactId>
+            <version>1.4.3</version>
+        </dependency>
     </dependencies>
 
     <build>

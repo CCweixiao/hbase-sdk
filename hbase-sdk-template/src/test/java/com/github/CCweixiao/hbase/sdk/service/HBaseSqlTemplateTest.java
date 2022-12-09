@@ -76,7 +76,26 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testSelectMaxVersion() {
-        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
+        String hsql1 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v1' , 'a_leo_v1' , 13 ) where rowKey = 'row_10001'";
+        String hsql2 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v2' , 'a_leo_v2' , 14 ) where rowKey = 'row_10001'";
+        String hsql3 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v3' , 'a_leo_v3' , 15 ) where rowKey = 'row_10001'";
+        sqlTemplate.insert(hsql1);
+        sqlTemplate.insert(hsql2);
+        sqlTemplate.insert(hsql3);
+
+        String sql32 = "select * from test:test_sql where rowKey = 'row_10001' and maxVersion = 3";
+        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
+        dataSet32.show();
+    }
+
+    @Test
+    public void testSelectMaxVersion2() {
+        String hsql1 = "insert into test:test_sql ( f1:id ) values ( '11111_v1' ) where rowKey = 'row_10002'";
+        String hsql2 = "insert into test:test_sql ( f1:id , f1:age ) values ( '11111_v2' , 14 ) where rowKey = 'row_10002'";
+        sqlTemplate.insert(hsql1);
+        sqlTemplate.insert(hsql2);
+
+        String sql32 = "select * from test:test_sql where rowKey = 'row_10002' and maxVersion = 2";
         HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
         dataSet32.show();
     }
@@ -105,15 +124,18 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testSelectOne() {
-        String sql = "select * from test:test_sql where rowKey = md5 ( 'a10003' )";
+        String sql = "select * from test:test_sql where rowKey = 'row_10002'";
         HBaseDataSet dataSet = sqlTemplate.select(sql);
         dataSet.show();
     }
 
     @Test
     public void testDeleteOne() {
-        String sql = "delete * from test:test_sql where rowKey = md5 ( 'a10003' )";
-        sqlTemplate.delete(sql);
+        // String sql = "delete f1:age from test:test_sql where rowKey = 'b20004'";
+        // sqlTemplate.delete(sql);
+
+        String sql2 = "delete f1:age from test:test_sql where rowKey = 'row_10001' and ts = 1670579504803";
+        sqlTemplate.delete(sql2);
     }
 
 }

@@ -6,6 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
+import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataColumn;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
@@ -136,29 +137,32 @@ public abstract class AbstractHBaseSqlTemplate extends AbstractHBaseOperations i
         return delete;
     }
 
-    protected HBaseDataRow convertToHBaseDataRow(Result result, HBaseColumn rowColumn,
-                                                 Map<KeyValue, HBaseColumn> columnsMap) {
-        Object rowKey = rowColumn.toObject(result.getRow());
-        final Cell[] cells = result.rawCells();
-        if (cells == null || cells.length == 0) {
-            return HBaseDataRow.of(rowKey);
+    protected List<HBaseDataRow> convertToHBaseDataRow(Result result, HBaseTableSchema tableSchema, QueryExtInfo queryExtInfo) {
+        int maxVersion = 1;
+        if (queryExtInfo.isMaxVersionSet()) {
+            maxVersion = queryExtInfo.getMaxVersions();
         }
-        if (columnsMap.isEmpty()) {
-            return HBaseDataRow.of(rowKey);
+        List<HBaseDataRow> dataRows = new ArrayList<>(maxVersion);
+        Object rowKey = tableSchema.findRow().toObject(result.getRow());
+        if (rowKey == null) {
+            return new ArrayList<>(0);
         }
-        HBaseDataRow row = HBaseDataRow.of(rowColumn.getColumnName(), rowKey);
-        for (Cell cell : result.listCells()) {
-
-            KeyValue tmp = new KeyValue(CellUtil.cloneFamily(cell), CellUtil.cloneQualifier(cell));
-            if (!columnsMap.containsKey(tmp)) {
+        for (HBaseColumn columnSchema : tableSchema.findAllColumns()) {
+            List<Cell> cells = result.getColumnCells(columnSchema.getFamilyNameBytes(), columnSchema.getColumnNameBytes());
+            if (cells == null || cells.isEmpty()) {
                 continue;
             }
-            HBaseColumn column = columnsMap.get(tmp);
-            Object value = column.getColumnType().getTypeHandler().
-                    toObject(column.getColumnType().getTypeClass(), CellUtil.cloneValue(cell));
-            row.appendColumn(column.getFamilyName(), column.getColumnName(), value);
+            for (int i = 0; i < cells.size(); i++) {
+                if (dataRows.size() < i + 1) {
+                    dataRows.add(HBaseDataRow.of(rowKey));
+                }
+                Cell cell = cells.get(i);
+                Object value = columnSchema.getColumnType().getTypeHandler().
+                        toObject(columnSchema.getColumnType().getTypeClass(), CellUtil.cloneValue(cell));
+                dataRows.get(i).appendColumn(columnSchema.getFamilyName(), columnSchema.getColumnName(), value);
+            }
         }
-        return row;
+        return dataRows;
     }
 
     @Deprecated

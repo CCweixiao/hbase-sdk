@@ -34,6 +34,14 @@ public class HBaseDataSet {
         return this;
     }
 
+    public HBaseDataSet appendRows(List<HBaseDataRow> rowList) {
+        if (this.rowSet == null) {
+            this.rowSet = new ArrayList<>();
+        }
+        this.rowSet.addAll(rowList);
+        return this;
+    }
+
     public void show() {
         if (this.getRowSet() == null || this.getRowSet().isEmpty()) {
             return;

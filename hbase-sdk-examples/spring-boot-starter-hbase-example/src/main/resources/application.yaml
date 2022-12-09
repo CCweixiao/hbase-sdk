@@ -1,10 +1,18 @@
 spring:
-  data:
+  datasource:
     hbase:
-      quorum: myhbase
-      node-parent: /hbase
+      zk-host-list: myhbase
       zk-client-port: 2181
-      root-dir: /hbase
+      dfs-root-dir: /hbase
+      zk-node-parent: /hbase
+      security-auth-way: simple
+      kerberos-principal: hbase@HADOOP.LEO.COM
+      keytab-file-path: /etc/hbase/conf/hbase.keytab
+      rs-kerberos-principal: hbase/_HOST@HADOOP.LEO.COM
+      master-kerberos-principal: hbase/_HOST@HADOOP.LEO.COM
+      krb5-conf-path: /etc/krb5.conf
+      krb5-realm:
+      krb5-kdc-server-addr:
       client-properties: hbase.client.retries.number=3
 server:
   port: 8088

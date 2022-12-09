@@ -65,8 +65,6 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
         MyAssert.checkNotNull(selectHqlContext);
         String tableName = parseTableNameFromHql(progContext);
         HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
-        HBaseColumn rowColumn = tableSchema.findRow();
-        Map<KeyValue, HBaseColumn> columnsMap = tableSchema.createColumnsMap();
         // col List
         HBaseSQLParser.SelectColListContext selectColListContext = selectHqlContext.selectColList();
         final List<HBaseColumn> queryColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
@@ -92,14 +90,14 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                 if (result == null) {
                     return null;
                 }
-                HBaseDataRow row = convertToHBaseDataRow(result, rowColumn, columnsMap);
-                return HBaseDataSet.of(tableName).appendRow(row);
+                List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                return HBaseDataSet.of(tableName).appendRows(rowList);
             }).orElse(HBaseDataSet.of(tableName));
         }
 
         // in row keys; get rows
         if (queryInRows != null && !queryInRows.isEmpty()) {
-            long limit = 0;
+            long limit;
             if (queryExtInfo.isLimitSet()) {
                 limit = queryExtInfo.getLimit();
             } else {
@@ -117,8 +115,8 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                 final Result[] results = table.get(Arrays.asList(getArr));
                 if (results != null && results.length > 0) {
                     for (Result result : results) {
-                        HBaseDataRow row = convertToHBaseDataRow(result, rowColumn, columnsMap);
-                        dataSet.appendRow(row);
+                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        dataSet.appendRows(rowList);
                     }
                 }
                 return dataSet;
@@ -157,8 +155,8 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
                     long resultCounter = 0L;
                     Result result;
                     while ((result = scanner.next()) != null) {
-                        HBaseDataRow row = convertToHBaseDataRow(result, rowColumn, columnsMap);
-                        dataSet.appendRow(row);
+                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        dataSet.appendRows(rowList);
                         if (++resultCounter >= limit) {
                             break;
                         }
