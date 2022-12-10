@@ -1,8 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.thrift.example;
 
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftService;
-import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftServiceHolder;
-
 import java.util.Random;
 
 /**

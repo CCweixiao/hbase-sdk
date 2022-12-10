@@ -91,7 +91,6 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         return this.getRow(rowKey, null, null, clazz);
     }
 
-
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
         return this.getRow(rowKey, familyName, null, clazz);
@@ -279,6 +278,16 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
     }
 
     @Override
+    public <T> void delete(T t) {
+        if (t == null) {
+            return;
+        }
+        final Class<?> clazz = t.getClass();
+        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
+        this.executeDelete(tableMeta.getTableName(), new Delete(createDelete(t)));
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         this.delete(tableName, rowKey, null, new ArrayList<>());
     }
@@ -297,9 +306,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
             throw new HBaseOperationsException("the row key of the table will be deleted is not empty.");
         }
         Delete delete = buildDeleteCondition(rowKey, familyName, qualifiers);
-        this.execute(tableName, table -> {
-            table.mutate(delete);
-        });
+        this.executeDelete(tableName, delete);
     }
 
     @Override
@@ -309,6 +316,20 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         } else {
             this.delete(tableName, rowKey, familyName, Arrays.asList(qualifiers));
         }
+    }
+
+    @Override
+    public <T> void deleteBatch(List<T> list) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        final Class<?> clazz0 = list.get(0).getClass();
+        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
+        List<Mutation> deleteList = new ArrayList<>(list.size());
+        for (T t : list) {
+            deleteList.add(new Delete(createDelete(t)));
+        }
+        this.executeDeleteBatch(tableMeta.getTableName(), deleteList);
     }
 
     @Override
@@ -330,11 +351,7 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
             throw new HBaseOperationsException("the row keys of the table will be deleted is not empty.");
         }
         List<Mutation> mutations = rowKeys.stream().map(rowKey -> buildDeleteCondition(rowKey, familyName, qualifiers)).collect(Collectors.toList());
-
-        this.execute(tableName, mutator -> {
-            mutator.mutate(mutations);
-        });
-
+        this.executeDeleteBatch(tableName, mutations);
     }
 
     @Override
@@ -548,6 +565,19 @@ public abstract class AbstractHBaseTemplate extends AbstractHBaseOperations impl
         });
 
         return put;
+    }
+
+    private <T> Delete createDelete(T t) throws HBaseMetaDataException {
+        Class<?> clazz = t.getClass();
+        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
+        List<FieldStruct> fieldStructList = tableMeta.getFieldStructList();
+        FieldStruct rowFieldStruct = fieldStructList.get(0);
+        if (!rowFieldStruct.isRowKey()) {
+            throw new HBaseMetaDataException("The first field is not row key, please check hbase table mata data.");
+        }
+        Object value = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
+        MyAssert.checkArgument(value != null, "The value of row key must not be null.");
+        return new Delete(rowFieldStruct.getTypeHandler().toBytes(rowFieldStruct.getType(), value));
     }
 
     /**

@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.*;
 
-public class HBaseThriftApiTest extends BaseHBaseThriftApiTest {
+public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
 
     @Test
     public void testSavePOJO() {

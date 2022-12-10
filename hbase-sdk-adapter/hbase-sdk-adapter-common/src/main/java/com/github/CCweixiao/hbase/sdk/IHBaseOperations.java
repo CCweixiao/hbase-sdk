@@ -52,4 +52,16 @@ public interface IHBaseOperations {
             mutator.mutate(mutations);
         });
     }
+
+    default void executeDelete(String tableName, Mutation mutation) {
+        this.execute(tableName, mutator -> {
+            mutator.mutate(mutation);
+        });
+    }
+
+    default void executeDeleteBatch(String tableName, List<Mutation> mutations) {
+        this.execute(tableName, mutator -> {
+            mutator.mutate(mutations);
+        });
+    }
 }

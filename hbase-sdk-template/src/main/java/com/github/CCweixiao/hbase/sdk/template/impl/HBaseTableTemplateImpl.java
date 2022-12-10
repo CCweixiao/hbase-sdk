@@ -150,6 +150,11 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     }
 
     @Override
+    public <T> void delete(T t) {
+        tableOperations.delete(t);
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         tableOperations.delete(tableName, rowKey);
     }
@@ -167,6 +172,11 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     @Override
     public void delete(String tableName, String rowKey, String familyName, String... qualifiers) {
         tableOperations.delete(tableName, rowKey, familyName, qualifiers);
+    }
+
+    @Override
+    public <T> void deleteBatch(List<T> list) {
+        tableOperations.deleteBatch(list);
     }
 
     @Override

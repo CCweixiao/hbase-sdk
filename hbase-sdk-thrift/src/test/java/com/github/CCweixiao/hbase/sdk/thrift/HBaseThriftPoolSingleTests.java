@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class HBaseThriftPoolSingleTests {
 
-    private HBaseThriftService hBaseThriftService;
+    private HBaseThriftTemplate hBaseThriftService;
 
     @Before
     public void init() {
@@ -19,7 +19,7 @@ public class HBaseThriftPoolSingleTests {
         config.setMaxIdle(2);
         config.setTimeBetweenEvictionRunsMillis(600 * 1000);
         config.setMinEvictableIdleTimeMillis(600 * 1000);
-        hBaseThriftService = HBaseThriftServiceHolder.getInstance("internal_dev", 9091, config);
+        hBaseThriftService = HBaseThriftTemplateFactory.getInstance("internal_dev", 9091, config);
     }
 
     @Test

@@ -51,7 +51,7 @@ public class HBaseTemplate extends AbstractHBaseTemplate {
         }
 
         if (scanQueryParams.getFilter() != null && scanQueryParams.getFilter().customFilter() instanceof Filter) {
-            scan.setFilter(scanQueryParams.getFilter().customFilter());
+            scan.setFilter((Filter) scanQueryParams.getFilter().customFilter());
         }
 
         if (scanQueryParams.getMinTimestamp() > 0 && scanQueryParams.getMaxTimestamp() > 0) {

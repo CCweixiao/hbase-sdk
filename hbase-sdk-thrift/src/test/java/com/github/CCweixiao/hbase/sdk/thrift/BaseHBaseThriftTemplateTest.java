@@ -7,12 +7,14 @@ import org.junit.Before;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public abstract class BaseHBaseThriftApiTest {
+public abstract class BaseHBaseThriftTemplateTest {
     protected HBaseThriftPool thriftPool;
+    protected HBaseThriftTemplate thriftTemplate;
 
     @Before
     public void init() {
         thriftPool = new HBaseThriftPool("myhbase", 9090);
+        thriftTemplate = HBaseThriftTemplateFactory.getInstance("myhbase", 9090);
     }
 
     protected Map<String, Object> createDefaultDataMap() {

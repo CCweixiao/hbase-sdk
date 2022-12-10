@@ -10,7 +10,7 @@ import java.util.List;
  * @author leojie 2022/11/5 13:56
  */
 @HBaseTable(namespaceName = "test", tableName = "t1", defaultFamilyName = "info")
-public class CityModel extends Country{
+public class CityModel extends Country {
     @HBaseRowKey
     private String cityId;
     private String cityName;

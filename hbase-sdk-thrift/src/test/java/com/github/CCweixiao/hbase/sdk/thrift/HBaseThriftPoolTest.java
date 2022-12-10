@@ -25,12 +25,17 @@ public class HBaseThriftPoolTest {
     }
     @Test
     public void testPut2(){
-        HBaseThriftService hBaseThriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090);
+        HBaseThriftTemplate thriftTemplate = HBaseThriftTemplateFactory.getInstance("localhost", 9090);
         Map<String, Object> data = new HashMap<>();
         data.put("info:name", "leo");
         data.put("info:age", 18);
         data.put("info:address", "shanghai");
         // 保存数据
-        hBaseThriftService.save("leo_test", "a10003", data);
+        thriftTemplate.save("leo_test", "a10003", data);
+    }
+
+    @Test
+    public void testGet() {
+
     }
 }

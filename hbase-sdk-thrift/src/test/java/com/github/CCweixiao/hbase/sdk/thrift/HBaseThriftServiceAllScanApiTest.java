@@ -9,12 +9,12 @@ import java.util.Map;
  * @author leojie 2020/12/30 10:17 下午
  */
 public class HBaseThriftServiceAllScanApiTest {
-    private HBaseThriftService hBaseThriftService;
+    private HBaseThriftTemplate hBaseThriftService;
     private static final String tableName = "LEO_USER";
 
     @Before
     public void init() {
-        hBaseThriftService = HBaseThriftServiceHolder.getInstance();
+        hBaseThriftService = HBaseThriftTemplateFactory.getInstance();
         Map<String, Map<String, Object>> data = new HashMap<>(100);
         for (int i = 0; i < 100; i++) {
             String row = (i + 1) + "000" + (i + 2);

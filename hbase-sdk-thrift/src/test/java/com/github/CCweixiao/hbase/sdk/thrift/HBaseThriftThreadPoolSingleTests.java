@@ -15,7 +15,7 @@ public class HBaseThriftThreadPoolSingleTests {
 
 
     static class Work implements Runnable {
-        private final HBaseThriftService thriftService = HBaseThriftServiceHolder.getInstance("localhost", 9090, 1);
+        private final HBaseThriftTemplate thriftService = HBaseThriftTemplateFactory.getInstance("localhost", 9090, 1);
 
         @Override
         public void run() {

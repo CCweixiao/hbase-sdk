@@ -67,6 +67,10 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         }).orElse(0);
     }
 
+    protected void delete() {
+
+    }
+
     protected <T> List<Mutation> createMutationList(T t, HBaseTableMeta tableMeta) throws HBaseMetaDataException {
         if (t == null) {
             return new ArrayList<>(0);
@@ -184,6 +188,7 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
             } else {
                 TCell tCell = tmpDataMap.get(fieldStruct.getFamilyAndQualifier());
                 if (tCell != null) {
+                    byte[] value = tCell.getValue();
                     Object fieldValue = ColumnType.toObject(fieldStruct.getType(), tCell.getValue());
                     hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), fieldValue);
                 }

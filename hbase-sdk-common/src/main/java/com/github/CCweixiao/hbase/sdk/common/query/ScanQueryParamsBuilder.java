@@ -22,7 +22,7 @@ public class ScanQueryParamsBuilder {
 
     private final long maxResultSize;
     private final int limit;
-    private final IHBaseFilter filter;
+    private final IHBaseFilter<?> filter;
     private final boolean cacheBlocks;
 
     public ScanQueryParamsBuilder(Builder builder) {
@@ -62,7 +62,7 @@ public class ScanQueryParamsBuilder {
 
         private long maxResultSize;
         private int limit;
-        private IHBaseFilter filter;
+        private IHBaseFilter<?> filter;
         private boolean cacheBlocks;
 
         public Builder() {
@@ -144,7 +144,7 @@ public class ScanQueryParamsBuilder {
             return this;
         }
 
-        public Builder filter(IHBaseFilter filter) {
+        public Builder filter(IHBaseFilter<?> filter) {
             this.filter = filter;
             return this;
         }
@@ -228,7 +228,7 @@ public class ScanQueryParamsBuilder {
         return limit;
     }
 
-    public IHBaseFilter getFilter() {
+    public IHBaseFilter<?> getFilter() {
         return filter;
     }
 

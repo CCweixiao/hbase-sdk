@@ -1,6 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedAuthTypeException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedFunctionException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
@@ -371,6 +373,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
+    public <T> void delete(T t) {
+        throw new HBaseSdkUnsupportedFunctionException("Unsupported function in hbase sdk.");
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         delete(tableName, rowKey, null, new ArrayList<>());
     }
@@ -394,7 +401,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 try {
                     hbaseClient.mutateRow(ColumnType.toByteBuffer(tableName),
                             ColumnType.toByteBuffer(rowKey),
-                            mutations, getAttributesMap(new HashMap<>()));
+                            mutations, getAttributesMap(new HashMap<>())); ;
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
                 }
@@ -427,6 +434,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
         } else {
             delete(tableName, rowKey, familyName, new ArrayList<>());
         }
+    }
+
+    @Override
+    public <T> void deleteBatch(List<T> list) {
+        throw new HBaseSdkUnsupportedFunctionException("Unsupported function in hbase sdk.");
     }
 
     @Override

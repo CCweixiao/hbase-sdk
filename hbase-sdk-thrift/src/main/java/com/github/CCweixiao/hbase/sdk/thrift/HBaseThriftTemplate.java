@@ -10,23 +10,23 @@ import java.util.Optional;
 /**
  * @author leojie 2020/12/27 11:41 下午
  */
-public class HBaseThriftService implements IHBaseThriftOperations {
+public class HBaseThriftTemplate implements IHBaseThriftOperations {
 
     private final HBaseThriftPool pool;
 
-    public HBaseThriftService(String host, int port) {
+    public HBaseThriftTemplate(String host, int port) {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         pool = new HBaseThriftPool(config, host, port);
     }
 
-    public HBaseThriftService(String host, int port, int poolSize) {
+    public HBaseThriftTemplate(String host, int port, int poolSize) {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         config.setMaxTotal(poolSize);
         config.setMaxIdle(poolSize);
         pool = new HBaseThriftPool(config, host, port);
     }
 
-    public HBaseThriftService(String host, int port, HBaseThriftPoolConfig config){
+    public HBaseThriftTemplate(String host, int port, HBaseThriftPoolConfig config){
         pool = new HBaseThriftPool(config, host, port);
     }
 
@@ -211,6 +211,13 @@ public class HBaseThriftService implements IHBaseThriftOperations {
     }
 
     @Override
+    public <T> void delete(T t) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            hBaseThrift.delete(t);
+        }
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             hBaseThrift.delete(tableName, rowKey);
@@ -235,6 +242,13 @@ public class HBaseThriftService implements IHBaseThriftOperations {
     public void delete(String tableName, String rowKey, String familyName, String... qualifiers) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             hBaseThrift.delete(tableName, rowKey, familyName, qualifiers);
+        }
+    }
+
+    @Override
+    public <T> void deleteBatch(List<T> list) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            hBaseThrift.deleteBatch(list);
         }
     }
 

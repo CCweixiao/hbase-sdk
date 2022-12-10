@@ -3,20 +3,21 @@
   <ID>JAVA</ID>
   <OriginalElement />
   <nodes>
-    <node x="-301.5" y="-104.0">com.github.CCweixiao.hbase.sdk.HBaseAdminTemplate</node>
     <node x="-300.0" y="281.0">com.github.CCweixiao.hbase.sdk.common.callback.MutatorCallback</node>
-    <node x="-540.5" y="-254.0">com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations</node>
-    <node x="-301.5" y="56.0">com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations</node>
-    <node x="-325.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate</node>
+    <node x="111.75" y="-54.0">com.github.CCweixiao.hbase.sdk.IHBaseOperations</node>
+    <node x="8.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations</node>
+    <node x="-301.5" y="-104.0">com.github.CCweixiao.hbase.sdk.HBaseAdminTemplate</node>
     <node x="229.75" y="-4.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate</node>
+    <node x="-565.0" y="281.0">com.github.CCweixiao.hbase.sdk.common.callback.AdminCallback</node>
+    <node x="-301.5" y="56.0">com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations</node>
+    <node x="224.75" y="-254.0">com.github.CCweixiao.hbase.sdk.thrift.IHBaseThriftOperations</node>
+    <node x="-565.0" y="-204.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate</node>
+    <node x="229.75" y="-154.0">com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations</node>
+    <node x="332.5" y="331.0">com.github.CCweixiao.hbase.sdk.HBaseTemplate</node>
     <node x="-286.5" y="181.0">com.github.CCweixiao.hbase.sdk.HBaseSqlTemplate</node>
     <node x="-565.0" y="231.0">com.github.CCweixiao.hbase.sdk.common.callback.TableCallback</node>
-    <node x="-565.0" y="281.0">com.github.CCweixiao.hbase.sdk.common.callback.AdminCallback</node>
-    <node x="229.75" y="-154.0">com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations</node>
-    <node x="8.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations</node>
-    <node x="-565.0" y="-204.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate</node>
-    <node x="111.75" y="-54.0">com.github.CCweixiao.hbase.sdk.IHBaseOperations</node>
-    <node x="332.5" y="331.0">com.github.CCweixiao.hbase.sdk.HBaseTemplate</node>
+    <node x="-325.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate</node>
+    <node x="-540.5" y="-254.0">com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations</node>
   </nodes>
   <notes />
   <edges>
@@ -27,6 +28,10 @@
     <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" relationship="GENERALIZATION">
       <point x="142.0" y="-0.0" />
       <point x="-137.5" y="-0.0" />
+    </edge>
+    <edge source="com.github.CCweixiao.hbase.sdk.thrift.IHBaseThriftOperations" target="com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="15.0" />
+      <point x="0.0" y="-15.0" />
     </edge>
     <edge source="com.github.CCweixiao.hbase.sdk.HBaseTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate" relationship="GENERALIZATION">
       <point x="0.0" y="-15.0" />
@@ -42,10 +47,6 @@
       <point x="77.25" y="116.0" />
       <point x="-68.75" y="-15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate" target="com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations" relationship="REALIZATION">
-      <point x="0.0" y="-15.0" />
-      <point x="0.0" y="15.0" />
-    </edge>
     <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" relationship="GENERALIZATION">
       <point x="-63.75" y="15.0" />
       <point x="293.5" y="46.0" />
@@ -53,6 +54,10 @@
       <point x="-337.0" y="116.0" />
       <point x="77.25" y="116.0" />
       <point x="-68.75" y="-15.0" />
+    </edge>
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate" target="com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations" relationship="REALIZATION">
+      <point x="0.0" y="-15.0" />
+      <point x="0.0" y="15.0" />
     </edge>
     <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" target="com.github.CCweixiao.hbase.sdk.IHBaseOperations" relationship="REALIZATION">
       <point x="68.75" y="-15.0" />
@@ -73,8 +78,10 @@
       <point x="76.0" y="15.0" />
     </edge>
   </edges>
-  <settings layout="Hierarchic Compact" zoom="0.9872146118721461" showDependencies="false" x="-17.5" y="63.50000000000006" />
-  <SelectedNodes />
+  <settings layout="Hierarchic Compact" zoom="0.6303221973407713" showDependencies="false" x="423.14735521193415" y="193.98851767649057" />
+  <SelectedNodes>
+    <node>com.github.CCweixiao.hbase.sdk.thrift.IHBaseThriftOperations</node>
+  </SelectedNodes>
   <Categories />
   <SCOPE>All</SCOPE>
   <VISIBILITY>private</VISIBILITY>

@@ -11,13 +11,13 @@ import java.util.*;
 public class HBaseThriftPoolTests {
 
     private HBaseThriftPool hBaseThriftPool;
-    private HBaseThriftService hBaseThriftService;
+    private HBaseThriftTemplate hBaseThriftService;
 
     @Before
     public void init() {
         HBaseThriftPoolConfig config = new HBaseThriftPoolConfig();
         hBaseThriftPool = new HBaseThriftPool(config, "localhost", 9090);
-        hBaseThriftService = new HBaseThriftService("localhost", 9090);
+        hBaseThriftService = new HBaseThriftTemplate("localhost", 9090);
     }
 
     @Test

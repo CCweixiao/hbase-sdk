@@ -290,6 +290,14 @@ public interface IHBaseTableOperations {
     List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams);
 
     /**
+     * 传入模型类，删除数据
+     *
+     * @param t   数据模型类
+     * @param <T> 泛型类型
+     */
+    <T> void delete(T t);
+
+    /**
      * 根据RowKey删除数据
      *
      * @param tableName 表名
@@ -326,6 +334,13 @@ public interface IHBaseTableOperations {
      */
     void delete(String tableName, String rowKey, String familyName, String... qualifiers);
 
+    /**
+     * 传入模型类，删除数据
+     *
+     * @param list 数据模型类列表
+     * @param <T>  泛型类型
+     */
+    <T> void deleteBatch(List<T> list);
 
     /**
      * 根据RowKey 批量删除数据

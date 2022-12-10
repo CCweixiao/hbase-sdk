@@ -165,6 +165,11 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
+    public <T> void delete(T t) {
+        hBaseThriftClient.delete(t);
+    }
+
+    @Override
     public void delete(String tableName, String rowKey) {
         hBaseThriftClient.delete(tableName, rowKey);
     }
@@ -182,6 +187,11 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     @Override
     public void delete(String tableName, String rowKey, String familyName, String... qualifiers) {
         hBaseThriftClient.delete(tableName, rowKey, familyName, qualifiers);
+    }
+
+    @Override
+    public <T> void deleteBatch(List<T> list) {
+        hBaseThriftClient.deleteBatch(list);
     }
 
     @Override

@@ -22,15 +22,15 @@ public class HBaseThriftPool extends HBaseThriftPoolAbstract {
         this(new GenericObjectPoolConfig(), host, port, HBaseThriftProtocol.DEFAULT_TIMEOUT);
     }
 
-    public HBaseThriftPool(final GenericObjectPoolConfig poolConfig, final String host, int port) {
+    public HBaseThriftPool(final GenericObjectPoolConfig<?> poolConfig, final String host, int port) {
         this(poolConfig, host, port, HBaseThriftProtocol.DEFAULT_TIMEOUT, HBaseThriftProtocol.DEFAULT_TIMEOUT);
     }
 
-    public HBaseThriftPool(final GenericObjectPoolConfig poolConfig, final String host, int port, int timeout) {
+    public HBaseThriftPool(final GenericObjectPoolConfig<?> poolConfig, final String host, int port, int timeout) {
         this(poolConfig, host, port, timeout, timeout);
     }
 
-    public HBaseThriftPool(final GenericObjectPoolConfig poolConfig, final String host, int port,
+    public HBaseThriftPool(final GenericObjectPoolConfig<?> poolConfig, final String host, int port,
                            final int connectionTimeout, final int soTimeout) {
         super(poolConfig, new HBaseThriftFactory(host, port, connectionTimeout, soTimeout));
     }
