@@ -8,4 +8,8 @@
     <version>3.0.0</version>
     <name>hbase sdk build tools</name>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
 </project>
