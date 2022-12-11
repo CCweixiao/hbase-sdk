@@ -343,16 +343,11 @@ HBaseAdminTemplate封装了HBaseAdmin的常用操作，比如namespace的管理�
 
 ```java
 @Test
-public void testCreateNamespace() {
-    String namespaceName = "LEO_NS";
-    
-    NamespaceDesc namespaceDesc = new NamespaceDesc();
-    namespaceDesc.setNamespaceName(namespaceName);
-    // 为namespace添加属性
-    namespaceDesc = namespaceDesc.addNamespaceProp("desc", "测试命名空间")
-                .addNamespaceProp("createBy", "leo").addNamespaceProp("updateBy", "admin");
-
-    adminTemplate.createNamespace(namespaceDesc);
+public void createNameSpace() {
+        NamespaceDesc namespaceDesc = new NamespaceDesc();
+        namespaceDesc.setNamespaceName("test_nn");
+        namespaceDesc.addNamespaceProp("createdBy", "leojie");
+        adminTemplate.createNamespaceAsync(namespaceDesc);
 }
 ```
 
@@ -360,31 +355,24 @@ public void testCreateNamespace() {
 
 ```java
 @Test
+@Test
 public void testCreateTable() {
-    String tableName = "LEO_NS:USER";
-
-    TableDesc tableDesc = new TableDesc();
-    tableDesc.setTableName(tableName);
-
-    tableDesc = tableDesc.addProp("tag", "测试用户表").addProp("createUser", "leo");
-
-    FamilyDesc familyDesc1 = new FamilyDesc.Builder()
-            .familyName("INFO")
-            .replicationScope(1)
-            .compressionType("NONE")
-            .timeToLive(2147483647)
-            .maxVersions(1).build();
-
-    FamilyDesc familyDesc2 = new FamilyDesc.Builder()
-            .familyName("INFO2")
-            .replicationScope(0)
-            .compressionType("SNAPPY")
-            .timeToLive(864000)
-            .maxVersions(3).build();
-
-    tableDesc = tableDesc.addFamilyDesc(familyDesc1).addFamilyDesc(familyDesc2);
-
-    adminTemplate.createTable(tableDesc, false);
+        ColumnFamilyDesc f1 = new ColumnFamilyDesc.Builder()
+        .familyName("f1")
+        .build();
+        ColumnFamilyDesc f2 = new ColumnFamilyDesc.Builder()
+        .familyName("f2")
+        .timeToLive(3600)
+        .versions(3)
+        .build();
+        HTableDesc tableDesc = new HTableDesc.Builder()
+        .defaultTableDesc("test_nn:test_table")
+        .maxFileSize(51400000L)
+        .addTableProp("hbase.hstore.block.storage.policy", "HOT")
+        .addColumnFamilyDesc(f1)
+        .addColumnFamilyDesc(f2)
+        .build();
+        adminTemplate.createTable(tableDesc);
 }
 ```
 
@@ -782,7 +770,7 @@ select f1:name from test:test_sql where rowKey = 'row_1000' and maxVersion = 3
 
 ![select-some-versions](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/gzxfr.png)
 
-**3. 判断某一列值**
+**5. 判断某一列值**
 
 查询时需指定row过滤规则
 
@@ -792,7 +780,7 @@ select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) an
 
 ![select_by_filter_col](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/auaz3.png)
 
-**4. limit**
+**6. limit**
 
 ```sql
 select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) and f1:age <= 18 limit 2
@@ -800,7 +788,7 @@ select * from test:test_sql where ( startKey = 'a10001' , endKey = 'a10006' ) an
 
 ![select_limit](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/dgtex.png)
 
-**5. 查询一批rowkey数据**
+**7. 查询一批rowkey数据**
 
 ```sql
 select * from test:test_sql where rowKey in ( 'a10001' , 'a10002' , 'a10003' )
@@ -837,14 +825,11 @@ delete f1:age from test:test_sql where rowKey = 'row_10001' and ts = 16705795048
 ![delete_data](http://leo-jie-pic.oss-cn-beijing.aliyuncs.com/blog/7ds2z.png)
 
 ```java
-    @Test
-    public void testDeleteSql(){
-        String sql = "delete ( id , name ) from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10003' ) ( ( name equal 'leo' and age less '12' ) or ( id greater '10000' ) ) ts is '1604160000000'";
-        sql = "delete * from LEO_USER where startKey is stringkey ( 'a10001' ) , endKey is stringkey ( 'a10003' ) ( ( name equal 'leo' and age less '12' ) or ( id greater '10000' ) ) ts is '1604160000000'";
-        sql = "delete * from LEO_USER where rowKey is stringkey ( 'a10002' ) ( name equal 'leo' or age less '21' ) ts is '1604160000000'";
-
-        hBaseSqlTemplate.delete(sql);
-    }
+@Test
+public void testDeleteSql(){
+        String hql = "delete f1:age from test:test_sql where rowKey = 'row_10001'";
+        sqlTemplate.delete(hql);
+}
 ```
 
 ## 11. HBaseThriftAPI
