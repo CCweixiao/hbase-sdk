@@ -19,56 +19,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>hbase-1.2</id>
-            <properties>
-                <profiles.active>hbase-1.2</profiles.active>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase1.2.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>hbase-1.4</id>
-            <properties>
-                <profiles.active>hbase-1.4</profiles.active>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase1.4.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-
-        <profile>
-            <id>hbase-2.2</id>
-            <properties>
-                <profiles.active>hbase-2.2</profiles.active>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase2.2.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
