@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
@@ -14,7 +15,6 @@ import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
-import com.github.CCwexiao.hbase.sdk.dsl.model.KeyValue;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
@@ -254,6 +254,14 @@ public class HBaseSqlTemplate extends AbstractHBaseSqlTemplate {
             Util.checkRowKey(endRowKey);
             deleteWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteColumnSchemaList, ts);
         }
+    }
+
+    public String parseTableNameFromHql(String hql) {
+        return super.parseTableNameFromHql(hql);
+    }
+
+    public HQLType parseHQLType(String hql) {
+        return super.parseHQLType(hql);
     }
 
     private void deleteInEqRowKey(String tableName, RowKey<?> eqRowKey,

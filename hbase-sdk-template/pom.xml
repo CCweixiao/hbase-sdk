@@ -5,11 +5,19 @@
     <parent>
         <artifactId>hbase-sdk</artifactId>
         <groupId>com.github.CCweixiao</groupId>
-        <version>3.0.0</version>
+        <version>3.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <artifactId>hbase-sdk-template_${hbase.sdk.adapter.version}</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.CCweixiao</groupId>
+            <artifactId>hbase-sdk-adapter_${hbase.sdk.adapter.version}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <profiles>
         <profile>
@@ -21,11 +29,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
-                <dependency>
-                    <groupId>com.github.CCweixiao</groupId>
-                    <artifactId>hbase-sdk-adapter_1.2</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
                 <dependency>
                     <groupId>org.apache.hbase</groupId>
                     <artifactId>hbase-shaded-client</artifactId>
@@ -42,11 +45,6 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>com.github.CCweixiao</groupId>
-                    <artifactId>hbase-sdk-adapter_1.4</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
-                <dependency>
                     <groupId>org.apache.hbase</groupId>
                     <artifactId>hbase-shaded-client</artifactId>
                     <version>${hbase1.4.version}</version>
@@ -61,11 +59,6 @@
                 <profiles.active>hbase-2.2</profiles.active>
             </properties>
             <dependencies>
-                <dependency>
-                    <groupId>com.github.CCweixiao</groupId>
-                    <artifactId>hbase-sdk-adapter_2.2</artifactId>
-                    <version>${project.version}</version>
-                </dependency>
                 <dependency>
                     <groupId>org.apache.hbase</groupId>
                     <artifactId>hbase-shaded-client</artifactId>
