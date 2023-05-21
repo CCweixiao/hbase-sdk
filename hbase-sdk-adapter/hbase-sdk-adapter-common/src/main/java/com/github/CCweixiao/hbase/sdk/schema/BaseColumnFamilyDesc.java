@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.KeepDeletedCells;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Map;
  * @author leojie 2023/5/19 20:43
  */
 public abstract class BaseColumnFamilyDesc {
-    private String familyName;
+    private String name;
     private int replicationScope;
     private int maxVersions;
     private int minVersions;
@@ -34,6 +35,7 @@ public abstract class BaseColumnFamilyDesc {
     private boolean evictBlocksOnClose;
     private boolean prefetchBlocksOnOpen;
     private Map<String, String> configuration;
+    private Map<String, String> values;
     private boolean mobEnabled;
     private long mobThreshold;
 
@@ -41,7 +43,7 @@ public abstract class BaseColumnFamilyDesc {
     }
 
     public BaseColumnFamilyDesc(Builder<?> builder) {
-        this.familyName = builder.familyName;
+        this.name = builder.name;
         this.replicationScope = builder.replicationScope;
         this.maxVersions = builder.maxVersions;
         this.minVersions = builder.minVersions;
@@ -61,12 +63,13 @@ public abstract class BaseColumnFamilyDesc {
         this.evictBlocksOnClose = builder.evictBlocksOnClose;
         this.prefetchBlocksOnOpen = builder.prefetchBlocksOnOpen;
         this.configuration = builder.configuration;
+        this.values = builder.values;
         this.mobEnabled = builder.mobEnabled;
         this.mobThreshold = builder.mobThreshold;
     }
 
     public abstract static class Builder<CF extends BaseColumnFamilyDesc> {
-        private String familyName;
+        private String name;
         private int replicationScope;
         private int maxVersions;
         private int minVersions;
@@ -86,11 +89,12 @@ public abstract class BaseColumnFamilyDesc {
         private boolean evictBlocksOnClose;
         private boolean prefetchBlocksOnOpen;
         private Map<String, String> configuration;
+        private Map<String, String> values;
         private boolean mobEnabled;
         private long mobThreshold;
 
-        public Builder<CF> familyName(String familyName) {
-            this.familyName = familyName;
+        public Builder<CF> name(String name) {
+            this.name = name;
             this.bloomFilterType = BloomType.ROW.toString();
             this.replicationScope = 0;
             this.maxVersions = 1;
@@ -110,6 +114,7 @@ public abstract class BaseColumnFamilyDesc {
             this.evictBlocksOnClose = false;
             this.prefetchBlocksOnOpen = false;
             this.configuration = new HashMap<>();
+            this.values = new HashMap<>();
             this.mobEnabled = false;
             this.mobThreshold = 102400L;
             return this;
@@ -206,8 +211,29 @@ public abstract class BaseColumnFamilyDesc {
             return this;
         }
 
-        public Builder<CF> configuration(Map<String, String> configuration) {
+        public Builder<CF> setConfiguration(String key, String value) {
+            if (StringUtil.isBlank(key)) {
+                return this;
+            }
+            this.configuration.put(key, value);
+            return this;
+        }
+
+        public Builder<CF> setConfiguration(Map<String, String> configuration) {
             this.configuration = configuration;
+            return this;
+        }
+
+        public Builder<CF> setValue(String key, String value) {
+            if (StringUtil.isBlank(key)) {
+                return this;
+            }
+            this.values.put(key, value);
+            return this;
+        }
+
+        public Builder<CF> setValue(Map<String, String> values) {
+            this.values = values;
             return this;
         }
 
@@ -224,12 +250,12 @@ public abstract class BaseColumnFamilyDesc {
         public abstract CF build();
     }
 
-    public String getFamilyName() {
-        return familyName;
+    public String getName() {
+        return name;
     }
 
-    public void setFamilyName(String familyName) {
-        this.familyName = familyName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getReplicationScope() {
@@ -380,6 +406,30 @@ public abstract class BaseColumnFamilyDesc {
         return configuration;
     }
 
+    public void setConfiguration(String key, String value) {
+        if (this.configuration == null) {
+            this.configuration = new HashMap<>();
+        }
+        if (StringUtil.isBlank(key)) {
+            return;
+        }
+        this.configuration.put(key, value);
+    }
+
+    public Map<String, String> getValues() {
+        return values;
+    }
+
+    public void setValue(String key, String value) {
+        if (this.values == null) {
+            this.values = new HashMap<>();
+        }
+        if (StringUtil.isBlank(key)) {
+            return;
+        }
+        this.values.put(key, value);
+    }
+
     public boolean isMobEnabled() {
         return mobEnabled;
     }
@@ -394,10 +444,6 @@ public abstract class BaseColumnFamilyDesc {
 
     public void setMobThreshold(long mobThreshold) {
         this.mobThreshold = mobThreshold;
-    }
-
-    public void setConfiguration(Map<String, String> configuration) {
-        this.configuration = configuration;
     }
 
     public String humanReadableTTL(long interval) {
@@ -444,26 +490,19 @@ public abstract class BaseColumnFamilyDesc {
         }
     }
 
-    public BaseColumnFamilyDesc addConfiguration(Map<String, String> configuration) {
-        if (configuration == null || configuration.isEmpty()) {
-            return this;
-        }
-        configuration.forEach((k, v) -> {
-            if (StringUtil.isNotBlank(k) && StringUtil.isNotBlank(v)) {
-                this.configuration.put(k, v);
-            }
-        });
-        return this;
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
     }
 
-    public BaseColumnFamilyDesc addConfiguration(String key, String value) {
-        if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
-            return this;
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (this == obj) {
+            return true;
         }
-        if (configuration == null || configuration.isEmpty()) {
-            this.configuration = new HashMap<>();
+        if (obj == null) {
+            return false;
         }
-        this.configuration.put(key, value);
-        return this;
+        return getClass() == obj.getClass();
     }
 }

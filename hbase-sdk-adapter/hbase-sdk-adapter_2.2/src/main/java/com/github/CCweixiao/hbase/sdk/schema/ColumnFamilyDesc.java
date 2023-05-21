@@ -1,11 +1,12 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
-public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
+public class ColumnFamilyDesc extends BaseColumnFamilyDesc implements Comparable<ColumnFamilyDesc>{
 
     private final BaseColumnFamilyDescriptorConverter<ColumnFamilyDesc, ColumnFamilyDescriptor>
             familyDescriptorConverter;
@@ -14,16 +15,23 @@ public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
         this.familyDescriptorConverter = new ColumnFamilyDescriptorConverter(this);
     }
 
-    public ColumnFamilyDesc(BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> builder) {
+    private ColumnFamilyDesc(BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> builder) {
         super(builder);
         this.familyDescriptorConverter = new ColumnFamilyDescriptorConverter(this);
     }
 
     public static class Builder extends BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> {
+        private Builder() {
+
+        }
         @Override
         public ColumnFamilyDesc build() {
             return new ColumnFamilyDesc(this);
         }
+    }
+
+    public static Builder newBuilder() {
+        return new ColumnFamilyDesc.Builder();
     }
 
     public ColumnFamilyDescriptor convertFor() {
@@ -35,18 +43,22 @@ public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
+    public int compareTo(ColumnFamilyDesc o) {
+        return ColumnFamilyDescriptor.COMPARATOR.compare(this.convertFor(), o.convertFor());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.convertFor().hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        boolean res = super.equals(obj);
+        if (!res) {
             return false;
-        } else if (!(obj instanceof BaseColumnFamilyDesc)) {
-            return false;
-        } else {
-            ColumnFamilyDescriptor thisCD = this.convertFor();
-            ColumnFamilyDescriptor thatCD = ((ColumnFamilyDesc) obj).convertFor();
-            return ColumnFamilyDescriptor.COMPARATOR.compare(thisCD, thatCD) == 0;
         }
+        return this.convertFor().equals(((ColumnFamilyDesc) obj).convertFor());
     }
 
     @Override

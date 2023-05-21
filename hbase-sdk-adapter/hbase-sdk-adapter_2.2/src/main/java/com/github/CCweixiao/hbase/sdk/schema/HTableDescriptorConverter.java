@@ -4,9 +4,10 @@ import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
-
+import org.apache.hadoop.hbase.util.Bytes;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -19,7 +20,7 @@ public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTa
 
     @Override
     protected TableDescriptor doForward(HTableDesc tableDesc) {
-        TableName tableName = TableName.valueOf(tableDesc.getTableName());
+        TableName tableName = TableName.valueOf(tableDesc.getName());
         TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableName);
         tableDescriptorBuilder.setMaxFileSize(tableDesc.getMaxFileSize());
         tableDescriptorBuilder.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());
@@ -34,6 +35,11 @@ public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTa
                 tableDescriptorBuilder.setColumnFamily(((ColumnFamilyDesc) familyDesc).convertFor());
             }
         }
+
+        Map<String, String> values = tableDesc.getValues();
+        if (values != null && !values.isEmpty()) {
+            values.forEach(tableDescriptorBuilder::setValue);
+        }
         return tableDescriptorBuilder.build();
     }
 
@@ -42,8 +48,8 @@ public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTa
         List<ColumnFamilyDesc> columnFamilyDescList =
                 Arrays.stream(tableDescriptor.getColumnFamilies())
                         .map(cd -> new ColumnFamilyDesc().convertTo(cd)).collect(Collectors.toList());
-        HTableDesc tableDesc = new HTableDesc.Builder()
-                .tableName(tableDescriptor.getTableName().getNameAsString())
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name(tableDescriptor.getTableName().getNameAsString())
                 .maxFileSize(tableDescriptor.getMaxFileSize())
                 .memStoreFlushSize(tableDescriptor.getMemStoreFlushSize())
                 .readOnly(tableDescriptor.isReadOnly())
@@ -52,6 +58,11 @@ public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTa
                 .build();
         for (ColumnFamilyDesc columnFamilyDesc : columnFamilyDescList) {
             tableDesc.addColumnFamily(columnFamilyDesc);
+        }
+        Map<Bytes, Bytes> values = tableDescriptor.getValues();
+        if (values != null && !values.isEmpty()) {
+            values.forEach((key, value) ->
+                    tableDesc.setValue(Bytes.toString(key.get()), Bytes.toString(value.get())));
         }
         return tableDesc;
     }

@@ -7,6 +7,8 @@ import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 
+import java.util.Objects;
+
 /**
  * @author leojie 2023/5/17 22:39
  */
@@ -73,5 +75,19 @@ public abstract class BaseColumnFamilyDescriptorConverter<CF extends BaseColumnF
             }
         }
         throw new IllegalArgumentException("Unsupported dataBlockEncoding " + dataBlockEncoding);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        BaseColumnFamilyDescriptorConverter<?, ?> that = (BaseColumnFamilyDescriptorConverter<?, ?>) o;
+        return columnFamilyDesc.equals(that.columnFamilyDesc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(columnFamilyDesc);
     }
 }

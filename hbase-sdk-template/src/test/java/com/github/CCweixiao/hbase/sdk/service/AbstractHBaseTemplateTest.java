@@ -66,16 +66,16 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void createTest2Table() {
-        ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
-                .familyName("info")
+        ColumnFamilyDesc familyDesc1 = ColumnFamilyDesc.newBuilder()
+                .name("info")
                 .maxVersions(3)
                 .build();
-        ColumnFamilyDesc familyDesc2 = new ColumnFamilyDesc.Builder()
-                .familyName("detail")
+        ColumnFamilyDesc familyDesc2 = ColumnFamilyDesc.newBuilder()
+                .name("detail")
                 .timeToLive(10 * 60 * 60 * 1000)
                 .build();
-        HTableDesc tableDesc = new HTableDesc.Builder()
-                .tableName("t2")
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name("t2")
                 .addFamilyDesc(familyDesc1)
                 .addFamilyDesc(familyDesc2)
                 .build();

@@ -11,9 +11,9 @@ public class HTableDescTest {
     @Test
     public void testConvertFor() {
         ColumnFamilyDesc familyDesc =
-                new ColumnFamilyDesc.Builder().familyName("f").build();
-        HTableDesc tableDesc = new HTableDesc.Builder()
-                .tableName("test")
+                ColumnFamilyDesc.newBuilder().name("f").build();
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name("test")
                 .addFamilyDesc(familyDesc)
                 .build();
 
@@ -25,16 +25,16 @@ public class HTableDescTest {
     @Test
     public void testCompareTo() {
         ColumnFamilyDesc familyDesc =
-                new ColumnFamilyDesc.Builder().familyName("f").build();
-        HTableDesc tableDesc = new HTableDesc.Builder()
-                .tableName("test")
+                ColumnFamilyDesc.newBuilder().name("f").build();
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name("test")
                 .addFamilyDesc(familyDesc)
                 .build();
 
         ColumnFamilyDesc familyDesc1 =
-                new ColumnFamilyDesc.Builder().familyName("f").build();
-        HTableDesc tableDesc1 = new HTableDesc.Builder()
-                .tableName("test")
+                ColumnFamilyDesc.newBuilder().name("f").build();
+        HTableDesc tableDesc1 = HTableDesc.newBuilder()
+                .name("test")
                 .addFamilyDesc(familyDesc1)
                 .build();
         boolean equals = tableDesc.equals(tableDesc1);

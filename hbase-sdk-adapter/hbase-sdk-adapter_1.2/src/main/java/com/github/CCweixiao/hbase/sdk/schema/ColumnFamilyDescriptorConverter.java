@@ -3,6 +3,8 @@ package com.github.CCweixiao.hbase.sdk.schema;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotEmptyException;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.util.Bytes;
+
 import java.util.Map;
 
 /**
@@ -15,10 +17,10 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
 
     @Override
     protected HColumnDescriptor doForward(ColumnFamilyDesc columnFamilyDesc) {
-        if (StringUtil.isBlank(columnFamilyDesc.getFamilyName())) {
+        if (StringUtil.isBlank(columnFamilyDesc.getName())) {
             throw new HBaseFamilyNotEmptyException("The family name is not empty.");
         }
-        HColumnDescriptor columnDescriptor = new HColumnDescriptor(columnFamilyDesc.getFamilyName());
+        HColumnDescriptor columnDescriptor = new HColumnDescriptor(columnFamilyDesc.getName());
         columnDescriptor.setScope(columnFamilyDesc.getReplicationScope());
         columnDescriptor.setMaxVersions(columnFamilyDesc.getMaxVersions());
         columnDescriptor.setMinVersions(columnFamilyDesc.getMinVersions());
@@ -40,13 +42,17 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
         if (configuration != null && !configuration.isEmpty()) {
             configuration.forEach(columnDescriptor::setConfiguration);
         }
+        Map<String, String> values = columnFamilyDesc.getValues();
+        if (values != null && !values.isEmpty()) {
+            values.forEach(columnDescriptor::setValue);
+        }
         return columnDescriptor;
     }
 
     @Override
     protected ColumnFamilyDesc doBackward(HColumnDescriptor columnDescriptor) {
-        return new ColumnFamilyDesc.Builder()
-                .familyName(columnDescriptor.getNameAsString())
+        ColumnFamilyDesc columnFamilyDesc = ColumnFamilyDesc.newBuilder()
+                .name(columnDescriptor.getNameAsString())
                 .replicationScope(columnDescriptor.getScope())
                 .maxVersions(columnDescriptor.getMaxVersions())
                 .minVersions(columnDescriptor.getMinVersions())
@@ -64,6 +70,10 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
                 .cacheBloomsOnWrite(columnDescriptor.isCacheBloomsOnWrite())
                 .evictBlocksOnClose(columnDescriptor.isEvictBlocksOnClose())
                 .prefetchBlocksOnOpen(columnDescriptor.isPrefetchBlocksOnOpen())
+                .setConfiguration(columnDescriptor.getConfiguration())
                 .build();
+        columnDescriptor.getValues().forEach((key, value) ->
+                columnFamilyDesc.setValue(Bytes.toString(key.get()), Bytes.toString(value.get())));
+        return columnFamilyDesc;
     }
 }

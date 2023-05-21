@@ -126,7 +126,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public List<String> listTableNamesByNamespace(String namespaceName) {
         return listTableDescByNamespace(namespaceName).stream()
-                .map(HTableDesc::getTableName).collect(Collectors.toList());
+                .map(HTableDesc::getName).collect(Collectors.toList());
     }
 
     @Override
@@ -307,9 +307,9 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
             final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            if (tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getFamilyName()))) {
+            if (tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getName()))) {
                 throw new HBaseFamilyHasExistsException(String.format("The family %s in the table %s has created.",
-                        columnFamilyDesc.getFamilyName(), tableName));
+                        columnFamilyDesc.getName(), tableName));
             }
             if (isAsync) {
                 admin.addColumnFamilyAsync(TableName.valueOf(tableName), columnFamilyDesc.convertFor());
@@ -351,11 +351,11 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
             final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getFamilyName()))) {
+            if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getName()))) {
                 throw new HBaseFamilyNotFoundException(String.format("The family %s in the table %s is not exists.",
-                        columnFamilyDesc.getFamilyName(), tableName));
+                        columnFamilyDesc.getName(), tableName));
             }
-            ColumnFamilyDescriptor oldColumnDescriptor = tableDescriptor.getColumnFamily(Bytes.toBytes(columnFamilyDesc.getFamilyName()));
+            ColumnFamilyDescriptor oldColumnDescriptor = tableDescriptor.getColumnFamily(Bytes.toBytes(columnFamilyDesc.getName()));
             ColumnFamilyDescriptor newColumnDescriptor = columnFamilyDesc.convertFor();
             if (!oldColumnDescriptor.equals(newColumnDescriptor)) {
                 if (isAsync) {

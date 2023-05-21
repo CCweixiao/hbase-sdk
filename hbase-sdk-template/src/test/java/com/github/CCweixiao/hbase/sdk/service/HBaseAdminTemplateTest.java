@@ -40,16 +40,16 @@ public class HBaseAdminTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testCreateTable() {
-        ColumnFamilyDesc f1 = new ColumnFamilyDesc.Builder()
-                .familyName("f1")
+        ColumnFamilyDesc f1 = ColumnFamilyDesc.newBuilder()
+                .name("f1")
                 .build();
-        ColumnFamilyDesc f2 = new ColumnFamilyDesc.Builder()
-                .familyName("f2")
+        ColumnFamilyDesc f2 = ColumnFamilyDesc.newBuilder()
+                .name("f2")
                 .timeToLive(3600)
                 .maxVersions(3)
                 .build();
-        HTableDesc tableDesc = new HTableDesc.Builder()
-                .tableName("leo_test_22222")
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name("leo_test_22222")
                 .addFamilyDesc(f1)
                 .addFamilyDesc(f2)
                 .build();

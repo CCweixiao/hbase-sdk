@@ -68,12 +68,14 @@ public class TestHBaseAdminAdapter {
 
     @Test
     public void testCreateTable() {
-        ColumnFamilyDesc cf = new ColumnFamilyDesc.Builder()
-                .familyName("f1")
+
+        ColumnFamilyDesc cf = ColumnFamilyDesc.newBuilder()
+                .name("f1")
                 .maxVersions(3)
                 .timeToLive(120000)
                 .build();
-        HTableDesc tableDesc = new HTableDesc.Builder().tableName("test_table")
+        HTableDesc tableDesc = HTableDesc.newBuilder()
+                .name("test_table")
                 .addFamilyDesc(cf)
                 .build();
         boolean res = adminAdapter.createTable(tableDesc);

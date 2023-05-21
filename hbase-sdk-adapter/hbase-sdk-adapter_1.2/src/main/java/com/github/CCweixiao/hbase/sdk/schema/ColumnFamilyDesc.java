@@ -6,7 +6,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
-public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
+public class ColumnFamilyDesc extends BaseColumnFamilyDesc implements Comparable<ColumnFamilyDesc> {
 
     private final BaseColumnFamilyDescriptorConverter<ColumnFamilyDesc, HColumnDescriptor>
             familyDescriptorConverter;
@@ -15,16 +15,24 @@ public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
         this.familyDescriptorConverter = new ColumnFamilyDescriptorConverter(this);
     }
 
-    public ColumnFamilyDesc(BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> builder) {
+    private ColumnFamilyDesc(BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> builder) {
         super(builder);
         this.familyDescriptorConverter = new ColumnFamilyDescriptorConverter(this);
     }
 
     public static class Builder extends BaseColumnFamilyDesc.Builder<ColumnFamilyDesc> {
+        private Builder() {
+
+        }
+
         @Override
         public ColumnFamilyDesc build() {
             return new ColumnFamilyDesc(this);
         }
+    }
+
+    public static Builder newBuilder() {
+        return new ColumnFamilyDesc.Builder();
     }
 
     public HColumnDescriptor convertFor() {
@@ -36,22 +44,28 @@ public class ColumnFamilyDesc extends BaseColumnFamilyDesc {
     }
 
     @Override
+    public int compareTo(ColumnFamilyDesc o) {
+        return this.convertFor().compareTo(o.convertFor());
+    }
+
+    @Override
+    public int hashCode() {
+        return this.convertFor().hashCode();
+    }
+
+    @Override
     public boolean equals(@Nullable Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
+        boolean res = super.equals(obj);
+        if (!res) {
             return false;
-        } else if (!(obj instanceof BaseColumnFamilyDesc)) {
-            return false;
-        } else {
-            HColumnDescriptor thisCD = this.convertFor();
-            HColumnDescriptor thatCD = ((ColumnFamilyDesc) obj).convertFor();
-            return thisCD.compareTo(thatCD) == 0;
         }
+        return this.convertFor().equals(((ColumnFamilyDesc) obj).convertFor());
     }
 
     @Override
     public String toString() {
         return this.convertFor().toString();
     }
+
+
 }

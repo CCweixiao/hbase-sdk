@@ -33,7 +33,7 @@
             <id>leojie</id>
             <name>leojie</name>
             <url>https://www.jielongping.com</url>
-            <email>leohjie1314@gmail.com</email>
+            <email>leohjie@apache.org</email>
             <roles>
                 <role>Developer</role>
             </roles>
@@ -92,10 +92,6 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>cloudera</id>
-            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         </repository>
         <repository>
             <id>central-repos</id>

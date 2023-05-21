@@ -3,7 +3,6 @@ package com.github.CCweixiao.hbase.sdk.schema;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotUniqueException;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
  * @author leojie 2023/5/19 20:35
  */
 public abstract class BaseHTableDesc {
-    private String tableName;
+    private String name;
     private long maxFileSize;
     private boolean readOnly;
     private long memStoreFlushSize;
@@ -22,34 +21,37 @@ public abstract class BaseHTableDesc {
 
     private String regionSplitPolicyClassName;
     private Map<String, String> configuration;
+    private Map<String, String> values;
     private List<BaseColumnFamilyDesc> columnFamilyDescList;
 
     public BaseHTableDesc() {
     }
 
     public BaseHTableDesc(Builder<?> builder) {
-        this.tableName = builder.tableName;
+        this.name = builder.name;
         this.maxFileSize = builder.maxFileSize;
         this.readOnly = builder.readOnly;
         this.memStoreFlushSize = builder.memStoreFlushSize;
         this.compactionEnabled = builder.compactionEnabled;
         this.configuration = builder.configuration;
+        this.values = builder.values;
         this.columnFamilyDescList = builder.columnFamilyDescList;
         this.regionSplitPolicyClassName = builder.regionSplitPolicyClassName;
     }
 
-    public  abstract static class Builder<HTD extends BaseHTableDesc> {
-        private String tableName;
+    public abstract static class Builder<HTD extends BaseHTableDesc> {
+        private String name;
         private long maxFileSize;
         private boolean readOnly;
         private long memStoreFlushSize;
         private boolean compactionEnabled;
         private String regionSplitPolicyClassName;
         private Map<String, String> configuration;
+        private Map<String, String> values;
         private List<BaseColumnFamilyDesc> columnFamilyDescList;
 
-        public Builder<HTD> tableName(String tableName) {
-            this.tableName = tableName;
+        public Builder<HTD> name(String name) {
+            this.name = name;
             this.maxFileSize = 10737418240L;
             this.readOnly = false;
             this.memStoreFlushSize = 134217728L;
@@ -57,11 +59,12 @@ public abstract class BaseHTableDesc {
             this.regionSplitPolicyClassName = null;
             this.columnFamilyDescList = new ArrayList<>();
             this.configuration = new HashMap<>();
+            this.values = new HashMap<>();
             return this;
         }
 
-        public Builder<HTD> tableName(String namespaceName, String tableName) {
-            this.tableName = namespaceName.concat(HMHBaseConstants.TABLE_NAME_SPLIT_CHAR).concat(tableName);
+        public Builder<HTD> name(String namespace, String name) {
+            this.name = namespace.concat(HMHBaseConstants.TABLE_NAME_SPLIT_CHAR).concat(name);
             this.maxFileSize = 10737418240L;
             this.readOnly = false;
             this.memStoreFlushSize = 134217728L;
@@ -69,6 +72,7 @@ public abstract class BaseHTableDesc {
             this.regionSplitPolicyClassName = null;
             this.columnFamilyDescList = new ArrayList<>();
             this.configuration = new HashMap<>();
+            this.values = new HashMap<>();
             return this;
         }
 
@@ -97,19 +101,19 @@ public abstract class BaseHTableDesc {
             return this;
         }
 
-        public Builder<HTD> configuration(Map<String, String> configuration) {
-            this.configuration = configuration;
-            return this;
-        }
-
-        public Builder<HTD> configuration(String key, String value) {
-            if (this.configuration == null) {
-                this.configuration = new HashMap<>();
-            }
-            if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
+        public Builder<HTD> setConfiguration(String key, String value) {
+            if (StringUtil.isBlank(key)) {
                 return this;
             }
             this.configuration.put(key, value);
+            return this;
+        }
+
+        public Builder<HTD> setValue(String key, String value) {
+            if (StringUtil.isBlank(key)) {
+                return this;
+            }
+            this.values.put(key, value);
             return this;
         }
 
@@ -119,9 +123,6 @@ public abstract class BaseHTableDesc {
         }
 
         public Builder<HTD> addFamilyDesc(BaseColumnFamilyDesc columnFamilyDesc) {
-            if (this.columnFamilyDescList == null) {
-                this.columnFamilyDescList = new ArrayList<>();
-            }
             this.columnFamilyDescList.add(columnFamilyDesc);
             return this;
         }
@@ -129,12 +130,12 @@ public abstract class BaseHTableDesc {
         public abstract HTD build();
     }
 
-    public String getTableName() {
-        return tableName;
+    public String getName() {
+        return name;
     }
 
-    public void setTableName(String tableName) {
-        this.tableName = tableName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getMaxFileSize() {
@@ -181,8 +182,28 @@ public abstract class BaseHTableDesc {
         return configuration;
     }
 
-    public void setConfiguration(Map<String, String> configuration) {
-        this.configuration = configuration;
+    public void setConfiguration(String key, String value) {
+        if (this.configuration == null) {
+            this.configuration = new HashMap<>();
+        }
+        if (StringUtil.isBlank(key)) {
+            return;
+        }
+        this.configuration.put(key, value);
+    }
+
+    public Map<String, String> getValues() {
+        return values;
+    }
+
+    public void setValue(String key, String value) {
+        if (this.values == null) {
+            this.values = new HashMap<>();
+        }
+        if (StringUtil.isBlank(key)) {
+            return;
+        }
+        this.values.put(key, value);
     }
 
     public List<BaseColumnFamilyDesc> getColumnFamilyDescList() {
@@ -201,11 +222,11 @@ public abstract class BaseHTableDesc {
     }
 
     public String getNamespaceName() {
-        return HMHBaseConstants.getNamespaceName(tableName);
+        return HMHBaseConstants.getNamespaceName(name);
     }
 
     public String getTableNameWithNamespace() {
-        String tabName = this.getTableName();
+        String tabName = this.getName();
         if (StringUtil.isBlank(tabName)) {
             throw new IllegalArgumentException("The table name is not empty.");
         }
@@ -222,7 +243,7 @@ public abstract class BaseHTableDesc {
             return false;
         }
         for (BaseColumnFamilyDesc familyDesc : this.columnFamilyDescList) {
-            if (familyDesc.getFamilyName().equals(columnFamilyDesc.getFamilyName())) {
+            if (familyDesc.getName().equals(columnFamilyDesc.getName())) {
                 return true;
             }
         }
@@ -239,7 +260,7 @@ public abstract class BaseHTableDesc {
         }
 
         final Map<String, Long> familyCountMap = this.columnFamilyDescList.stream()
-                .collect(Collectors.groupingBy(BaseColumnFamilyDesc::getFamilyName, Collectors.counting()));
+                .collect(Collectors.groupingBy(BaseColumnFamilyDesc::getName, Collectors.counting()));
         familyCountMap.forEach((familyName, count) -> {
             if (count > 1) {
                 throw new HBaseFamilyNotUniqueException(
@@ -248,26 +269,21 @@ public abstract class BaseHTableDesc {
         });
     }
 
-    public BaseHTableDesc addConfiguration(Map<String, String> configuration) {
-        if (configuration == null || configuration.isEmpty()) {
-            return this;
-        }
-        configuration.forEach((k, v) -> {
-            if (StringUtil.isNotBlank(k) && StringUtil.isNotBlank(v)) {
-                this.configuration.put(k, v);
-            }
-        });
-        return this;
+    @Override
+    public int hashCode() {
+        return this.name.hashCode();
     }
 
-    public BaseHTableDesc addConfiguration(String key, String value) {
-        if (StringUtil.isBlank(key) || StringUtil.isBlank(value)) {
-            return this;
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
-        if (configuration == null || configuration.isEmpty()) {
-            return this;
+        if (obj == null) {
+            return false;
         }
-        this.configuration.put(key, value);
-        return this;
+        System.out.println(getClass());
+        System.out.println(obj.getClass());
+        return getClass() == obj.getClass();
     }
 }

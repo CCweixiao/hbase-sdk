@@ -17,10 +17,10 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
 
     @Override
     protected ColumnFamilyDescriptor doForward(ColumnFamilyDesc columnFamilyDesc) {
-        if (StringUtil.isBlank(columnFamilyDesc.getFamilyName())) {
+        if (StringUtil.isBlank(columnFamilyDesc.getName())) {
             throw new HBaseFamilyNotEmptyException("The family name is not empty.");
         }
-        ColumnFamilyDescriptorBuilder familyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(columnFamilyDesc.getFamilyName()));
+        ColumnFamilyDescriptorBuilder familyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(Bytes.toBytes(columnFamilyDesc.getName()));
         familyDescriptorBuilder.setScope(columnFamilyDesc.getReplicationScope());
         familyDescriptorBuilder.setMaxVersions(columnFamilyDesc.getMaxVersions());
         familyDescriptorBuilder.setMinVersions(columnFamilyDesc.getMinVersions());
@@ -42,9 +42,15 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
         }
         familyDescriptorBuilder.setMobEnabled(columnFamilyDesc.isMobEnabled());
         familyDescriptorBuilder.setMobThreshold(columnFamilyDesc.getMobThreshold());
+
         Map<String, String> configuration = columnFamilyDesc.getConfiguration();
         if (configuration != null && !configuration.isEmpty()) {
             configuration.forEach(familyDescriptorBuilder::setConfiguration);
+        }
+
+        Map<String, String> values = columnFamilyDesc.getValues();
+        if (values != null && !values.isEmpty()) {
+            values.forEach(familyDescriptorBuilder::setValue);
         }
 
         return familyDescriptorBuilder.build();
@@ -52,8 +58,8 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
 
     @Override
     protected ColumnFamilyDesc doBackward(ColumnFamilyDescriptor columnDescriptor) {
-        return new ColumnFamilyDesc.Builder()
-                .familyName(columnDescriptor.getNameAsString())
+        ColumnFamilyDesc columnFamilyDesc = ColumnFamilyDesc.newBuilder()
+                .name(columnDescriptor.getNameAsString())
                 .replicationScope(columnDescriptor.getScope())
                 .maxVersions(columnDescriptor.getMaxVersions())
                 .minVersions(columnDescriptor.getMinVersions())
@@ -73,5 +79,9 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
                 .mobEnabled(columnDescriptor.isMobEnabled())
                 .mobThreshold(columnDescriptor.getMobThreshold())
                 .build();
+
+        columnDescriptor.getValues().forEach((key, value) ->
+                columnFamilyDesc.setValue(Bytes.toString(key.get()), Bytes.toString(value.get())));
+        return columnFamilyDesc;
     }
 }
