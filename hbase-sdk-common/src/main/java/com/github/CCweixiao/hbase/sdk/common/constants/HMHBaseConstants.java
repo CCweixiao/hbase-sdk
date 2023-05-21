@@ -38,7 +38,13 @@ public class HMHBaseConstants {
 
     public static String getNamespaceName(String tableName) {
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
-            return tableName.split(TABLE_NAME_SPLIT_CHAR)[0];
+            String[] ns = tableName.split(TABLE_NAME_SPLIT_CHAR);
+            if (ns.length == 2) {
+                return tableName.split(TABLE_NAME_SPLIT_CHAR)[0];
+            } else {
+                throw new IllegalArgumentException(
+                        String.format("The table name format of %s does not conform to specification.", tableName));
+            }
         } else {
             return DEFAULT_NAMESPACE_NAME;
         }

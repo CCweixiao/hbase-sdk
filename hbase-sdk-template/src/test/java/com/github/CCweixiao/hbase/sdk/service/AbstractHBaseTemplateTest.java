@@ -1,8 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.service;
 
-import com.github.CCweixiao.hbase.sdk.common.model.ColumnFamilyDesc;
-import com.github.CCweixiao.hbase.sdk.common.model.HTableDesc;
+
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
+import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
+import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
@@ -67,7 +68,7 @@ public abstract class AbstractHBaseTemplateTest {
     protected void createTest2Table() {
         ColumnFamilyDesc familyDesc1 = new ColumnFamilyDesc.Builder()
                 .familyName("info")
-                .versions(3)
+                .maxVersions(3)
                 .build();
         ColumnFamilyDesc familyDesc2 = new ColumnFamilyDesc.Builder()
                 .familyName("detail")
@@ -75,8 +76,8 @@ public abstract class AbstractHBaseTemplateTest {
                 .build();
         HTableDesc tableDesc = new HTableDesc.Builder()
                 .tableName("t2")
-                .addColumnFamilyDesc(familyDesc1)
-                .addColumnFamilyDesc(familyDesc2)
+                .addFamilyDesc(familyDesc1)
+                .addFamilyDesc(familyDesc2)
                 .build();
         if (!adminTemplate.tableExists("t1")) {
             adminTemplate.createTable(tableDesc);

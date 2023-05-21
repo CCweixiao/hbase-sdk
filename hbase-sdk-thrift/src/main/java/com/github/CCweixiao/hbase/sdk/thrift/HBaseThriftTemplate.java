@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 
 import java.util.List;
@@ -123,6 +124,13 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+        }
+    }
+
+    @Override
+    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.getRowToMapWithMultiVersions(tableName, rowKey, familyName, qualifiers, version);
         }
     }
 

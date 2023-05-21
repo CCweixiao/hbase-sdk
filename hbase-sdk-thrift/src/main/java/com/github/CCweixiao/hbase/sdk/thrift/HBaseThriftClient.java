@@ -1,11 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedAuthTypeException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedFunctionException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
@@ -168,6 +168,11 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
             return parseResultsToMap(results.get(0), withTimestamp);
         }).orElse(new HashMap<>(0));
+    }
+
+    @Override
+    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+        return null;
     }
 
     @Override
@@ -401,7 +406,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 try {
                     hbaseClient.mutateRow(ColumnType.toByteBuffer(tableName),
                             ColumnType.toByteBuffer(rowKey),
-                            mutations, getAttributesMap(new HashMap<>())); ;
+                            mutations, getAttributesMap(new HashMap<>()));
                 } catch (TException e) {
                     throw new HBaseThriftException(e);
                 }

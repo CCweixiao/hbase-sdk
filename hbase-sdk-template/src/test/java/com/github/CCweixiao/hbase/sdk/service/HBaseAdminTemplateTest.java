@@ -1,10 +1,12 @@
 package com.github.CCweixiao.hbase.sdk.service;
 
-import com.github.CCweixiao.hbase.sdk.common.model.ColumnFamilyDesc;
-import com.github.CCweixiao.hbase.sdk.common.model.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
+import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
+import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 /**
  * @author leojie 2022/11/4 20:52
@@ -18,7 +20,8 @@ public class HBaseAdminTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testListTableNames() {
-        System.out.println(adminTemplate.listTableNames());
+        List<String> tableNames = adminTemplate.listTableNames();
+        System.out.println(tableNames);
     }
 
     @Test
@@ -43,14 +46,12 @@ public class HBaseAdminTemplateTest extends AbstractHBaseTemplateTest {
         ColumnFamilyDesc f2 = new ColumnFamilyDesc.Builder()
                 .familyName("f2")
                 .timeToLive(3600)
-                .versions(3)
+                .maxVersions(3)
                 .build();
         HTableDesc tableDesc = new HTableDesc.Builder()
-                .defaultTableDesc("test_nn:test_table")
-                .maxFileSize(51400000L)
-                .addTableProp("hbase.hstore.block.storage.policy", "HOT")
-                .addColumnFamilyDesc(f1)
-                .addColumnFamilyDesc(f2)
+                .tableName("leo_test_22222")
+                .addFamilyDesc(f1)
+                .addFamilyDesc(f2)
                 .build();
         adminTemplate.createTable(tableDesc);
     }

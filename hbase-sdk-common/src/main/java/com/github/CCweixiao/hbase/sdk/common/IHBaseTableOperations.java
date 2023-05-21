@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 
 import java.util.List;
@@ -15,8 +16,12 @@ import java.util.Optional;
 public interface IHBaseTableOperations {
 
     /**
-     * 保存数据，构造Map类型的数据参数，例如： {"INFO:NAME": "leo", "INFO:AGE": 18}
-     * 非字符串类型的数据，底层会自动转换成字符串类型，其中复杂的数据类型，如：List/Map等，会先被格式化成字符串后再存储
+     * 保存数据，构造Map类型的数据参数，<br/>
+     * 例如： {"INFO:NAME": "leo", "INFO:AGE": 18} <br/>
+     * 非字符串类型的数据，底层会自动转换成字符串类型，<br/>
+     * 其中复杂的数据类型，如：List/Map等，会先被格式化成JSON字符串后再存储<br/>
+     * 如果对数据类型有要求，请使用方法: <br/>
+     * {@link IHBaseTableOperations#save(Object)}
      *
      * @param tableName 表名
      * @param rowKey    rowKey
@@ -25,7 +30,9 @@ public interface IHBaseTableOperations {
     void save(String tableName, String rowKey, Map<String, Object> data);
 
     /**
-     * 保存数据，构造一个Java数据实体映射
+     * 保存数据，构造一个Java数据实体映射。<br/>
+     * 例如：<br/>
+     * {@link com.github.CCweixiao.hbase.sdk.common.example.CityModel}
      *
      * @param t   Java数据实体对象.
      * @param <T> 泛型类型.
@@ -34,9 +41,14 @@ public interface IHBaseTableOperations {
     <T> T save(T t);
 
     /**
-     * 批量保存数据，构造Map类型结构的列表数据参数，例如：
-     * {"row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, "row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17}}
-     * 非字符串类型的数据，底层会自动转换成字符串类型，其中复杂的数据类型，如：List/Map等，会先被格式化成字符串后再存储
+     * 批量保存数据，构造Map类型结构的列表数据参数，<br/>
+     * 例如：<br/>
+     * {  <br/>
+     * "row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, <br/>
+     * "row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17} <br/>
+     * } <br/>
+     * 非字符串类型的数据，底层会自动转换成字符串类型，<br/>
+     * 其中复杂的数据类型，如：List/Map等，会先被格式化成json字符串后再存储
      *
      * @param tableName 表名
      * @param data      需要保存的数据. 如样例格式数据
@@ -123,7 +135,8 @@ public interface IHBaseTableOperations {
     <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
 
     /**
-     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
+     * get查询数据，返回Map数据类型，<br/>
+     * 例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
      *
      * @param tableName     表名
      * @param rowKey        rowKey
@@ -154,6 +167,22 @@ public interface IHBaseTableOperations {
      * @return 获取查询结果
      */
     Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp);
+
+    /**
+     * 根据row key查询数据，支持返回多版本，数据返回格式如下： <br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f1:name": [{"value": "值1", timestamp: 1}, {"value": "值2", timestamp: 2}],<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f2:age": [{"value": "值1", timestamp: 1}, {"value": "值2", timestamp: 2}]<br/>
+     * }<br/>
+     *
+     * @param tableName  HBase表名
+     * @param rowKey     row key
+     * @param familyName 列簇名称，可为空
+     * @param qualifiers 需要筛选的字段名，可为空
+     * @param version    需要查询的版本数
+     * @return 查询结果集
+     */
+    Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version);
 
     /**
      * 根据一批RowKey查询所有列簇和字段下的数据，查询结果映射为一个Java Bean列表.

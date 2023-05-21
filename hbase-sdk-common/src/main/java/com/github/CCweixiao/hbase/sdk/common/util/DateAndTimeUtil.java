@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
  */
 public final class DateAndTimeUtil extends DateUtil {
     public static final String MS_FORMAT = "yyyy-MM-dd_HH:mm:ss:SSS";
-    public static final String SECOND_FORMAT = "yyyy-MM-dd_HH:mm:ss";
+    public static final String SECOND_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String MINUTE_FORMAT = "yyyy-MM-dd_HH:mm";
     public static final String HOUR_FORMAT = "yyyy-MM-dd_HH";
     public static final String DAY_FORMAT = "yyyy-MM-dd";

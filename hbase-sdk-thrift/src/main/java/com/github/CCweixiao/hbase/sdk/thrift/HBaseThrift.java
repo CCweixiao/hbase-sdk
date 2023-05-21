@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 
 import java.io.Closeable;
@@ -102,6 +103,11 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
         return hBaseThriftClient.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+    }
+
+    @Override
+    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+        return null;
     }
 
     @Override

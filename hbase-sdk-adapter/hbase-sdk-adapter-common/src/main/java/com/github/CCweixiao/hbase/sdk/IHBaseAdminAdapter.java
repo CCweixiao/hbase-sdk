@@ -1,11 +1,10 @@
-package com.github.CCweixiao.hbase.sdk.template;
+package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
 import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
-import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
-import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
-
+import com.github.CCweixiao.hbase.sdk.schema.BaseColumnFamilyDesc;
+import com.github.CCweixiao.hbase.sdk.schema.BaseHTableDesc;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +13,7 @@ import java.util.Map;
  *
  * @author leojie 2020/9/25 10:44 下午
  */
-public interface IHBaseAdminTemplate {
+public interface IHBaseAdminAdapter {
     /**
      * 判断表是否存在
      *
@@ -28,7 +27,7 @@ public interface IHBaseAdminTemplate {
      *
      * @return 所有的HBase表及其描述
      */
-    List<HTableDesc> listTableDesc();
+    <HTD extends BaseHTableDesc> List<HTD> listTableDesc();
 
     /**
      * 获取所有的HBase表及其描述
@@ -36,7 +35,7 @@ public interface IHBaseAdminTemplate {
      * @param includeSysTables 是否包含系统表
      * @return 所有的HBase表及其描述
      */
-    List<HTableDesc> listTableDesc(boolean includeSysTables);
+    <HTD extends BaseHTableDesc> List<HTD> listTableDesc(boolean includeSysTables);
 
     /**
      * 正则查询HBase表及其描述
@@ -45,7 +44,7 @@ public interface IHBaseAdminTemplate {
      * @param includeSysTables 是否包含系统表
      * @return 筛选出的HBase表及其描述
      */
-    List<HTableDesc> listTableDesc(String regex, boolean includeSysTables);
+    <HTD extends BaseHTableDesc> List<HTD> listTableDesc(String regex, boolean includeSysTables);
 
     /**
      * 获取某一命名空间下的所有表信息
@@ -53,7 +52,7 @@ public interface IHBaseAdminTemplate {
      * @param namespaceName 命名空间名称
      * @return 所有表信息
      */
-    List<HTableDesc> listTableDescByNamespace(final String namespaceName);
+    <HTD extends BaseHTableDesc> List<HTD> listTableDescByNamespace(final String namespaceName);
 
     /**
      * 获取所有表名
@@ -93,7 +92,7 @@ public interface IHBaseAdminTemplate {
      * @param tableName HBase表名
      * @return 所有的列簇信息
      */
-    List<ColumnFamilyDesc> listFamilyDescOfTable(String tableName);
+    <CF extends BaseColumnFamilyDesc> List<CF> listFamilyDescOfTable(String tableName);
 
     /**
      * 获取某一张表的描述信息
@@ -101,7 +100,7 @@ public interface IHBaseAdminTemplate {
      * @param tableName 表名
      * @return 表描述
      */
-    HTableDesc getTableDesc(final String tableName);
+    <HTD extends BaseHTableDesc> HTD getTableDesc(final String tableName);
 
     /**
      * 创建表，以默认的方式
@@ -109,7 +108,7 @@ public interface IHBaseAdminTemplate {
      * @param tableDesc 表的描述信息
      * @return 表是否被创建成功
      */
-    boolean createTable(final HTableDesc tableDesc);
+    <HTD extends BaseHTableDesc> boolean createTable(final HTD tableDesc);
 
     /**
      * 创建表，预分区
@@ -121,7 +120,7 @@ public interface IHBaseAdminTemplate {
      * @param isAsync    是否是异步的方式
      * @return 表是否被创建成功
      */
-    boolean createTable(final HTableDesc tableDesc, String startKey, String endKey, int numRegions, boolean isAsync);
+    <HTD extends BaseHTableDesc> boolean createTable(final HTD tableDesc, String startKey, String endKey, int numRegions, boolean isAsync);
 
     /**
      * 创建表，预分区
@@ -131,7 +130,7 @@ public interface IHBaseAdminTemplate {
      * @param isAsync   是否是异步的方式
      * @return 表是否被创建成功
      */
-    boolean createTable(final HTableDesc tableDesc, String[] splitKeys, boolean isAsync);
+    <HTD extends BaseHTableDesc> boolean createTable(final HTD tableDesc, String[] splitKeys, boolean isAsync);
 
     /**
      * 创建表，预分区
@@ -142,26 +141,26 @@ public interface IHBaseAdminTemplate {
      * @param isAsync     是否是异步的方式
      * @return 表是否被创建成功
      */
-    boolean createTable(final HTableDesc tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync);
+    <HTD extends BaseHTableDesc> boolean createTable(final HTD tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync);
 
     /**
      * 修改表属性
      *
      * @param tableName 表名
-     * @param props     属性
+     * @param configuration     属性
      * @param isAsync   是否异步
      * @return 修改是否成功
      */
-    boolean modifyTableProps(final String tableName, Map<String, String> props, boolean isAsync);
+    boolean modifyTableConfiguration(final String tableName, Map<String, String> configuration, boolean isAsync);
 
     /**
      * 异步修改表属性
      *
      * @param tableName 表名
-     * @param props     属性
+     * @param configuration     属性
      * @return 修改是否成功
      */
-    boolean modifyTablePropsAsync(final String tableName, Map<String, String> props);
+    boolean modifyTableConfigurationAsync(final String tableName, Map<String, String> configuration);
 
     /**
      * 修改表名
@@ -279,7 +278,7 @@ public interface IHBaseAdminTemplate {
      * @param isAsync    异步操作
      * @return 新增列簇是否成功
      */
-    boolean addFamily(final String tableName, final ColumnFamilyDesc familyDesc, boolean isAsync);
+    <CF extends BaseColumnFamilyDesc> boolean addFamily(final String tableName, final CF familyDesc, boolean isAsync);
 
     /**
      * 为某张表新增一个列簇， 异步
@@ -288,7 +287,7 @@ public interface IHBaseAdminTemplate {
      * @param familyDesc 列簇定义信息
      * @return 新增列簇是否成功
      */
-    boolean addFamilyAsync(final String tableName, final ColumnFamilyDesc familyDesc);
+    <CF extends BaseColumnFamilyDesc> boolean addFamilyAsync(final String tableName, final CF familyDesc);
 
 
     /**
@@ -318,7 +317,7 @@ public interface IHBaseAdminTemplate {
      * @param isAsync    是否异步
      * @return 修改列簇是否成功
      */
-    boolean modifyFamily(final String tableName, final ColumnFamilyDesc familyDesc, boolean isAsync);
+    <CF extends BaseColumnFamilyDesc> boolean modifyFamily(final String tableName, final CF familyDesc, boolean isAsync);
 
     /**
      * 修改一个列簇，异步
@@ -327,7 +326,7 @@ public interface IHBaseAdminTemplate {
      * @param familyDesc 列簇描述
      * @return 修改列簇是否成功
      */
-    boolean modifyFamilyAsync(final String tableName, final ColumnFamilyDesc familyDesc);
+    <CF extends BaseColumnFamilyDesc> boolean modifyFamilyAsync(final String tableName, final CF familyDesc);
 
     /**
      * 启用replication

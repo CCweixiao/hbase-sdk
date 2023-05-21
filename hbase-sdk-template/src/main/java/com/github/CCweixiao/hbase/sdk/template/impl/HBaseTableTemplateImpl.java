@@ -1,8 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
-import com.github.CCweixiao.hbase.sdk.HBaseTemplate;
+import com.github.CCweixiao.hbase.sdk.HBaseTableAdapterImpl;
 import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import org.apache.hadoop.hbase.HConstants;
@@ -21,7 +22,7 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
 
     private HBaseTableTemplateImpl(Builder builder) {
         this.properties = builder.properties;
-        this.tableOperations = new HBaseTemplate(properties);
+        this.tableOperations = new HBaseTableAdapterImpl(properties);
     }
 
     @Override
@@ -87,6 +88,11 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
         return tableOperations.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+    }
+
+    @Override
+    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+        return tableOperations.getRowToMapWithMultiVersions(tableName, rowKey, familyName, qualifiers, version);
     }
 
     @Override

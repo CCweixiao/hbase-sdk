@@ -4,28 +4,28 @@
   <OriginalElement />
   <nodes>
     <node x="-300.0" y="281.0">com.github.CCweixiao.hbase.sdk.common.callback.MutatorCallback</node>
-    <node x="111.75" y="-54.0">com.github.CCweixiao.hbase.sdk.IHBaseOperations</node>
-    <node x="8.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations</node>
-    <node x="-301.5" y="-104.0">com.github.CCweixiao.hbase.sdk.HBaseAdminTemplate</node>
-    <node x="229.75" y="-4.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate</node>
+    <node x="111.75" y="-54.0">com.github.CCweixiao.hbase.sdk.IHBaseBaseAdapter</node>
+    <node x="8.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseBaseAdapter</node>
+    <node x="-301.5" y="-104.0">com.github.CCweixiao.hbase.sdk.HBaseAdminAdapterImpl</node>
+    <node x="229.75" y="-4.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseTableAdapter</node>
     <node x="-565.0" y="281.0">com.github.CCweixiao.hbase.sdk.common.callback.AdminCallback</node>
     <node x="-301.5" y="56.0">com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations</node>
     <node x="224.75" y="-254.0">com.github.CCweixiao.hbase.sdk.thrift.IHBaseThriftOperations</node>
-    <node x="-565.0" y="-204.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate</node>
+    <node x="-565.0" y="-204.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminAdapter</node>
     <node x="229.75" y="-154.0">com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations</node>
-    <node x="332.5" y="331.0">com.github.CCweixiao.hbase.sdk.HBaseTemplate</node>
-    <node x="-286.5" y="181.0">com.github.CCweixiao.hbase.sdk.HBaseSqlTemplate</node>
+    <node x="332.5" y="331.0">com.github.CCweixiao.hbase.sdk.HBaseTableAdapterImpl</node>
+    <node x="-286.5" y="181.0">com.github.CCweixiao.hbase.sdk.HBaseSqlAdapterImpl</node>
     <node x="-565.0" y="231.0">com.github.CCweixiao.hbase.sdk.common.callback.TableCallback</node>
-    <node x="-325.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate</node>
+    <node x="-325.5" y="131.0">com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlAdapter</node>
     <node x="-540.5" y="-254.0">com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations</node>
   </nodes>
   <notes />
   <edges>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate" target="com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations" relationship="REALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlAdapter" target="com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations" relationship="REALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="0.0" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlAdapter" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseBaseAdapter" relationship="GENERALIZATION">
       <point x="142.0" y="-0.0" />
       <point x="-137.5" y="-0.0" />
     </edge>
@@ -33,11 +33,11 @@
       <point x="0.0" y="15.0" />
       <point x="0.0" y="-15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.HBaseTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.HBaseTableAdapterImpl" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseTableAdapter" relationship="GENERALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="63.75" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminAdapter" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseBaseAdapter" relationship="GENERALIZATION">
       <point x="-76.0" y="15.0" />
       <point x="-489.0" y="-99.0" />
       <point x="-316.5" y="-99.0" />
@@ -47,7 +47,7 @@
       <point x="77.25" y="116.0" />
       <point x="-68.75" y="-15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseTableAdapter" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseBaseAdapter" relationship="GENERALIZATION">
       <point x="-63.75" y="15.0" />
       <point x="293.5" y="46.0" />
       <point x="-337.0" y="46.0" />
@@ -55,23 +55,23 @@
       <point x="77.25" y="116.0" />
       <point x="-68.75" y="-15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate" target="com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations" relationship="REALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminAdapter" target="com.github.CCweixiao.hbase.sdk.common.IHBaseAdminOperations" relationship="REALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="0.0" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseOperations" target="com.github.CCweixiao.hbase.sdk.IHBaseOperations" relationship="REALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseBaseAdapter" target="com.github.CCweixiao.hbase.sdk.IHBaseBaseAdapter" relationship="REALIZATION">
       <point x="68.75" y="-15.0" />
       <point x="0.0" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseTemplate" target="com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations" relationship="REALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.AbstractHBaseTableAdapter" target="com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations" relationship="REALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="0.0" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.HBaseSqlTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlTemplate" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.HBaseSqlAdapterImpl" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseSqlAdapter" relationship="GENERALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="0.0" y="15.0" />
     </edge>
-    <edge source="com.github.CCweixiao.hbase.sdk.HBaseAdminTemplate" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminTemplate" relationship="GENERALIZATION">
+    <edge source="com.github.CCweixiao.hbase.sdk.HBaseAdminAdapterImpl" target="com.github.CCweixiao.hbase.sdk.AbstractHBaseAdminAdapter" relationship="GENERALIZATION">
       <point x="0.0" y="-15.0" />
       <point x="-188.5" y="-114.0" />
       <point x="-337.0" y="-114.0" />

@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
@@ -187,5 +188,13 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     public void testGetRows() {
         Map<String, Map<String, String>> d1 = tableTemplate.getRowsToMap("t1", Arrays.asList("1001", "1102"), false);
         System.out.println(d1);
+    }
+
+    @Test
+    public void getRowToMapWithMultiVersions() {
+        Map<String, List<HBaseColData>> rowToMapWithMultiVersions = tableTemplate.getRowToMapWithMultiVersions("leo_test", "1001",
+                "f1", Arrays.asList("name", "age", "address"), 3);
+        System.out.println(rowToMapWithMultiVersions);
+
     }
 }
