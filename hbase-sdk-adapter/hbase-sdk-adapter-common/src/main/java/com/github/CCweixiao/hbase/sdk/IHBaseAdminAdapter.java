@@ -5,6 +5,8 @@ import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
 import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
 import com.github.CCweixiao.hbase.sdk.schema.BaseColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.BaseHTableDesc;
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +15,7 @@ import java.util.Map;
  *
  * @author leojie 2020/9/25 10:44 下午
  */
+@InterfaceAudience.Private
 public interface IHBaseAdminAdapter {
     /**
      * 判断表是否存在

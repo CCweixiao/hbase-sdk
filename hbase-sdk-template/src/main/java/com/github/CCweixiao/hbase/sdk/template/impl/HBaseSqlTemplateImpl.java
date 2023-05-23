@@ -1,7 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
 import com.github.CCweixiao.hbase.sdk.HBaseSqlAdapterImpl;
-import com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations;
+import com.github.CCweixiao.hbase.sdk.IHBaseSqlAdapter;
+import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
 import org.apache.hadoop.hbase.HConstants;
@@ -14,31 +15,41 @@ import java.util.Properties;
  */
 public class HBaseSqlTemplateImpl implements IHBaseSqlTemplate {
     private final Properties properties;
-    private final IHBaseSqlOperations sqlOperations;
+    private final IHBaseSqlAdapter sqlAdapter;
 
     private HBaseSqlTemplateImpl(HBaseSqlTemplateImpl.Builder builder) {
         this.properties = builder.properties;
-        this.sqlOperations = new HBaseSqlAdapterImpl(properties);
+        this.sqlAdapter = new HBaseSqlAdapterImpl(properties);
     }
 
     @Override
     public HBaseDataSet select(String hsql) {
-        return sqlOperations.select(hsql);
+        return sqlAdapter.select(hsql);
     }
 
     @Override
     public HBaseDataSet select(String hsql, Map<String, Object> params) {
-        return sqlOperations.select(hsql, params);
+        return sqlAdapter.select(hsql, params);
     }
 
     @Override
     public void insert(String hql) {
-        sqlOperations.insert(hql);
+        sqlAdapter.insert(hql);
     }
 
     @Override
     public void delete(String hql) {
-        sqlOperations.delete(hql);
+        sqlAdapter.delete(hql);
+    }
+
+    @Override
+    public String parseTableNameFromHql(String hql) {
+        return sqlAdapter.parseTableNameFromHql(hql);
+    }
+
+    @Override
+    public HQLType parseHQLType(String hql) {
+        return sqlAdapter.parseHQLType(hql);
     }
 
     public static class Builder {

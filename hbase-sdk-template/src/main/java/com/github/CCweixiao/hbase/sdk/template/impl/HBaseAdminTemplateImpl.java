@@ -2,9 +2,16 @@ package com.github.CCweixiao.hbase.sdk.template.impl;
 
 import com.github.CCweixiao.hbase.sdk.HBaseAdminAdapterImpl;
 import com.github.CCweixiao.hbase.sdk.IHBaseAdminAdapter;
+import com.github.CCweixiao.hbase.sdk.common.model.HBaseRegionRecord;
+import com.github.CCweixiao.hbase.sdk.common.model.HBaseTableRecord;
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
 import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
+import com.github.CCweixiao.hbase.sdk.hbtop.Record;
+import com.github.CCweixiao.hbase.sdk.hbtop.RecordFilter;
+import com.github.CCweixiao.hbase.sdk.hbtop.Summary;
+import com.github.CCweixiao.hbase.sdk.hbtop.field.Field;
+import com.github.CCweixiao.hbase.sdk.hbtop.mode.Mode;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
@@ -19,7 +26,7 @@ import java.util.Properties;
  */
 public class HBaseAdminTemplateImpl implements IHBaseAdminTemplate {
     private final Properties properties;
-    private final IHBaseAdminAdapter adminAdapter;
+    private final HBaseAdminAdapterImpl adminAdapter;
 
     private HBaseAdminTemplateImpl(Builder builder) {
         this.properties = builder.properties;
@@ -344,6 +351,31 @@ public class HBaseAdminTemplateImpl implements IHBaseAdminTemplate {
     @Override
     public boolean mergeTableSmallRegions(String tableName, int limitRegionsNum, int limitRegionSize) {
         return adminAdapter.mergeTableSmallRegions(tableName, limitRegionsNum, limitRegionSize);
+    }
+
+    @Override
+    public Summary refreshSummary() {
+        return adminAdapter.refreshSummary();
+    }
+
+    @Override
+    public List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort) {
+        return adminAdapter.refreshRecords(currentMode, filters, currentSortField, ascendingSort);
+    }
+
+    @Override
+    public List<HBaseTableRecord> refreshTableRecords(Field currentSortField, boolean ascendingSort) {
+        return adminAdapter.refreshTableRecords(currentSortField, ascendingSort);
+    }
+
+    @Override
+    public HBaseTableRecord refreshTableRecord(String fullTableName) {
+        return adminAdapter.refreshTableRecord(fullTableName);
+    }
+
+    @Override
+    public List<HBaseRegionRecord> refreshRegionRecords(String tableName, Field currentSortField, boolean ascendingSort) {
+        return null;
     }
 
     public static class Builder {

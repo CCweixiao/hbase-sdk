@@ -1,11 +1,13 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
 import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.yetus.audience.InterfaceAudience;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * @author leojie 2020/9/9 10:25 下午
  */
+@InterfaceAudience.Public
 public class ColumnFamilyDesc extends BaseColumnFamilyDesc implements Comparable<ColumnFamilyDesc>{
 
     private final BaseColumnFamilyDescriptorConverter<ColumnFamilyDesc, HColumnDescriptor>

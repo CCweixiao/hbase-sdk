@@ -11,12 +11,15 @@ import org.apache.hadoop.hbase.client.BufferedMutatorParams;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Table;
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.util.List;
 import java.util.Optional;
 
 /**
  * @author leo.jie (leojie1314@gmail.com)
  */
+@InterfaceAudience.Private
 public interface IHBaseBaseAdapter {
     Connection getConnection();
 

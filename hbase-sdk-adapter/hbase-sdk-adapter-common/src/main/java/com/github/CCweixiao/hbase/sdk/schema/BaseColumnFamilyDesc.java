@@ -6,6 +6,8 @@ import org.apache.hadoop.hbase.KeepDeletedCells;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.HashMap;
@@ -14,6 +16,7 @@ import java.util.Map;
 /**
  * @author leojie 2023/5/19 20:43
  */
+@InterfaceAudience.Private
 public abstract class BaseColumnFamilyDesc {
     private String name;
     private int replicationScope;
@@ -250,8 +253,12 @@ public abstract class BaseColumnFamilyDesc {
         public abstract CF build();
     }
 
-    public String getName() {
+    public String getNameAsString() {
         return name;
+    }
+
+    public byte[] getName() {
+        return Bytes.toBytes(name);
     }
 
     public void setName(String name) {

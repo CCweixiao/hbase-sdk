@@ -1,10 +1,12 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
 import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.yetus.audience.InterfaceAudience;
 
 /**
  * @author leojie 2021/6/23 9:48 下午
  */
+@InterfaceAudience.Public
 public class HTableDesc extends BaseHTableDesc implements Comparable<HTableDesc> {
 
     private final BaseHTableDescriptorConverter<HTableDesc, HTableDescriptor> tableDescriptorConverter;

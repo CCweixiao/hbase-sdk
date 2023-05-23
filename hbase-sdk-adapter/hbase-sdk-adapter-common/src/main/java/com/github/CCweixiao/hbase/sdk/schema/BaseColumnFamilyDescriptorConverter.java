@@ -6,12 +6,14 @@ import org.apache.hadoop.hbase.KeepDeletedCells;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.regionserver.BloomType;
+import org.apache.yetus.audience.InterfaceAudience;
 
 import java.util.Objects;
 
 /**
  * @author leojie 2023/5/17 22:39
  */
+@InterfaceAudience.Private
 public abstract class BaseColumnFamilyDescriptorConverter<CF extends BaseColumnFamilyDesc, CD> extends Converter<CF, CD> {
     private final CF columnFamilyDesc;
     public BaseColumnFamilyDescriptorConverter(CF columnFamilyDesc) {

@@ -8,6 +8,8 @@ import org.apache.hadoop.hbase.NamespaceDescriptor;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2020/11/14 2:26 下午
  */
+@InterfaceAudience.Private
 public abstract class AbstractHBaseAdminAdapter extends AbstractHBaseBaseAdapter implements IHBaseAdminAdapter {
     public AbstractHBaseAdminAdapter(Configuration configuration) {
         super(configuration);

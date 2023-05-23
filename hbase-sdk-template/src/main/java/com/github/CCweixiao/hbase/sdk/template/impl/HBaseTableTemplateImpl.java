@@ -1,13 +1,12 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
 import com.github.CCweixiao.hbase.sdk.HBaseTableAdapterImpl;
-import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
+import com.github.CCweixiao.hbase.sdk.IHBaseTableAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import org.apache.hadoop.hbase.HConstants;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,191 +17,191 @@ import java.util.Properties;
  */
 public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     private final Properties properties;
-    private final IHBaseTableOperations tableOperations;
+    private final IHBaseTableAdapter tableAdapter;
 
     private HBaseTableTemplateImpl(Builder builder) {
         this.properties = builder.properties;
-        this.tableOperations = new HBaseTableAdapterImpl(properties);
+        this.tableAdapter = new HBaseTableAdapterImpl(properties);
     }
 
     @Override
     public void save(String tableName, String rowKey, Map<String, Object> data) {
-        tableOperations.save(tableName, rowKey, data);
+        tableAdapter.save(tableName, rowKey, data);
     }
 
     @Override
     public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
-        return tableOperations.saveBatch(tableName, data);
+        return tableAdapter.saveBatch(tableName, data);
     }
 
     @Override
     public <T> T save(T t) {
-        return tableOperations.save(t);
+        return tableAdapter.save(t);
     }
 
     @Override
     public <T> int saveBatch(List<T> list) {
-        return tableOperations.saveBatch(list);
+        return tableAdapter.saveBatch(list);
     }
 
     @Override
     public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
-        return tableOperations.getRow(rowKey, clazz);
+        return tableAdapter.getRow(rowKey, clazz);
     }
 
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
-        return tableOperations.getRow(rowKey, familyName, clazz);
+        return tableAdapter.getRow(rowKey, familyName, clazz);
     }
 
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return tableOperations.getRow(rowKey, familyName, qualifiers, clazz);
+        return tableAdapter.getRow(rowKey, familyName, qualifiers, clazz);
     }
 
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
-        return tableOperations.getRow(tableName, rowKey, rowMapper);
+        return tableAdapter.getRow(tableName, rowKey, rowMapper);
     }
 
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
-        return tableOperations.getRow(tableName, rowKey, familyName, rowMapper);
+        return tableAdapter.getRow(tableName, rowKey, familyName, rowMapper);
     }
 
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return tableOperations.getRow(tableName, rowKey, familyName, qualifiers, rowMapper);
+        return tableAdapter.getRow(tableName, rowKey, familyName, qualifiers, rowMapper);
     }
 
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
-        return tableOperations.getRowToMap(tableName, rowKey, withTimestamp);
+        return tableAdapter.getRowToMap(tableName, rowKey, withTimestamp);
     }
 
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
-        return tableOperations.getRowToMap(tableName, rowKey, familyName, withTimestamp);
+        return tableAdapter.getRowToMap(tableName, rowKey, familyName, withTimestamp);
     }
 
     @Override
     public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return tableOperations.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+        return tableAdapter.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
     }
 
     @Override
     public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
-        return tableOperations.getRowToMapWithMultiVersions(tableName, rowKey, familyName, qualifiers, version);
+        return tableAdapter.getRowToMapWithMultiVersions(tableName, rowKey, familyName, qualifiers, version);
     }
 
     @Override
     public <T> List<T> getRows(List<String> rowKeys, Class<T> clazz) {
-        return tableOperations.getRows(rowKeys, clazz);
+        return tableAdapter.getRows(rowKeys, clazz);
     }
 
     @Override
     public <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz) {
-        return tableOperations.getRows(rowKeys, familyName, clazz);
+        return tableAdapter.getRows(rowKeys, familyName, clazz);
     }
 
     @Override
     public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return tableOperations.getRows(rowKeys, familyName, qualifiers, clazz);
+        return tableAdapter.getRows(rowKeys, familyName, qualifiers, clazz);
     }
 
     @Override
     public <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper) {
-        return tableOperations.getRows(tableName, rowKeys, rowMapper);
+        return tableAdapter.getRows(tableName, rowKeys, rowMapper);
     }
 
     @Override
     public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper) {
-        return tableOperations.getRows(tableName, rowKeys, familyName, rowMapper);
+        return tableAdapter.getRows(tableName, rowKeys, familyName, rowMapper);
     }
 
     @Override
     public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return tableOperations.getRows(tableName, rowKeys, familyName, qualifiers, rowMapper);
+        return tableAdapter.getRows(tableName, rowKeys, familyName, qualifiers, rowMapper);
     }
 
     @Override
     public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
-        return tableOperations.getRowsToMap(tableName, rowKeys, withTimestamp);
+        return tableAdapter.getRowsToMap(tableName, rowKeys, withTimestamp);
     }
 
     @Override
     public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
-        return tableOperations.getRowsToMap(tableName, rowKeys, familyName, withTimestamp);
+        return tableAdapter.getRowsToMap(tableName, rowKeys, familyName, withTimestamp);
     }
 
     @Override
     public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return tableOperations.getRowsToMap(tableName, rowKeys, familyName, qualifiers, withTimestamp);
+        return tableAdapter.getRowsToMap(tableName, rowKeys, familyName, qualifiers, withTimestamp);
     }
 
     @Override
     public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
-        return tableOperations.scan(scanQueryParams, clazz);
+        return tableAdapter.scan(scanQueryParams, clazz);
     }
 
     @Override
     public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
-        return tableOperations.scan(tableName, scanQueryParams, rowMapper);
+        return tableAdapter.scan(tableName, scanQueryParams, rowMapper);
     }
 
     @Override
     public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
-        return tableOperations.scan(tableName, scanQueryParams);
+        return tableAdapter.scan(tableName, scanQueryParams);
     }
 
     @Override
     public <T> void delete(T t) {
-        tableOperations.delete(t);
+        tableAdapter.delete(t);
     }
 
     @Override
     public void delete(String tableName, String rowKey) {
-        tableOperations.delete(tableName, rowKey);
+        tableAdapter.delete(tableName, rowKey);
     }
 
     @Override
     public void delete(String tableName, String rowKey, String familyName) {
-        tableOperations.delete(tableName, rowKey, familyName);
+        tableAdapter.delete(tableName, rowKey, familyName);
     }
 
     @Override
     public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        tableOperations.delete(tableName, rowKey, familyName, qualifiers);
+        tableAdapter.delete(tableName, rowKey, familyName, qualifiers);
     }
 
     @Override
     public void delete(String tableName, String rowKey, String familyName, String... qualifiers) {
-        tableOperations.delete(tableName, rowKey, familyName, qualifiers);
+        tableAdapter.delete(tableName, rowKey, familyName, qualifiers);
     }
 
     @Override
     public <T> void deleteBatch(List<T> list) {
-        tableOperations.deleteBatch(list);
+        tableAdapter.deleteBatch(list);
     }
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys) {
-        tableOperations.deleteBatch(tableName, rowKeys);
+        tableAdapter.deleteBatch(tableName, rowKeys);
     }
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName) {
-        tableOperations.deleteBatch(tableName, rowKeys, familyName);
+        tableAdapter.deleteBatch(tableName, rowKeys, familyName);
     }
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        tableOperations.deleteBatch(tableName, rowKeys, familyName, qualifiers);
+        tableAdapter.deleteBatch(tableName, rowKeys, familyName, qualifiers);
     }
 
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, String... qualifiers) {
-        tableOperations.deleteBatch(tableName, rowKeys, familyName, qualifiers);
+        tableAdapter.deleteBatch(tableName, rowKeys, familyName, qualifiers);
     }
 
     public static class Builder {

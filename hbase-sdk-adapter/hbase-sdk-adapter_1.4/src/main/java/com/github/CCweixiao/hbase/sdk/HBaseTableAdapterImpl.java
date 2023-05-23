@@ -8,6 +8,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.IOException;
 import java.util.*;
@@ -16,6 +17,7 @@ import java.util.*;
 /**
  * @author leo.jie (weixiao.me@aliyun.com)
  */
+@InterfaceAudience.Private
 public class HBaseTableAdapterImpl extends AbstractHBaseTableAdapter {
     public HBaseTableAdapterImpl(Configuration configuration) {
         super(configuration);

@@ -5,6 +5,7 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.TableDescriptor;
 import org.apache.hadoop.hbase.client.TableDescriptorBuilder;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2023/5/17 21:48
  */
+@InterfaceAudience.Private
 public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTableDesc, TableDescriptor> {
     public HTableDescriptorConverter(HTableDesc tableDesc) {
         super(tableDesc);
@@ -20,7 +22,7 @@ public class HTableDescriptorConverter extends BaseHTableDescriptorConverter<HTa
 
     @Override
     protected TableDescriptor doForward(HTableDesc tableDesc) {
-        TableName tableName = TableName.valueOf(tableDesc.getName());
+        TableName tableName = TableName.valueOf(tableDesc.getTableNameAsString());
         TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableName);
         tableDescriptorBuilder.setMaxFileSize(tableDesc.getMaxFileSize());
         tableDescriptorBuilder.setMemStoreFlushSize(tableDesc.getMemStoreFlushSize());

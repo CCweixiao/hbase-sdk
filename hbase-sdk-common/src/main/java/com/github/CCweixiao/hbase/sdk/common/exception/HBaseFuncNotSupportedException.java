@@ -1,6 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.common;
-
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkException;
+package com.github.CCweixiao.hbase.sdk.common.exception;
 
 /**
  * @author leojie 2022/12/3 00:32

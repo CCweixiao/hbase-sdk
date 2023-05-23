@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.type;
 
-import com.github.CCweixiao.hbase.sdk.common.HBaseColumnTypeCastException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseColumnTypeCastException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseTypeHandlerException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 

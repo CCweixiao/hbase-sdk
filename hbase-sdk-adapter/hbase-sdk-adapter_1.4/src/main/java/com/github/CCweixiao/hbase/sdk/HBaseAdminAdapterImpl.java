@@ -28,6 +28,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,6 +40,7 @@ import static com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants.E
 /**
  * @author leojie 2020/9/25 11:11 下午
  */
+@InterfaceAudience.Private
 public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements HBaseMetricOperations {
     public static final Pattern REGION_COMPILE = Pattern.compile("\\.(\\w+)\\.");
 
@@ -122,7 +125,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public List<String> listTableNamesByNamespace(String namespaceName) {
         return listTableDescByNamespace(namespaceName).stream()
-                .map(HTableDesc::getName).collect(Collectors.toList());
+                .map(HTableDesc::getTableNameAsString).collect(Collectors.toList());
     }
 
     @Override
@@ -316,9 +319,9 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
             final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
-            if (tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getName()))) {
+            if (tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
                 throw new HBaseFamilyHasExistsException(String.format("The family %s in the table %s has created.",
-                        columnFamilyDesc.getName(), tableName));
+                        columnFamilyDesc.getNameAsString(), tableName));
             }
             admin.addColumn(TableName.valueOf(tableName), columnFamilyDesc.convertFor());
             return true;
@@ -351,11 +354,11 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
             final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
-            if (!tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getName()))) {
+            if (!tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
                 throw new HBaseFamilyNotFoundException(String.format("The family %s in the table %s is not exists.",
-                        columnFamilyDesc.getName(), tableName));
+                        columnFamilyDesc.getNameAsString(), tableName));
             }
-            HColumnDescriptor oldColumnDescriptor = tableDescriptor.getFamily(Bytes.toBytes(columnFamilyDesc.getName()));
+            HColumnDescriptor oldColumnDescriptor = tableDescriptor.getFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()));
             HColumnDescriptor newColumnDescriptor = columnFamilyDesc.convertFor();
             if (!oldColumnDescriptor.equals(newColumnDescriptor)) {
                 if (isAsync) {

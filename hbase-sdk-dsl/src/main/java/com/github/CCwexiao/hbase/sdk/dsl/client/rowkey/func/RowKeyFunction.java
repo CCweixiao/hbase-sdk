@@ -1,6 +1,6 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func;
 
-import com.github.CCweixiao.hbase.sdk.common.HBaseFuncNotSupportedException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFuncNotSupportedException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 

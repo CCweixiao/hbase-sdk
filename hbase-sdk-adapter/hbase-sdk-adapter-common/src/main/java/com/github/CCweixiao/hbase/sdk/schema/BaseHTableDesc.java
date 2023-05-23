@@ -3,6 +3,9 @@ package com.github.CCweixiao.hbase.sdk.schema;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotUniqueException;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.yetus.audience.InterfaceAudience;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2023/5/19 20:35
  */
+@InterfaceAudience.Private
 public abstract class BaseHTableDesc {
     private String name;
     private long maxFileSize;
@@ -130,8 +134,12 @@ public abstract class BaseHTableDesc {
         public abstract HTD build();
     }
 
-    public String getName() {
+    public String getTableNameAsString() {
         return name;
+    }
+
+    public TableName getTableName() {
+        return TableName.valueOf(name);
     }
 
     public void setName(String name) {
@@ -226,7 +234,7 @@ public abstract class BaseHTableDesc {
     }
 
     public String getTableNameWithNamespace() {
-        String tabName = this.getName();
+        String tabName = this.getTableNameAsString();
         if (StringUtil.isBlank(tabName)) {
             throw new IllegalArgumentException("The table name is not empty.");
         }
@@ -243,7 +251,7 @@ public abstract class BaseHTableDesc {
             return false;
         }
         for (BaseColumnFamilyDesc familyDesc : this.columnFamilyDescList) {
-            if (familyDesc.getName().equals(columnFamilyDesc.getName())) {
+            if (familyDesc.getNameAsString().equals(columnFamilyDesc.getNameAsString())) {
                 return true;
             }
         }
@@ -260,7 +268,7 @@ public abstract class BaseHTableDesc {
         }
 
         final Map<String, Long> familyCountMap = this.columnFamilyDescList.stream()
-                .collect(Collectors.groupingBy(BaseColumnFamilyDesc::getName, Collectors.counting()));
+                .collect(Collectors.groupingBy(BaseColumnFamilyDesc::getNameAsString, Collectors.counting()));
         familyCountMap.forEach((familyName, count) -> {
             if (count > 1) {
                 throw new HBaseFamilyNotUniqueException(

@@ -19,6 +19,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.IOException;
 import java.util.*;
@@ -26,6 +27,7 @@ import java.util.*;
 /**
  * @author leojie 2020/11/28 8:36 下午
  */
+@InterfaceAudience.Private
 public class HBaseSqlAdapterImpl extends AbstractHBaseSqlAdapter {
 
     public HBaseSqlAdapterImpl(Properties properties) {

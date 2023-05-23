@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk;
 
-import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
@@ -17,11 +16,25 @@ import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Delete;
+import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.client.ResultScanner;
+import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-
+import org.apache.yetus.audience.InterfaceAudience;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +42,8 @@ import java.util.stream.Collectors;
  *
  * @author leo.jie (leojie1314@gmail.com)
  */
-public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableOperations {
+@InterfaceAudience.Private
+public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableAdapter {
     public AbstractHBaseTableAdapter(Configuration configuration) {
         super(configuration);
     }

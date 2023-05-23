@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.template;
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
 import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
+import com.github.CCweixiao.hbase.sdk.hbtop.HBaseMetricOperations;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 
@@ -14,7 +15,7 @@ import java.util.Map;
  *
  * @author leojie 2020/9/25 10:44 下午
  */
-public interface IHBaseAdminTemplate {
+public interface IHBaseAdminTemplate extends HBaseMetricOperations {
     /**
      * 判断表是否存在
      *

@@ -4,12 +4,14 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotEmptyExcept
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
 
 import java.util.Map;
 
 /**
  * @author leojie 2023/5/17 22:43
  */
+@InterfaceAudience.Private
 public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorConverter<ColumnFamilyDesc, HColumnDescriptor> {
     public ColumnFamilyDescriptorConverter(ColumnFamilyDesc columnFamilyDesc) {
         super(columnFamilyDesc);
@@ -17,10 +19,10 @@ public class ColumnFamilyDescriptorConverter extends BaseColumnFamilyDescriptorC
 
     @Override
     protected HColumnDescriptor doForward(ColumnFamilyDesc columnFamilyDesc) {
-        if (StringUtil.isBlank(columnFamilyDesc.getName())) {
+        if (StringUtil.isBlank(columnFamilyDesc.getNameAsString())) {
             throw new HBaseFamilyNotEmptyException("The family name is not empty.");
         }
-        HColumnDescriptor columnDescriptor = new HColumnDescriptor(columnFamilyDesc.getName());
+        HColumnDescriptor columnDescriptor = new HColumnDescriptor(columnFamilyDesc.getNameAsString());
         columnDescriptor.setScope(columnFamilyDesc.getReplicationScope());
         columnDescriptor.setMaxVersions(columnFamilyDesc.getMaxVersions());
         columnDescriptor.setMinVersions(columnFamilyDesc.getMinVersions());

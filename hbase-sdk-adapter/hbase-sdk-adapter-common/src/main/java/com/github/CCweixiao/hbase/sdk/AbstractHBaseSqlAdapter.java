@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk;
 
-import com.github.CCweixiao.hbase.sdk.common.IHBaseSqlOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
@@ -28,6 +27,7 @@ import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.yetus.audience.InterfaceAudience;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -37,7 +37,8 @@ import java.util.Properties;
 /**
  * @author leojie 2020/11/28 8:34 下午
  */
-public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter implements IHBaseSqlOperations {
+@InterfaceAudience.Private
+public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter implements IHBaseSqlAdapter {
 
     public AbstractHBaseSqlAdapter(Properties properties) {
         super(properties);
@@ -239,7 +240,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         }
     }
 
-    protected String parseTableNameFromHql(String hql) {
+    public String parseTableNameFromHql(String hql) {
         checkSql(hql);
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         return parseTableNameFromHql(progContext);
@@ -261,7 +262,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return tableName;
     }
 
-    protected HQLType parseHQLType(String hql) {
+    public HQLType parseHQLType(String hql) {
         checkSql(hql);
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         return parseHQLType(progContext);
