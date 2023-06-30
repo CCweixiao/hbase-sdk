@@ -22,6 +22,9 @@ import java.util.Optional;
 @InterfaceAudience.Private
 public interface IHBaseBaseAdapter {
     Connection getConnection();
+    Connection getHedgedReadClusterConnection();
+    boolean hedgedReadIsOpen();
+    long hedgedReadTimeout();
 
     default <T> T execute(AdminCallback<T, Admin> action) {
         try (Admin admin = this.getConnection().getAdmin()) {

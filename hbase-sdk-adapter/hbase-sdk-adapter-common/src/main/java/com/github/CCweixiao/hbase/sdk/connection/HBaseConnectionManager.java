@@ -9,7 +9,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.security.UserGroupInformation;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -20,20 +19,20 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2021/2/9 11:15 下午
  */
-public class ConnectionFactory {
+public class HBaseConnectionManager {
     private volatile static Map<String, Connection> connectionMap;
     private volatile static boolean kerberosEnvInit = false;
     private static final int KERBEROS_KINIT_MAX_RETRY = 5;
     private static final long KERBEROS_RE_LOGIN_INTERVAL = 30 * 60 * 1000L;
 
-    private ConnectionFactory() {
+    private HBaseConnectionManager() {
     }
 
     public static Connection getConnection(Properties prop) {
         String cluster = prop.getProperty(HConstants.ZOOKEEPER_QUORUM);
 
         if (connectionMap == null || !connectionMap.containsKey(cluster)) {
-            synchronized (ConnectionFactory.class) {
+            synchronized (HBaseConnectionManager.class) {
                 if (connectionMap == null || !connectionMap.containsKey(cluster)) {
                     try {
                         if (connectionMap == null) {
