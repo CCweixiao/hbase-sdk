@@ -149,9 +149,8 @@ public interface IHBaseBaseAdapter {
 
     default void executeOnSource(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
         BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-
         try (BufferedMutator mutator = this.getConnection()
-                .getBufferedMutator(mutatorParams.writeBufferSize(4 * 1024 * 1024))) {
+                .getBufferedMutator(mutatorParams)) {
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
@@ -160,9 +159,8 @@ public interface IHBaseBaseAdapter {
 
     default void executeOnTarget(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
         BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-
         try (BufferedMutator mutator = this.getHedgedReadClusterConnection()
-                .getBufferedMutator(mutatorParams.writeBufferSize(4 * 1024 * 1024))) {
+                .getBufferedMutator(mutatorParams)) {
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
