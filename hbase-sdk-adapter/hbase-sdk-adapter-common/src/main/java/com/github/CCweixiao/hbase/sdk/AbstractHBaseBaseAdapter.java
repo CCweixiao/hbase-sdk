@@ -9,7 +9,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.yetus.audience.InterfaceAudience;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -23,6 +22,10 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
     private static final String HBASE_CLIENT_HEDGED_READ_SWITCH_DEFAULT = "false";
     private static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT = "hbase.client.hedged.read.timeout";
     private static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT_DEFAULT_MS = "100";
+
+    private static final String HBASE_CLIENT_HEDGED_READ_POOL_SIZE = "hbase.client.hedged.thread.pool.size";
+    private static final String HBASE_CLIENT_HEDGED_READ_POOL_DEFAULT_SIZE = "10";
+
     private static final String HEDGED_READ_CONF_SUFFIX = ".hedged.read";
     private Properties properties;
     private Properties hedgedClusterProp;
@@ -103,6 +106,12 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
                 HBASE_CLIENT_HEDGED_READ_TIME_OUT_DEFAULT_MS));
     }
 
+    @Override
+    public int initHedgedReadPoolSize() {
+        return Integer.parseInt(this.properties.getProperty(HBASE_CLIENT_HEDGED_READ_POOL_SIZE,
+                HBASE_CLIENT_HEDGED_READ_POOL_DEFAULT_SIZE));
+    }
+
     private Properties createHedgedReadClusterProp() {
         Properties prop = this.properties;
         for (Object o : this.properties.keySet()) {
@@ -110,7 +119,6 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
             if (key.endsWith(HEDGED_READ_CONF_SUFFIX)) {
                 String value = prop.getProperty(key);
                 prop.setProperty(key.substring(0, key.lastIndexOf(HEDGED_READ_CONF_SUFFIX)), value);
-                prop.remove(key);
             }
         }
         return prop;
