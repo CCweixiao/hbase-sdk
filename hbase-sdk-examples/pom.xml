@@ -16,6 +16,7 @@
     <modules>
         <module>hbase-sdk-example</module>
         <module>spring-boot-starter-hbase-example</module>
+        <module>hbase-sdk-shell-example</module>
     </modules>
 
     <properties>

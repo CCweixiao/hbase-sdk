@@ -50,6 +50,7 @@
         <module>hbase-sdk-adapter</module>
         <module>hbase-sdk-thrift</module>
         <module>hbase-sdk-template</module>
+        <module>hbase-sdk-shell</module>
         <module>spring-boot-starter-hbase</module>
         <module>hbase-sdk-examples</module>
     </modules>
@@ -165,6 +166,11 @@
             </dependency>
             <dependency>
                 <groupId>com.github.CCweixiao</groupId>
+                <artifactId>hbase-sdk-shell_${hbase.sdk.adapter.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.CCweixiao</groupId>
                 <artifactId>spring-boot-starter-hbase_${hbase.sdk.adapter.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -221,6 +227,45 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.hbase</groupId>
+                        <artifactId>hbase-common</artifactId>
+                        <version>${hbase2.2.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.hbase</groupId>
+                        <artifactId>hbase-client</artifactId>
+                        <version>${hbase2.2.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.hbase</groupId>
+                        <artifactId>hbase-server</artifactId>
+                        <version>${hbase2.2.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-api</artifactId>
+                        <version>1.7.25</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jruby</groupId>
+                        <artifactId>jruby-complete</artifactId>
+                        <version>9.3.4.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jruby.jcodings</groupId>
+                        <artifactId>jcodings</artifactId>
+                        <version>1.0.56</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jruby.joni</groupId>
+                        <artifactId>joni</artifactId>
+                        <version>2.1.42</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>

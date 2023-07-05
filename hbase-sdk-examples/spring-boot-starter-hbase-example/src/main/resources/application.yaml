@@ -1,7 +1,7 @@
 spring:
   datasource:
     hbase:
-      zk-host-list: myhbase
+      zk-host-list: localhost
       zk-client-port: 2181
       dfs-root-dir: /hbase
       zk-node-parent: /hbase

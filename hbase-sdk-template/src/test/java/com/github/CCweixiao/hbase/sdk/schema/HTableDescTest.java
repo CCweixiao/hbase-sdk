@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
-import org.apache.hadoop.hbase.HTableDescriptor;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,9 +15,6 @@ public class HTableDescTest {
                 .name("test")
                 .addFamilyDesc(familyDesc)
                 .build();
-
-        HTableDescriptor tableDescriptor = tableDesc.convertFor();
-        System.out.println(tableDescriptor);
         System.out.println(tableDesc);
     }
 
