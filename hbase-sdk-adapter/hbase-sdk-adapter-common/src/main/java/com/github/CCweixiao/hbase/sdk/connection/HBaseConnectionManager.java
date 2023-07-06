@@ -1,12 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.connection;
 
-import cn.hutool.crypto.digest.MD5;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkConnectionException;
 import com.github.CCweixiao.hbase.sdk.common.security.AuthType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -15,10 +13,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,14 +29,13 @@ public class HBaseConnectionManager {
     private static final String KERBEROS = "kerberos";
     private static final String KERBEROS_PRINCIPAL = "kerberos.principal";
     private static final String KERBEROS_KEYTAB_FILE = "keytab.file";
-    private static final String KERBEROS_PROXY_USER = "kerberos.proxy.user";
     private static final String JAVA_SECURITY_PREFIX = "java.security";
 
     private HBaseConnectionManager() {
     }
 
     public static Connection getConnection(Properties prop) {
-        String clusterConnUniqueKey = generateUniqueConnectionKey(prop);
+        String clusterConnUniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(prop);
 
         if (connectionMap == null || !connectionMap.containsKey(clusterConnUniqueKey)) {
             synchronized (HBaseConnectionManager.class) {
@@ -54,11 +48,10 @@ public class HBaseConnectionManager {
                             Configuration configuration = getConfiguration(prop);
                             if (!kerberosEnvInit) {
                                 doKerberosLogin(configuration, prop);
-                                kerberosEnvInit = true;
                             }
                             Connection connection;
-                            if (isProxyUserEnabled(prop)) {
-                                String proxyUser = proxyUser(prop);
+                            if (HBaseConnectionUtil.isProxyUserEnabled(prop)) {
+                                String proxyUser = HBaseConnectionUtil.proxyUser(prop);
                                 UserGroupInformation ugi =
                                         UserGroupInformation.createProxyUser(proxyUser, UserGroupInformation.getLoginUser());
                                 connection = ugi.doAs((PrivilegedAction<Connection>) () -> {
@@ -130,6 +123,7 @@ public class HBaseConnectionManager {
             UserGroupInformation.setConfiguration(configuration);
             UserGroupInformation.loginUserFromKeytab(principal, keytab);
             LOGGER.info("Login successfully via keytab: {} and principal: {}", keytab, principal);
+            kerberosEnvInit = true;
             doKerberosReLogin();
         } catch (IOException e) {
             throw new HBaseSdkConnectionException(e);
@@ -209,26 +203,6 @@ public class HBaseConnectionManager {
         return KERBEROS.equalsIgnoreCase(authType);
     }
 
-    private static boolean isProxyUserEnabled(Properties properties) {
-        String val = proxyUser(properties);
-        return StringUtil.isNotBlank(val);
-    }
 
-    private static String proxyUser(Properties properties) {
-        return properties.getProperty(KERBEROS_PROXY_USER);
-    }
-
-    private static String generateUniqueConnectionKey(Properties properties) {
-        String zkQuorum = properties.getProperty(HConstants.ZOOKEEPER_QUORUM);
-        if (StringUtil.isBlank(zkQuorum)) {
-            throw new HBaseSdkConnectionException(String.format("The %s must be specified.", zkQuorum));
-        }
-        zkQuorum = MD5.create().digestHex(zkQuorum);
-        if (isProxyUserEnabled(properties)) {
-            String proxyUser = proxyUser(properties);
-            zkQuorum = zkQuorum + "#" + proxyUser;
-        }
-        return zkQuorum;
-    }
 }
 

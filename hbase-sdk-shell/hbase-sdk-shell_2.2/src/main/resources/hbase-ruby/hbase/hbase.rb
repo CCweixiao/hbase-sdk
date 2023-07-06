@@ -20,6 +20,7 @@
 include Java
 java_import org.apache.hadoop.hbase.client.ConnectionFactory
 java_import org.apache.hadoop.hbase.HBaseConfiguration
+java_import com.github.weixiao.hbase.sdk.connection.HBaseConnectionManagerRuby
 
 require 'hbase/admin'
 require 'hbase/table'
@@ -32,17 +33,19 @@ module Hbase
   class Hbase
     attr_accessor :configuration
 
-    def initialize(config = nil)
+    def initialize(properties = nil)
       # Create configuration
-      if config
-        self.configuration = config
+      @connection = nil
+      if properties
+        self.configuration = HBaseConnectionManagerRuby.getConfiguration(properties)
+        @connection = HBaseConnectionManagerRuby.getConnection(properties)
       else
         self.configuration = HBaseConfiguration.create
         # Turn off retries in hbase and ipc.  Human doesn't want to wait on N retries.
         configuration.setInt('hbase.client.retries.number', 7)
         configuration.setInt('hbase.ipc.client.connect.max.retries', 3)
+        @connection = ConnectionFactory.createConnection(configuration)
       end
-      @connection = ConnectionFactory.createConnection(configuration)
     end
 
     # Returns ruby's Admin class from admin.rb

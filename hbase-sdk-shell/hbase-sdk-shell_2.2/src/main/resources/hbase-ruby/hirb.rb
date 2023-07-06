@@ -75,12 +75,12 @@ HERE
 
 # Takes configuration and an arg that is expected to be key=value format.
 # If c is empty, creates one and returns it
-def add_to_configuration(c, arg)
+def add_to_properties(p, arg)
   kv = arg.split('=')
   kv.length == 2 || (raise "Expected parameter #{kv} in key=value format")
-  c = org.apache.hadoop.hbase.HBaseConfiguration.create if c.nil?
-  c.set(kv[0], kv[1])
-  c
+  p = java.util.Properties.new if p.nil?
+  p.setProperty(kv[0], kv[1])
+  p
 end
 
 found = []
@@ -88,7 +88,7 @@ script2run = nil
 log_level = org.apache.log4j.Level::ERROR
 @shell_debug = false
 interactive = true
-_configuration = nil
+_properties = nil
 D_ARG = '-D'
 while (arg = args.shift)
   if arg == '-h' || arg == '--help'
@@ -96,11 +96,11 @@ while (arg = args.shift)
     exit
   elsif arg == D_ARG
     argValue = args.shift || (raise "#{D_ARG} takes a 'key=value' parameter")
-    _configuration = add_to_configuration(_configuration, argValue)
+    _properties = add_to_properties(_properties, argValue)
     found.push(arg)
     found.push(argValue)
   elsif arg.start_with? D_ARG
-    _configuration = add_to_configuration(_configuration, arg[2..-1])
+    _properties = add_to_properties(_properties, arg[2..-1])
     found.push(arg)
   elsif arg == '-d' || arg == '--debug'
     log_level = org.apache.log4j.Level::DEBUG
@@ -144,7 +144,7 @@ require 'shell'
 require 'shell/formatter'
 
 # Setup the HBase module.  Create a configuration.
-@hbase = _configuration.nil? ? Hbase::Hbase.new : Hbase::Hbase.new(_configuration)
+@hbase = Hbase::Hbase.new(_properties)
 
 # Setup console
 @shell = Shell::Shell.new(@hbase, interactive)
@@ -177,6 +177,7 @@ def debug
   end
   org.apache.log4j.Logger.getLogger('org.apache.zookeeper').setLevel(log_level)
   org.apache.log4j.Logger.getLogger('org.apache.hadoop.hbase').setLevel(log_level)
+  org.apache.log4j.Logger.getLogger('com.github.CCweixiao').setLevel(log_level)
   debug?
 end
 
