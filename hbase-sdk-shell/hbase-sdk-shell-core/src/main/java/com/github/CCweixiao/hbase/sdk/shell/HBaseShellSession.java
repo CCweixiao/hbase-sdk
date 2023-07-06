@@ -21,15 +21,14 @@ import java.util.concurrent.TimeoutException;
  */
 public class HBaseShellSession implements ShellSession {
     private static final Logger LOGGER = LoggerFactory.getLogger(HBaseShellSession.class);
-    private static final String HBASE_SHELL_LOG_LEVEL = "hbase.shell.log.level";
-    private static final int DEFAULT_RETRY_TIMES = 10;
-    private static final long DEFAULT_SLEEP_TIME_MS = 1000L;
-    private static final long DEFAULT_SHELL_CONNECTION_TIMEOUT_MS = 2 * 60 * 1000L;
 
     private final String sessionId;
     private final int sessionInitMaxTimes;
     private final long sessionInitRetryInterval;
-    private final long sessionConnectionTimeout;
+    private final long sessionInitTimeout;
+    private final long sessionIdle;
+    private final long sessionInitStartTime;
+    private final boolean sessionDebugLog;
     private final Properties properties;
 
     private ScriptingContainer scriptingContainer;
@@ -41,7 +40,10 @@ public class HBaseShellSession implements ShellSession {
         this.sessionId = builder.sessionId;
         this.sessionInitMaxTimes = builder.sessionInitMaxTimes;
         this.sessionInitRetryInterval = builder.sessionInitRetryInterval;
-        this.sessionConnectionTimeout = builder.sessionConnectionTimeout;
+        this.sessionInitTimeout = builder.sessionInitTimeout;
+        this.sessionIdle = builder.sessionIdle;
+        this.sessionInitStartTime = System.currentTimeMillis();
+        this.sessionDebugLog = builder.sessionDebugLog;
     }
 
     static class Builder {
@@ -49,7 +51,9 @@ public class HBaseShellSession implements ShellSession {
         private Properties properties;
         private int sessionInitMaxTimes;
         private long sessionInitRetryInterval;
-        private long sessionConnectionTimeout;
+        private long sessionInitTimeout;
+        private long sessionIdle;
+        private boolean sessionDebugLog;
 
         public Builder sessionId(String sessionId) {
             this.sessionId = sessionId;
@@ -71,8 +75,18 @@ public class HBaseShellSession implements ShellSession {
             return this;
         }
 
-        public Builder sessionConnectionTimeout(long sessionConnectionTimeout) {
-            this.sessionConnectionTimeout = sessionConnectionTimeout;
+        public Builder sessionInitTimeout(long sessionInitTimeout) {
+            this.sessionInitTimeout = sessionInitTimeout;
+            return this;
+        }
+
+        public Builder sessionIdle(long sessionIdle) {
+            this.sessionIdle = sessionIdle;
+            return this;
+        }
+
+        public Builder sessionDebugLog(boolean sessionDebugLog) {
+            this.sessionDebugLog = sessionDebugLog;
             return this;
         }
 
@@ -97,14 +111,9 @@ public class HBaseShellSession implements ShellSession {
     public void open() {
         Thread t = new Thread(() -> {
             int initMaxTimes = this.getSessionInitMaxTimes();
-            if (initMaxTimes <= 0) {
-                initMaxTimes = DEFAULT_RETRY_TIMES;
-            }
-            long initRetryInterval = this.getSessionInitRetryInterval();
-            if (initRetryInterval <= 0) {
-                initRetryInterval = DEFAULT_SLEEP_TIME_MS;
-            }
+
             try {
+                LOGGER.info("Starting create hbase shell session ......");
                 createShellRunningEnv();
             } catch (Exception e) {
                 for (int i = 0; i < initMaxTimes; i++) {
@@ -115,7 +124,7 @@ public class HBaseShellSession implements ShellSession {
                             LOGGER.error("After {} retries, HBase shell session initialization failed.", initMaxTimes, ex);
                             throw new HBaseShellSessionEnvInitException(ex);
                         }
-                        shortSpin(initRetryInterval);
+                        shortSpin(this.getSessionInitRetryInterval());
                     }
                 }
             }
@@ -123,15 +132,12 @@ public class HBaseShellSession implements ShellSession {
         t.setName("HBaseShellRunningEnvInitThread");
         t.setDaemon(true);
         t.start();
+        shortSpin(10000);
 
-        long connectedTimeout = this.getSessionConnectionTimeout();
-        if (connectedTimeout <= 0) {
-            connectedTimeout = DEFAULT_SHELL_CONNECTION_TIMEOUT_MS;
-        }
         CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(this::waitShellSessionConnected);
         try {
-            this.isConnected = future.get(connectedTimeout, TimeUnit.MILLISECONDS);
-            LOGGER.info("Initialize hbase shell session successfully.");
+            this.isConnected = future.get(this.getSessionInitTimeout(), TimeUnit.MILLISECONDS);
+            LOGGER.info("Created hbase shell session successfully.");
         } catch (InterruptedException | ExecutionException e) {
             this.isConnected = false;
             future.cancel(true);
@@ -162,7 +168,7 @@ public class HBaseShellSession implements ShellSession {
         scriptingContainer.setOutput(this.writer);
         Properties sysProps = System.getProperties();
         String prop = "";
-        if (hbaseShellDebugOpen()) {
+        if (this.isSessionDebugLog()) {
             prop = "-d,";
         }
         if (properties != null && !properties.isEmpty()) {
@@ -187,7 +193,8 @@ public class HBaseShellSession implements ShellSession {
     private boolean waitShellSessionConnected() {
         while (true) {
             Result result = executeCmd("list_namespace");
-            if (result.isSuccess()) {
+            String r = result.getResult();
+            if (result.isSuccess() && StringUtil.isNotBlank(r)) {
                 return true;
             }
             shortSpin(200L);
@@ -208,11 +215,8 @@ public class HBaseShellSession implements ShellSession {
         if (this.scriptingContainer != null) {
             this.scriptingContainer.terminate();
         }
-    }
-
-    private boolean hbaseShellDebugOpen() {
-        String logLevel = this.properties.getProperty(HBASE_SHELL_LOG_LEVEL);
-        return StringUtil.isNotBlank(logLevel) && "debug".equalsIgnoreCase(logLevel);
+        this.setConnected(false);
+        LOGGER.info("The hbase shell session destroy successfully.");
     }
 
     private Result executeCmd(String cmd) {
@@ -249,16 +253,34 @@ public class HBaseShellSession implements ShellSession {
         return sessionInitRetryInterval;
     }
 
-    public long getSessionConnectionTimeout() {
-        return sessionConnectionTimeout;
+    public long getSessionInitTimeout() {
+        return sessionInitTimeout;
     }
 
     public boolean isConnected() {
         return isConnected;
     }
 
+    public void setConnected(boolean connected) {
+        isConnected = connected;
+    }
+
+    public long getSessionIdle() {
+        return sessionIdle;
+    }
+
+    public long getSessionInitStartTime() {
+        return sessionInitStartTime;
+    }
+
+    public boolean isSessionDebugLog() {
+        return sessionDebugLog;
+    }
+
     @Override
     public String toString() {
         return this.getSessionId();
     }
+
+
 }

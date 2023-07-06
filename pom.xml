@@ -79,6 +79,9 @@
         <checkstyle.version>8.11</checkstyle.version>
         <spotbugs.version>3.1.11</spotbugs.version>
         <audience-annotations.version>0.5.0</audience-annotations.version>
+        <jruby.verison>9.3.4.0</jruby.verison>
+        <jcodings.version>1.0.56</jcodings.version>
+        <joni.version>2.1.42</joni.version>
         <hbase.sdk.adapter.default.version>1.2</hbase.sdk.adapter.default.version>
         <hbase.sdk.adapter.version>${hbase.sdk.adapter.default.version}</hbase.sdk.adapter.version>
     </properties>
@@ -195,6 +198,15 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.hbase</groupId>
+                        <artifactId>hbase-server</artifactId>
+                        <version>${hbase1.2.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>
@@ -211,6 +223,15 @@
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.hbase</groupId>
+                        <artifactId>hbase-server</artifactId>
+                        <version>${hbase1.4.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
 
         <profile>
@@ -248,11 +269,6 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-api</artifactId>
                         <version>1.7.25</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jruby</groupId>
-                        <artifactId>jruby-complete</artifactId>
-                        <version>9.3.4.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.jruby.jcodings</groupId>

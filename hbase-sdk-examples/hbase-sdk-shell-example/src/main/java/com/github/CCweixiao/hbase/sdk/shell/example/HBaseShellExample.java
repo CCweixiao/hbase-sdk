@@ -12,12 +12,23 @@ import java.util.Properties;
 public class HBaseShellExample {
     public static void main(String[] args) throws InterruptedException {
         Properties p = new Properties();
-        p.setProperty("hbase.shell.log.level", "debug");
-        p.setProperty("hbase.zookeeper.quorum", "localhost");
+        p.setProperty("hbase.shell.session.debug.log", "true");
+        p.setProperty("hbase.zookeeper.quorum", "myhbase");
         p.setProperty("hbase.zookeeper.property.clientPort", "2181");
 
         HBaseShellSession shellSession = HBaseShellSessionManager.getHBaseShellSession(p);
-        Result res = shellSession.execute("list");
+        Result res = shellSession.execute("list_namespace");
         System.out.println(res);
+
+        Result res2 = shellSession.execute("list");
+        System.out.println(res2);
+
+        Result res3 = shellSession.execute("put 't1', '1001', 'f', 'leo'");
+        System.out.println(res3);
+
+        Result res4 = shellSession.execute("scan 't1'");
+        System.out.println(res4);
+
+
     }
 }

@@ -8,8 +8,6 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
 import org.apache.hadoop.hbase.regionserver.BloomType;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -503,12 +501,12 @@ public abstract class BaseColumnFamilyDesc {
     }
 
     @Override
-    public boolean equals(@Nullable Object obj) {
-        if (this == obj) {
-            return true;
-        }
+    public boolean equals(Object obj) {
         if (obj == null) {
             return false;
+        }
+        if (this == obj) {
+            return true;
         }
         return getClass() == obj.getClass();
     }

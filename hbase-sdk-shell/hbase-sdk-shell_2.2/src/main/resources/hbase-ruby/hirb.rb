@@ -144,7 +144,7 @@ require 'shell'
 require 'shell/formatter'
 
 # Setup the HBase module.  Create a configuration.
-@hbase = Hbase::Hbase.new(_properties)
+@hbase = _properties.nil? ? Hbase::Hbase.new : Hbase::Hbase.new(_properties)
 
 # Setup console
 @shell = Shell::Shell.new(@hbase, interactive)
