@@ -8,7 +8,6 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkException;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.BufferedMutator;
-import org.apache.hadoop.hbase.client.BufferedMutatorParams;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Table;
@@ -25,7 +24,9 @@ import java.util.concurrent.*;
 @InterfaceAudience.Private
 public interface IHBaseBaseAdapter {
     Connection getConnection();
+    BufferedMutator getBufferedMutator(String tableName);
     Connection getHedgedReadClusterConnection();
+    BufferedMutator getHedgedReadClusterBufferedMutator(String tableName);
     boolean hedgedReadIsOpen();
     long hedgedReadTimeout();
     int initHedgedReadPoolSize();
@@ -148,9 +149,8 @@ public interface IHBaseBaseAdapter {
     }
 
     default void executeOnSource(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
-        BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-        try (BufferedMutator mutator = this.getConnection()
-                .getBufferedMutator(mutatorParams)) {
+        try {
+            BufferedMutator mutator = this.getBufferedMutator(tableName);
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
@@ -158,9 +158,8 @@ public interface IHBaseBaseAdapter {
     }
 
     default void executeOnTarget(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
-        BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
-        try (BufferedMutator mutator = this.getHedgedReadClusterConnection()
-                .getBufferedMutator(mutatorParams)) {
+        try {
+            BufferedMutator mutator = this.getHedgedReadClusterBufferedMutator(tableName);
             action.doInMutator(mutator);
         } catch (Throwable throwable) {
             throw new HBaseOperationsException(throwable);
@@ -193,24 +192,66 @@ public interface IHBaseBaseAdapter {
     default void executeSave(String tableName, Mutation mutation) {
         this.execute(tableName, mutator -> {
             mutator.mutate(mutation);
+            mutator.flush();
         });
     }
 
     default void executeSaveBatch(String tableName, List<Mutation> mutations) {
+        if (mutations == null || mutations.isEmpty()) {
+            return;
+        }
+        Mutation firstPut = mutations.get(0);
+        long putSize = firstPut.heapSize();
+
         this.execute(tableName, mutator -> {
-            mutator.mutate(mutations);
+            long writeBufferSize = mutator.getWriteBufferSize();
+            long batchSize = writeBufferSize / putSize;
+            if (batchSize <= 0) {
+                batchSize = 1;
+            }
+            int index = 0;
+            for (Mutation put : mutations) {
+                index += 1;
+                mutator.mutate(put);
+                if (index == batchSize) {
+                    mutator.flush();
+                    index = 0;
+                }
+            }
+            mutator.flush();
         });
     }
 
     default void executeDelete(String tableName, Mutation mutation) {
         this.execute(tableName, mutator -> {
             mutator.mutate(mutation);
+            mutator.flush();
         });
     }
 
     default void executeDeleteBatch(String tableName, List<Mutation> mutations) {
+        if (mutations == null || mutations.isEmpty()) {
+            return;
+        }
+        Mutation firstDelete = mutations.get(0);
+        long deleteSize = firstDelete.heapSize();
+
         this.execute(tableName, mutator -> {
-            mutator.mutate(mutations);
+            long writeBufferSize = mutator.getWriteBufferSize();
+            long batchSize = writeBufferSize / deleteSize;
+            if (batchSize <= 0) {
+                batchSize = 1;
+            }
+            int index = 0;
+            for (Mutation delete : mutations) {
+                index += 1;
+                mutator.mutate(delete);
+                if (index == batchSize) {
+                    mutator.flush();
+                    index = 0;
+                }
+            }
+            mutator.flush();
         });
     }
 }

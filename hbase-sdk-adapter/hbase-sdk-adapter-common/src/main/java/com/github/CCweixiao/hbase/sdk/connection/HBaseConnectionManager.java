@@ -5,6 +5,9 @@ import com.github.CCweixiao.hbase.sdk.common.security.AuthType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.BufferedMutator;
+import org.apache.hadoop.hbase.client.BufferedMutatorParams;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 public class HBaseConnectionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(HBaseConnectionManager.class);
     private volatile static Map<String, Connection> connectionMap;
+    private volatile static Map<String, BufferedMutator> bufferedMutatorMap;
     private volatile static boolean kerberosEnvInit = false;
     private static final int KERBEROS_RE_LOGIN_MAX_RETRY = 5;
     private static final long KERBEROS_RE_LOGIN_INTERVAL = 30 * 60 * 1000L;
@@ -73,6 +77,31 @@ public class HBaseConnectionManager {
             }
         }
         return connectionMap.get(clusterConnUniqueKey);
+    }
+
+    public static BufferedMutator getBufferedMutator(String tableName, Connection connection) {
+        String clusterConnUniqueKey = tableName;
+
+        if (bufferedMutatorMap == null || !bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
+            synchronized (HBaseConnectionManager.class) {
+                if (bufferedMutatorMap == null || !bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
+                    try {
+                        if (bufferedMutatorMap == null) {
+                            bufferedMutatorMap = new HashMap<>(2);
+                        }
+                        if (!bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
+                            BufferedMutatorParams mutatorParams =
+                                    new BufferedMutatorParams(TableName.valueOf(tableName));
+                            BufferedMutator mutator = connection.getBufferedMutator(mutatorParams);
+                            bufferedMutatorMap.put(clusterConnUniqueKey, mutator);
+                        }
+                    } catch (IOException e) {
+                        throw new HBaseSdkConnectionException(e);
+                    }
+                }
+            }
+        }
+        return bufferedMutatorMap.get(clusterConnUniqueKey);
     }
 
     public static Connection getConnection(Configuration configuration) {

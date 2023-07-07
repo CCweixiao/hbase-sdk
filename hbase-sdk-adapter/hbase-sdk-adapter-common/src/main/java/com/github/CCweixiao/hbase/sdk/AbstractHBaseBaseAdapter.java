@@ -7,6 +7,7 @@ import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionManager;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HConstants;
+import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.yetus.audience.InterfaceAudience;
 import java.util.Iterator;
@@ -60,8 +61,18 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
     }
 
     @Override
+    public BufferedMutator getBufferedMutator(String tableName) {
+        return HBaseConnectionManager.getBufferedMutator(tableName, this.getConnection());
+    }
+
+    @Override
     public Connection getHedgedReadClusterConnection() {
         return HBaseConnectionManager.getConnection(this.hedgedClusterProp);
+    }
+
+    @Override
+    public BufferedMutator getHedgedReadClusterBufferedMutator(String tableName) {
+        return HBaseConnectionManager.getBufferedMutator(tableName, this.getHedgedReadClusterConnection());
     }
 
     public Configuration getConfiguration() {
