@@ -75,6 +75,13 @@ public class HBaseConnectionManager {
         return connectionMap.get(clusterConnUniqueKey);
     }
 
+    public static Connection getConnection(Configuration configuration) {
+        Set<String> finalParameters = configuration.getFinalParameters();
+        Properties properties = new Properties();
+        finalParameters.forEach((p -> properties.setProperty(p, configuration.get(p))));
+        return getConnection(properties);
+    }
+
     public static Configuration getConfiguration(Properties properties) {
         AuthType auth = getAuthType(properties.getProperty("hbase.security.authentication", ""));
         Configuration configuration = HBaseConfiguration.create();

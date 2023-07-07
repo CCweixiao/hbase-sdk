@@ -90,7 +90,9 @@ public class HBaseTableAdapterImpl extends AbstractHBaseTableAdapter {
         }
 
         if (scanQueryParams.getBatch() > 0) {
-            scan.setBatch(scanQueryParams.getBatch());
+            if (!(scan.hasFilter() && scan.getFilter().hasFilterRow())) {
+                scan.setBatch(scanQueryParams.getBatch());
+            }
         }
 
         if (scanQueryParams.getMaxResultSize() > 0) {

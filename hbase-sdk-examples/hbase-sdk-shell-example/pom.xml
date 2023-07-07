@@ -21,6 +21,12 @@
             <groupId>com.github.CCweixiao</groupId>
             <artifactId>hbase-sdk-shell_${hbase.sdk.adapter.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-server</artifactId>
+            <version>${hbase1.4.version}</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

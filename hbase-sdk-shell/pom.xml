@@ -14,6 +14,7 @@
 
     <modules>
         <module>hbase-sdk-shell-core</module>
+        <module>hbase-sdk-shell_1.2</module>
         <module>hbase-sdk-shell_1.4</module>
         <module>hbase-sdk-shell_2.2</module>
     </modules>

@@ -183,13 +183,15 @@
     <profiles>
         <profile>
             <id>hbase-1.2</id>
+            <activation>
+                <property>
+                    <name>!hbase.profile</name>
+                </property>
+            </activation>
             <properties>
                 <profiles.active>hbase-1.2</profiles.active>
                 <hbase.sdk.adapter.version>1.2</hbase.sdk.adapter.version>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <dependencies>
                 <dependency>
                     <groupId>org.apache.hbase</groupId>
@@ -204,6 +206,7 @@
                         <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase1.2.version}</version>
+                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -211,6 +214,12 @@
 
         <profile>
             <id>hbase-1.4</id>
+            <activation>
+                <property>
+                    <name>hbase.profile</name>
+                    <value>1.4</value>
+                </property>
+            </activation>
             <properties>
                 <profiles.active>hbase-1.4</profiles.active>
                 <hbase.sdk.adapter.version>1.4</hbase.sdk.adapter.version>
@@ -229,6 +238,7 @@
                         <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase1.4.version}</version>
+                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -236,6 +246,12 @@
 
         <profile>
             <id>hbase-2.2</id>
+            <activation>
+                <property>
+                    <name>hbase.profile</name>
+                    <value>2.2</value>
+                </property>
+            </activation>
             <properties>
                 <profiles.active>hbase-2.2</profiles.active>
                 <hbase.sdk.adapter.version>2.2</hbase.sdk.adapter.version>
@@ -252,33 +268,9 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.hbase</groupId>
-                        <artifactId>hbase-common</artifactId>
-                        <version>${hbase2.2.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.hbase</groupId>
-                        <artifactId>hbase-client</artifactId>
-                        <version>${hbase2.2.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase2.2.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-api</artifactId>
-                        <version>1.7.25</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jruby.jcodings</groupId>
-                        <artifactId>jcodings</artifactId>
-                        <version>1.0.56</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jruby.joni</groupId>
-                        <artifactId>joni</artifactId>
-                        <version>2.1.42</version>
+                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
