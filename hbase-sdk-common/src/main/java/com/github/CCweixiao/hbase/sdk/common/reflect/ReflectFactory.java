@@ -2,9 +2,9 @@ package com.github.CCweixiao.hbase.sdk.common.reflect;
 
 import com.esotericsoftware.reflectasm.FieldAccess;
 import com.esotericsoftware.reflectasm.MethodAccess;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseColumn;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseRowKey;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseColumn;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseRowKey;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseTable;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;

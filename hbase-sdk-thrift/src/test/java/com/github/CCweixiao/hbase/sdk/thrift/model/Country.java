@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift.model;
 
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseColumn;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseColumn;
 
 public class Country {
     @HBaseColumn(familyName = "info", columnName = "countryName")

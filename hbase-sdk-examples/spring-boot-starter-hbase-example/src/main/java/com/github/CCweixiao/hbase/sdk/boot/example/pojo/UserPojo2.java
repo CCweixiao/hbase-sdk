@@ -1,8 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.boot.example.pojo;
 
 
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseRowKey;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseRowKey;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseTable;
 
 /**
  * <p>User2 Pojo</p>

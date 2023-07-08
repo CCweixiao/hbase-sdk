@@ -1,8 +1,8 @@
-package com.github.CCweixiao.hbase.sdk.common.example;
+package com.github.CCweixiao.hbase.sdk.example;
 
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseColumn;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseRowKey;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseColumn;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseRowKey;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseTable;
 
 import java.util.List;
 

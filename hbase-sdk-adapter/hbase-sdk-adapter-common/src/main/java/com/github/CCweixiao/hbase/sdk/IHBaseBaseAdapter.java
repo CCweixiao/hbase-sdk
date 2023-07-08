@@ -9,7 +9,9 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Admin;
 import org.apache.hadoop.hbase.client.BufferedMutator;
 import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Mutation;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.yetus.audience.InterfaceAudience;
 import java.io.IOException;
@@ -98,6 +100,23 @@ public interface IHBaseBaseAdapter {
 
     }
 
+    default void executeOnSource(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
+        try {
+            BufferedMutator mutator = this.getBufferedMutator(tableName);
+            action.doInMutator(mutator);
+        } catch (Throwable throwable) {
+            throw new HBaseOperationsException(throwable);
+        }
+    }
+
+    default void executeOnTarget(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
+        try {
+            BufferedMutator mutator = this.getHedgedReadClusterBufferedMutator(tableName);
+            action.doInMutator(mutator);
+        } catch (Throwable throwable) {
+            throw new HBaseOperationsException(throwable);
+        }
+    }
     default void execute(String tableName, MutatorCallback<BufferedMutator> action) {
         if (hedgedReadIsOpen()) {
             ArrayList<Future<Void>> futures = new ArrayList<>();
@@ -148,24 +167,6 @@ public interface IHBaseBaseAdapter {
         }
     }
 
-    default void executeOnSource(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
-        try {
-            BufferedMutator mutator = this.getBufferedMutator(tableName);
-            action.doInMutator(mutator);
-        } catch (Throwable throwable) {
-            throw new HBaseOperationsException(throwable);
-        }
-    }
-
-    default void executeOnTarget(String tableName, MutatorCallback<BufferedMutator> action) throws IOException {
-        try {
-            BufferedMutator mutator = this.getHedgedReadClusterBufferedMutator(tableName);
-            action.doInMutator(mutator);
-        } catch (Throwable throwable) {
-            throw new HBaseOperationsException(throwable);
-        }
-    }
-
     default <T> T getFirstToComplete(CompletionService<T> hedgedService,
                                      ArrayList<Future<T>> futures) throws InterruptedException {
         if (futures.isEmpty()) {
@@ -189,10 +190,10 @@ public interface IHBaseBaseAdapter {
         }
     }
 
-    default void executeSave(String tableName, Mutation mutation) {
-        this.execute(tableName, mutator -> {
-            mutator.mutate(mutation);
-            mutator.flush();
+    default void executeSave(String tableName, Put put) {
+        this.execute(tableName, table -> {
+            table.put(put);
+            return true;
         });
     }
 
@@ -222,10 +223,10 @@ public interface IHBaseBaseAdapter {
         });
     }
 
-    default void executeDelete(String tableName, Mutation mutation) {
-        this.execute(tableName, mutator -> {
-            mutator.mutate(mutation);
-            mutator.flush();
+    default void executeDelete(String tableName, Delete delete) {
+        this.execute(tableName, table -> {
+            table.delete(delete);
+            return true;
         });
     }
 

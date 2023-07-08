@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.common.annotation;
+package com.github.CCweixiao.hbase.sdk.common.annotations;
 
 import java.lang.annotation.*;
 

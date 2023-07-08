@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.common.example;
+package com.github.CCweixiao.hbase.sdk.example;
 
 /**
  * @author leojie 2023/5/9 22:10

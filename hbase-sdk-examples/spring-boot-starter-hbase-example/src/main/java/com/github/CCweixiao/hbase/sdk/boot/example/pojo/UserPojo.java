@@ -1,8 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.boot.example.pojo;
 
 
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseColumn;
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseTable;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseColumn;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseTable;
 
 import java.math.BigDecimal;
 import java.util.Date;

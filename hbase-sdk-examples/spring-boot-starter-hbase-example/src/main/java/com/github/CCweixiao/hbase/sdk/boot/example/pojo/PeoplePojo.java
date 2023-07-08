@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.boot.example.pojo;
 
 
-import com.github.CCweixiao.hbase.sdk.common.annotation.HBaseRowKey;
+import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseRowKey;
 
 /**
  * <p>People pojo</p>
