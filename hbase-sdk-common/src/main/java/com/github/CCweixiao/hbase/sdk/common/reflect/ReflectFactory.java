@@ -191,7 +191,7 @@ public class ReflectFactory {
      */
     private static String getGetterMethodName(Field field) {
         String fieldName = field.getName();
-        StringBuilder sb = StringUtil.builder();
+        StringBuilder sb = new StringBuilder();
         if (booleanType(field.getType()) && fieldName.startsWith("is")) {
             //如果字段是boolean类型的
             sb.append("is");
@@ -214,7 +214,7 @@ public class ReflectFactory {
      */
     private static String getSetterMethodName(Field field) {
         String fieldName = field.getName();
-        StringBuilder sb = StringUtil.builder();
+        StringBuilder sb = new StringBuilder();
         if (booleanType(field.getType()) && fieldName.startsWith("is")) {
             //如果字段是boolean类型的
             sb.append("set");

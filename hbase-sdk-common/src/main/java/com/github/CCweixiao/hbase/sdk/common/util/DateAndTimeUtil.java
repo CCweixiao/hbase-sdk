@@ -1,15 +1,14 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 /**
  * @author leojie 2021/6/13 8:52 下午
  */
-public final class DateAndTimeUtil extends DateUtil {
+public final class DateAndTimeUtil {
     public static final String MS_FORMAT = "yyyy-MM-dd_HH:mm:ss:SSS";
     public static final String SECOND_FORMAT = "yyyy-MM-dd HH:mm:ss";
     public static final String MINUTE_FORMAT = "yyyy-MM-dd_HH:mm";
@@ -18,11 +17,15 @@ public final class DateAndTimeUtil extends DateUtil {
 
 
     public static String parseDatetimeToStr(LocalDateTime localDateTime){
-        DateTimeFormatter dateTimeFormatter= DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateTimeFormatter= DateTimeFormatter.ofPattern(SECOND_FORMAT);
         return dateTimeFormatter.format(localDateTime);
     }
-    public static String parseTimestampToTimeStr(long time){
-        return DateTime.of(time).toString(SECOND_FORMAT);
+    public static String parseTimestampToTimeStr(long timestamp){
+        Instant instant = Instant.ofEpochMilli(timestamp);
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDateTime dateTime = LocalDateTime.ofInstant(instant, zone);
+
+        return parseDatetimeToStr(dateTime);
     }
 
     public static void main(String[] args) {

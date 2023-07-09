@@ -1,7 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func;
 
-import cn.hutool.crypto.digest.DigestUtil;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.util.DigestUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.BaseRowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;

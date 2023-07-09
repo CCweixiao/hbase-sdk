@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
-import cn.hutool.core.util.StrUtil;
+import com.google.common.base.Strings;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,29 @@ import java.util.Map;
  *
  * @author leo.jie (weixiao.me@aliyun.com)
  */
-public class StringUtil extends StrUtil {
+public class StringUtil {
+    public static String reverse(String str) {
+        return new StringBuffer(str).reverse().toString();
+    }
+
+    public static boolean startWithIgnoreCase(String str, String targetStr) {
+        if (isBlank(str) || isBlank(targetStr)) {
+            return false;
+        }
+        return str.startsWith(targetStr.toLowerCase()) || str.startsWith(targetStr.toUpperCase());
+    }
+
+    public static boolean isBlank(String str) {
+        if (str == null) {
+            return true;
+        }
+        return Strings.isNullOrEmpty(str.trim());
+    }
+
+    public static boolean isNotBlank(String str) {
+        return !isBlank(str);
+    }
+
     /**
      * 驼峰命名法转换为下划线
      *
@@ -18,7 +40,8 @@ public class StringUtil extends StrUtil {
      * @return 下划线字段名
      */
     public static String underscoreName(String camelCaseName) {
-        StringBuilder builder = StringUtil.builder();
+        StringBuilder builder = new StringBuilder();
+
         if (isNotBlank(camelCaseName)) {
             builder.append(camelCaseName.substring(0, 1).toLowerCase());
             for (int i = 1; i < camelCaseName.length(); i++) {
@@ -41,7 +64,7 @@ public class StringUtil extends StrUtil {
      * @return 驼峰命名法
      */
     public static String camelCaseName(String underscoreName) {
-        StringBuilder builder = StringUtil.builder();
+        StringBuilder builder = new StringBuilder();
         if (isNotBlank(underscoreName)) {
             boolean flag = false;
             for (int i = 0; i < underscoreName.length(); i++) {
@@ -112,7 +135,7 @@ public class StringUtil extends StrUtil {
         if (str == null) {
             return null;
         } else {
-            if (isEmpty(padStr)) {
+            if (isBlank(padStr)) {
                 padStr = " ";
             }
 

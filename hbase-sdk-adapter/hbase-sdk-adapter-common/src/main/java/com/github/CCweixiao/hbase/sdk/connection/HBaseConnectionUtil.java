@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.connection;
 
-import cn.hutool.crypto.digest.MD5;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkConnectionException;
+import com.github.CCweixiao.hbase.sdk.common.util.DigestUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.HConstants;
 
@@ -22,7 +22,7 @@ public class HBaseConnectionUtil {
         if (StringUtil.isBlank(zkClientPort)) {
             throw new HBaseSdkConnectionException("The zkClientPort must be specified.");
         }
-        zkQuorum = MD5.create().digestHex(zkQuorum.concat(zkClientPort));
+        zkQuorum = DigestUtil.md5Hex(zkQuorum.concat(zkClientPort));
         if (isProxyUserEnabled(properties)) {
             String proxyUser = proxyUser(properties);
             zkQuorum = zkQuorum + "#" + proxyUser;
