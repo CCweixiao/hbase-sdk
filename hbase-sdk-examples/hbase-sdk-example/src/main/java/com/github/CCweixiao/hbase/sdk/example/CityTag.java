@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.example;
 
 /**
- * @author leojie 2023/5/9 22:10
+ * @author leojie 2022/11/5 13:59
  */
 public class CityTag {
     private String tagName;
@@ -16,5 +16,12 @@ public class CityTag {
 
     public void setTagName(String tagName) {
         this.tagName = tagName;
+    }
+
+    @Override
+    public String toString() {
+        return "CityTag{" +
+                "tagName='" + tagName + '\'' +
+                '}';
     }
 }
