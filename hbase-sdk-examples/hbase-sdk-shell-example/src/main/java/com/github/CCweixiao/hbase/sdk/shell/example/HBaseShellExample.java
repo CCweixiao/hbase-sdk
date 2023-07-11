@@ -17,17 +17,18 @@ public class HBaseShellExample {
         p.setProperty("hbase.zookeeper.property.clientPort", "2181");
 
         HBaseShellSession shellSession = HBaseShellSessionManager.getHBaseShellSession(p);
-        Result res = shellSession.execute("list_namespace");
-        System.out.println(res);
+//        Result res = shellSession.execute("list_namespace");
+//        System.out.println(res);
+//
+//        Result res2 = shellSession.execute("list");
+//        System.out.println(res2);
+//
+//        Result res3 = shellSession.execute("put 't1', '1001', 'f', 'leo'");
+//        System.out.println(res3);
 
-        Result res2 = shellSession.execute("list");
-        System.out.println(res2);
-
-        Result res3 = shellSession.execute("put 't1', '1001', 'f', 'leo'");
-        System.out.println(res3);
-
-        Result res4 = shellSession.execute("scan 't1'");
+        Result res4 = shellSession.execute("scan 't1', {LIMIT => 10}");
         System.out.println(res4);
+
 
 
     }
