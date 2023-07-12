@@ -11,6 +11,10 @@ import java.util.Set;
  */
 public class HBaseShellCommandSearchUtilSample {
     public static void main(String[] args) {
+        String name = "hbase-ruby/shell/commands/list_namespace.rb";
+        String commandName = name.substring(name.lastIndexOf("/") + 1, name.lastIndexOf(".rb"));
+        System.out.println(commandName);
+
         Set<String> allCommands = null;
         try {
             allCommands = HBaseShellCommands.getAllCommands();
