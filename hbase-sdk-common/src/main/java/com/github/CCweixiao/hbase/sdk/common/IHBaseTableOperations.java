@@ -32,8 +32,6 @@ public interface IHBaseTableOperations {
     /**
      * 保存数据，构造一个Java数据实体映射。<br/>
      * 例如：<br/>
-     * {@link com.github.CCweixiao.hbase.sdk.common.example.CityModel}
-     *
      * @param t   Java数据实体对象.
      * @param <T> 泛型类型.
      * @return 保存成功的数据对象.
@@ -44,8 +42,8 @@ public interface IHBaseTableOperations {
      * 批量保存数据，构造Map类型结构的列表数据参数，<br/>
      * 例如：<br/>
      * {  <br/>
-     * "row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, <br/>
-     * "row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17} <br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"row_key1": {"INFO:NAME": "leojie1", "INFO:AGE": 18}, <br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"row_key2": {"INFO:NAME": "leojie2", "INFO:AGE": 17} <br/>
      * } <br/>
      * 非字符串类型的数据，底层会自动转换成字符串类型，<br/>
      * 其中复杂的数据类型，如：List/Map等，会先被格式化成json字符串后再存储
@@ -133,6 +131,21 @@ public interface IHBaseTableOperations {
      * @return get查询结果
      */
     <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
+
+    /**
+     * get查询某一列簇下的数据，支持绑定一个或多个字段，支持指定时间戳，如果指定的时间戳 <= 0，则默认查询最新数据，
+     * 使用 自定义的Row Mapper来处理HBase数据字段的解析
+     *
+     * @param tableName  表名
+     * @param rowKey     row key
+     * @param familyName 列簇名称
+     * @param qualifiers 字段列表
+     * @param ts         查询字段的时间戳
+     * @param rowMapper  自定义的RowMapper
+     * @param <T>        泛型类型
+     * @return 查询结果
+     */
+    //<T> Optional<T> getRowWithTs(String tableName, String rowKey, String familyName, List<String> qualifiers, long ts, RowMapper<T> rowMapper);
 
     /**
      * get查询数据，返回Map数据类型，<br/>

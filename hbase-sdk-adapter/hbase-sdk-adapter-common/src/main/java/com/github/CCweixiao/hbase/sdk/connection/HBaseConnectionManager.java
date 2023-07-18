@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.connection;
 
+import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkConnectionException;
 import com.github.CCweixiao.hbase.sdk.common.security.AuthType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
@@ -31,9 +32,7 @@ public class HBaseConnectionManager {
     private static final long KERBEROS_RE_LOGIN_INTERVAL = 30 * 60 * 1000L;
 
     private static final String KERBEROS = "kerberos";
-    private static final String KERBEROS_PRINCIPAL = "kerberos.principal";
-    private static final String KERBEROS_KEYTAB_FILE = "keytab.file";
-    private static final String JAVA_SECURITY_PREFIX = "java.security";
+
 
     private HBaseConnectionManager() {
     }
@@ -112,7 +111,7 @@ public class HBaseConnectionManager {
     }
 
     public static Configuration getConfiguration(Properties properties) {
-        AuthType auth = getAuthType(properties.getProperty("hbase.security.authentication", ""));
+        AuthType auth = getAuthType(properties.getProperty(HBaseConfigKeys.HBASE_SECURITY_AUTH, ""));
         Configuration configuration = HBaseConfiguration.create();
         final List<String> keys = properties.keySet().stream().map(Object::toString).collect(Collectors.toList());
         switch (auth) {
@@ -120,10 +119,10 @@ public class HBaseConnectionManager {
                 keys.forEach(key -> configuration.set(key, properties.getProperty(key)));
                 break;
             case KERBEROS:
-                configuration.set("hadoop.security.authentication", "kerberos");
-                configuration.set("hbase.security.authentication", "kerberos");
+                configuration.set("hadoop.security.authentication", KERBEROS);
+                configuration.set(HBaseConfigKeys.HBASE_SECURITY_AUTH, KERBEROS);
                 keys.forEach(key -> {
-                    if (key.startsWith(JAVA_SECURITY_PREFIX)) {
+                    if (key.startsWith(HBaseConfigKeys.JAVA_SECURITY_PREFIX)) {
                         System.setProperty(key, properties.getProperty(key));
                     } else {
                         configuration.set(key, properties.getProperty(key));
@@ -140,11 +139,11 @@ public class HBaseConnectionManager {
         if (!isKerberosAuthType(configuration)) {
             return;
         }
-        String principal = properties.getProperty(KERBEROS_PRINCIPAL);
+        String principal = properties.getProperty(HBaseConfigKeys.KERBEROS_PRINCIPAL);
         if (StringUtil.isBlank(principal)) {
             throw new HBaseSdkConnectionException("The kerberos principal is not empty.");
         }
-        String keytab = properties.getProperty(KERBEROS_KEYTAB_FILE);
+        String keytab = properties.getProperty(HBaseConfigKeys.KERBEROS_KEYTAB_FILE);
         if (StringUtil.isBlank(keytab)) {
             throw new HBaseSdkConnectionException("The keytab file path is not empty.");
         }
@@ -232,7 +231,7 @@ public class HBaseConnectionManager {
     }
 
     private static boolean isKerberosAuthType(Configuration configuration) {
-        String authType = configuration.get("hbase.security.authentication", "");
+        String authType = configuration.get(KERBEROS, "");
         if (StringUtil.isBlank(authType)) {
             return false;
         }
