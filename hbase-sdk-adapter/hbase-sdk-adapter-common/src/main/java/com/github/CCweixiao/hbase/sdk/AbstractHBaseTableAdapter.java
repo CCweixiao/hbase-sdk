@@ -146,25 +146,25 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
-        return this.getRowToMap(tableName, rowKey, null, null, withTimestamp);
+    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey) {
+        return this.getRowToMap(tableName, rowKey, null, null);
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
-        return this.getRowToMap(tableName, rowKey, familyName, null, withTimestamp);
+    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName) {
+        return this.getRowToMap(tableName, rowKey, familyName, null);
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName,
-                                           List<String> qualifiers, boolean withTimestamp) {
+    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName,
+                                                 List<String> qualifiers) {
         return this.execute(tableName, table -> {
             Get get = buildGetCondition(rowKey, familyName, qualifiers);
             Result result = checkGetResultIsNull(get, table);
             if (result == null) {
                 return null;
             }
-            return parseResultToMap(result, withTimestamp);
+            return parseResultToHBaseColData(result);
         }).orElse(new HashMap<>(0));
     }
 
@@ -514,6 +514,21 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
             if (withTimestamp) {
                 data.put(fieldName + ":timestamp", String.valueOf(cell.getTimestamp()));
             }
+        }
+        return data;
+    }
+
+    protected Map<String, HBaseColData> parseResultToHBaseColData(Result result) {
+        List<Cell> cells = result.listCells();
+        if (cells == null || cells.isEmpty()) {
+            return new HashMap<>(0);
+        }
+        Map<String, HBaseColData> data = new HashMap<>(cells.size());
+        for (Cell cell : cells) {
+            String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
+                    + Bytes.toString(CellUtil.cloneQualifier(cell));
+            String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
+            data.put(fieldName, new HBaseColData(value, cell.getTimestamp()));
         }
         return data;
     }

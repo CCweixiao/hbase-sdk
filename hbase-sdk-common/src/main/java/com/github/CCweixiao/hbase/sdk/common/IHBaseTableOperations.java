@@ -32,6 +32,7 @@ public interface IHBaseTableOperations {
     /**
      * 保存数据，构造一个Java数据实体映射。<br/>
      * 例如：<br/>
+     *
      * @param t   Java数据实体对象.
      * @param <T> 泛型类型.
      * @return 保存成功的数据对象.
@@ -149,44 +150,87 @@ public interface IHBaseTableOperations {
 
     /**
      * get查询数据，返回Map数据类型，<br/>
-     * 例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
-     *
-     * @param tableName     表名
-     * @param rowKey        rowKey
-     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
-     * @return 获取查询结果
-     */
-    Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp);
-
-    /**
-     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
-     *
-     * @param tableName     表名
-     * @param rowKey        rowKey
-     * @param familyName    列簇名
-     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
-     * @return 获取查询结果
-     */
-    Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp);
-
-    /**
-     * get查询数据，返回Map数据类型，例如：{"f1:name": "leo", "f1:name:timestamp": "1667568422619", "f1:age": "18"}
-     *
-     * @param tableName     表名
-     * @param rowKey        rowKey
-     * @param familyName    列簇名
-     * @param qualifiers    需要筛选的字段名
-     * @param withTimestamp 是否返回时间戳，返回时间戳格式是：{"f1:name:timestamp": "1667568422619"}
-     * @return 获取查询结果
-     */
-    Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp);
-
-    /**
-     * 根据row key查询数据，支持返回多版本，数据返回格式如下： <br/>
+     * 例如：<br/>
      * {<br/>
-     * &nbsp;&nbsp;&nbsp;&nbsp;"f1:name": [{"value": "值1", timestamp: 1}, {"value": "值2", timestamp: 2}],<br/>
-     * &nbsp;&nbsp;&nbsp;&nbsp;"f2:age": [{"value": "值1", timestamp: 1}, {"value": "值2", timestamp: 2}]<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:name": {"value": "leo", "timestamp": 1667568422619},<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:age": {"value": "18", "timestamp": 1667568422619}
+     * <br/>}
+     *
+     * @param tableName 表名
+     * @param rowKey    rowKey
+     * @return 获取查询结果
+     */
+    Map<String, HBaseColData> getRowToMap(String tableName, String rowKey);
+
+    /**
+     * get查询数据，返回Map数据类型，支持指定一个列簇<br/>
+     * 例如：<br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:name": {"value": "leo", "timestamp": 1667568422619},<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:age": {"value": "18", "timestamp": 1667568422619}
+     * <br/>}
+     *
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @return 获取查询结果
+     */
+    Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName);
+
+    /**
+     * get查询数据，返回Map数据类型，支持指定特定列簇下的字段名称<br/>
+     * 例如：<br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:name": {"value": "leo", "timestamp": 1667568422619},<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp; "f1:age": {"value": "18", "timestamp": 1667568422619}
+     * <br/>}
+     *
+     * @param tableName  表名
+     * @param rowKey     rowKey
+     * @param familyName 列簇名
+     * @param qualifiers 需要筛选的字段名
+     * @return 获取查询结果
+     */
+    Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers);
+
+    /**
+     * 根据row key查询数据，支持指定最大版本号，数据返回格式如下： <br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f1:name": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}],<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f2:age": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}]<br/>
      * }<br/>
+     * tag: 列表中数据，按照时间戳的新旧排序
+     *
+     * @param tableName  HBase表名
+     * @param rowKey     row key
+     * @param version    需要查询的版本数
+     * @return 查询结果集
+     */
+    Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, int version);
+
+    /**
+     * 根据row key查询数据，支持指定特定列簇，并支持指定最大版本号，数据返回格式如下： <br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f1:name": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}],<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f2:age": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}]<br/>
+     * }<br/>
+     * tag: 列表中数据，按照时间戳的新旧排序
+     *
+     * @param tableName  HBase表名
+     * @param rowKey     row key
+     * @param familyName 列簇名称，可为空
+     * @param version    需要查询的版本数
+     * @return 查询结果集
+     */
+    Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, int version);
+
+    /**
+     * 根据row key查询数据，支持指定特定列簇下的多个字段名，并支持指定最大版本号，数据返回格式如下： <br/>
+     * {<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f1:name": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}],<br/>
+     * &nbsp;&nbsp;&nbsp;&nbsp;"f2:age": [{"value": "值1", timestamp: 2}, {"value": "值2", timestamp: 1}]<br/>
+     * }<br/>
+     * tag: 列表中数据，按照时间戳的新旧排序
      *
      * @param tableName  HBase表名
      * @param rowKey     row key
