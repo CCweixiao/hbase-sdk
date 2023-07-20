@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.thrift.model.UserModel;
 import org.junit.Test;
 
@@ -81,7 +81,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
 
     @Test
     public void testScanWithLimit() {
-        ScanQueryParamsBuilder queryParams = new ScanQueryParamsBuilder.Builder()
+        ScanParams queryParams = new ScanParams.Builder()
                 .limit(2)
                 .build();
         // 全表扫描所有数据，并设置limit
@@ -93,7 +93,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithStarAndRow() {
         // 根据起止row key扫描数据，不包含stopRow
-        ScanQueryParamsBuilder queryParams = new ScanQueryParamsBuilder.Builder()
+        ScanParams queryParams = new ScanParams.Builder()
                 .startRow("u10001")
                 .stopRow("u21000")
                 .build();
@@ -105,7 +105,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithFilter() {
         // 设置过滤器扫描，列名为nick_前缀，且列对应值ascii码比：不会飞的猪2大的被筛选出
-        ScanQueryParamsBuilder queryParams = new ScanQueryParamsBuilder.Builder()
+        ScanParams queryParams = new ScanParams.Builder()
                 .filter(new IHBaseFilter<String>() {
                     @Override
                     public String customFilter() {

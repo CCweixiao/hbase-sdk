@@ -2,7 +2,7 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 
 import java.util.List;
 import java.util.Map;
@@ -198,21 +198,21 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.scan(scanQueryParams, clazz);
         }
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.scan(tableName, scanQueryParams, rowMapper);
         }
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
+    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.scan(tableName, scanQueryParams);
         }

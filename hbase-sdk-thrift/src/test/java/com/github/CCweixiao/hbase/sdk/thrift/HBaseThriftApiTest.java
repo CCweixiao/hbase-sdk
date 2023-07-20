@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.thrift.model.CityModel;
 import org.junit.Assert;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
 
     @Test
     public void testScanToPOJO() {
-        ScanQueryParamsBuilder params = new ScanQueryParamsBuilder.Builder()
+        ScanParams params = new ScanParams.Builder()
                 .familyName("")
                 .limit(2)
                 .reversed(true)
@@ -103,7 +103,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
 
     @Test
     public void testScanToMap() {
-        ScanQueryParamsBuilder params = new ScanQueryParamsBuilder.Builder()
+        ScanParams params = new ScanParams.Builder()
                 .familyName("")
                 .limit(10)
                 .reversed(true)

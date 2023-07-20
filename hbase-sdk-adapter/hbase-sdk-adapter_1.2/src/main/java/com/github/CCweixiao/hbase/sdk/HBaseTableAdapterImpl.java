@@ -2,7 +2,7 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Scan;
@@ -31,7 +31,7 @@ public class HBaseTableAdapterImpl extends AbstractHBaseTableAdapter {
     }
 
     @Override
-    protected Scan buildScanCondition(ScanQueryParamsBuilder scanQueryParams) {
+    protected Scan buildScan(ScanParams scanQueryParams) {
         Scan scan = new Scan();
         if (familyNameOnly(scanQueryParams.getFamilyName(), scanQueryParams.getColumnNames())) {
             scan.addFamily(Bytes.toBytes(scanQueryParams.getFamilyName()));

@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableGetAdapter;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import org.apache.hadoop.conf.Configuration;
@@ -13,7 +14,7 @@ public class BaseTestAdapter {
     protected final static int NUM_SLAVES_BASE = 4;
     protected static HBaseTestingUtility TEST_UTIL;
     protected static IHBaseAdminAdapter adminAdapter;
-    protected static IHBaseTableAdapter tableAdapter;
+    protected static IHBaseTableGetAdapter tableAdapter;
 
     @BeforeClass
     public static void setUp() throws Exception {

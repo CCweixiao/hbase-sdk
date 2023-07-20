@@ -5,7 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCweixiao.hbase.sdk.service.util.MapBuilder;
@@ -59,7 +59,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testScanWithLimit() {
-        ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
+        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .limit(2)
@@ -71,7 +71,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     @Test
     public void testScanWithStartAndEndRow() {
         // 不包含endRow的数据
-        ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
+        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
                 .startRow("a10001")
                 .stopRow("a10002")
                 .build();
@@ -81,7 +81,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testScanWithFilter() {
-        ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
+        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
                 .filter(new IHBaseFilter<Filter>() {
                     @Override
                     public Filter customFilter() {

@@ -2,7 +2,7 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 
 import java.io.Closeable;
 import java.util.List;
@@ -156,17 +156,17 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
         return hBaseThriftClient.scan(scanQueryParams, clazz);
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
         return hBaseThriftClient.scan(tableName, scanQueryParams, rowMapper);
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
+    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
         return hBaseThriftClient.scan(tableName, scanQueryParams);
     }
 

@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * @author leojie 2022/11/5 10:31
  */
-public class ScanQueryParamsBuilder {
+public class ScanParams {
     private final String familyName;
     private final List<String> columnNames;
     private final String startRow;
@@ -25,7 +25,7 @@ public class ScanQueryParamsBuilder {
     private final IHBaseFilter<?> filter;
     private final boolean cacheBlocks;
 
-    public ScanQueryParamsBuilder(Builder builder) {
+    public ScanParams(Builder builder) {
         this.familyName = builder.familyName;
         this.columnNames = builder.columnNames;
         this.startRow = builder.startRow;
@@ -65,7 +65,7 @@ public class ScanQueryParamsBuilder {
         private IHBaseFilter<?> filter;
         private boolean cacheBlocks;
 
-        public Builder() {
+        private Builder() {
 
         }
 
@@ -154,8 +154,8 @@ public class ScanQueryParamsBuilder {
             return this;
         }
 
-        public ScanQueryParamsBuilder build() {
-            return new ScanQueryParamsBuilder(this);
+        public ScanParams build() {
+            return new ScanParams(this);
         }
     }
 
@@ -234,5 +234,31 @@ public class ScanQueryParamsBuilder {
 
     public boolean isCacheBlocks() {
         return cacheBlocks;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    @Override
+    public String toString() {
+        return "ScanParams{" +
+                "familyName='" + familyName + '\'' +
+                ", columnNames=" + columnNames +
+                ", startRow='" + startRow + '\'' +
+                ", inclusiveStartRow=" + inclusiveStartRow +
+                ", stopRow='" + stopRow + '\'' +
+                ", inclusiveStopRow=" + inclusiveStopRow +
+                ", timestamp=" + timestamp +
+                ", minTimestamp=" + minTimestamp +
+                ", maxTimestamp=" + maxTimestamp +
+                ", readVersions=" + readVersions +
+                ", reversed=" + reversed +
+                ", caching=" + caching +
+                ", batch=" + batch +
+                ", maxResultSize=" + maxResultSize +
+                ", limit=" + limit +
+                ", cacheBlocks=" + cacheBlocks +
+                '}';
     }
 }

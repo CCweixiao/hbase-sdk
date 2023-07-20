@@ -6,7 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
@@ -235,7 +235,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         int scannerId = scannerOpen(tableName, scanQueryParams, new HashMap<>(0));
         int limit = scanQueryParams.getLimit();
@@ -281,7 +281,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
         int scannerId = scannerOpen(tableName, scanQueryParams, new HashMap<>(0));
         int limit = scanQueryParams.getLimit();
 
@@ -326,7 +326,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
+    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
         Map<String, String> attributes = new HashMap<>(0);
 
         int scannerId = scannerOpen(tableName, scanQueryParams, attributes);
@@ -509,7 +509,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
 
-    private int scannerOpen(String tableName, ScanQueryParamsBuilder scanQueryParams, Map<String, String> attributes) {
+    private int scannerOpen(String tableName, ScanParams scanQueryParams, Map<String, String> attributes) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
         TScan scan = buildScan(scanQueryParams);
         ByteBuffer tableNameByte = ColumnType.toByteBuffer(tableName);

@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.example;
+package com.github.CCweixiao.hbase.sdk.common.model.example;
 
 import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseColumn;
 import com.github.CCweixiao.hbase.sdk.common.annotations.HBaseRowKey;

@@ -1,10 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
 import com.github.CCweixiao.hbase.sdk.HBaseTableAdapterImpl;
-import com.github.CCweixiao.hbase.sdk.IHBaseTableAdapter;
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableGetAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import org.apache.hadoop.hbase.HConstants;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Properties;
  */
 public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     private final Properties properties;
-    private final IHBaseTableAdapter tableAdapter;
+    private final IHBaseTableGetAdapter tableAdapter;
 
     private HBaseTableTemplateImpl(Builder builder) {
         this.properties = builder.properties;
@@ -140,17 +140,17 @@ public class HBaseTableTemplateImpl implements IHBaseTableTemplate {
     }
 
     @Override
-    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
         return tableAdapter.scan(scanQueryParams, clazz);
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
         return tableAdapter.scan(tableName, scanQueryParams, rowMapper);
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
+    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
         return tableAdapter.scan(tableName, scanQueryParams);
     }
 

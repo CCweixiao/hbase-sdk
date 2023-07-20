@@ -23,10 +23,34 @@ public class StringUtil {
     }
 
     public static boolean isBlank(String str) {
-        if (str == null) {
+        return isBlank(str);
+    }
+
+    private static boolean isBlank(CharSequence str) {
+        final int length;
+        if ((str == null) || ((length = str.length()) == 0)) {
             return true;
         }
-        return Strings.isNullOrEmpty(str.trim());
+
+        for (int i = 0; i < length; i++) {
+            // 只要有一个非空字符即为非空字符串
+            if (!isBlankChar(str.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean isBlankChar(int c) {
+        return Character.isWhitespace(c)
+                || Character.isSpaceChar(c)
+                || c == '\ufeff'
+                || c == '\u202a'
+                || c == '\u0000'
+                || c == '\u3164'
+                || c == '\u2800'
+                || c == '\u180e';
     }
 
     public static boolean isNotBlank(String str) {

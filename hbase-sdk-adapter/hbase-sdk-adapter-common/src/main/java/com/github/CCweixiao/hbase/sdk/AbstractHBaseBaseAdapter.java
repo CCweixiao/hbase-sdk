@@ -18,7 +18,7 @@ import java.util.Properties;
  * @author leojie 2020/11/13 11:52 下午
  */
 @InterfaceAudience.Private
-public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
+public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter{
     private static final String HBASE_CLIENT_HEDGED_READ_SWITCH = "hbase.client.hedged.read.open";
     private static final String HBASE_CLIENT_HEDGED_READ_SWITCH_DEFAULT = "false";
     private static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT = "hbase.client.hedged.read.timeout";

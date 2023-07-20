@@ -1,38 +1,32 @@
 package com.github.CCweixiao.hbase.sdk;
 
-import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableDeleteAdapter;
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableGetAdapter;
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTablePutAdapter;
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableScanAdapter;
+import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
-import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
-import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -43,7 +37,7 @@ import java.util.stream.Collectors;
  * @author leo.jie (leojie1314@gmail.com)
  */
 @InterfaceAudience.Private
-public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableAdapter {
+public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableOperations, IHBaseTableGetAdapter, IHBaseTablePutAdapter, IHBaseTableDeleteAdapter, IHBaseTableScanAdapter {
     public AbstractHBaseTableAdapter(Configuration configuration) {
         super(configuration);
     }
@@ -63,11 +57,10 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public <T> T save(T t) {
+    public <T> void save(T t) {
         final Class<?> clazz = t.getClass();
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
-        this.executeSave(tableMeta.getTableName(), new Put(createPut(t)));
-        return t;
+        this.executeSave(tableMeta.getTableName(), new Put(buildPut(t)));
     }
 
     @Override
@@ -94,7 +87,7 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
         List<Mutation> putList = new ArrayList<>(list.size());
         for (T t : list) {
-            putList.add(new Put(createPut(t)));
+            putList.add(new Put(buildPut(t)));
         }
         this.executeSaveBatch(tableMeta.getTableName(), putList);
         return list.size();
@@ -114,8 +107,8 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers);
-            Result result = checkGetResultIsNull(get, table);
+            Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
+            Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
@@ -136,8 +129,8 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers);
-            Result result = checkGetResultIsNull(get, table);
+            Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
+            Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
@@ -146,38 +139,53 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey) {
-        return this.getRowToMap(tableName, rowKey, null, null);
+    public HBaseRowData getToRowData(String tableName, Get get) {
+        return this.execute(tableName, table -> {
+            Result result = checkGetAndReturnResult(get, table);
+            if (result == null) {
+                return null;
+            }
+            return convertResultToHBaseColData(result);
+        }).orElse(HBaseRowData.empty());
     }
 
     @Override
-    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName) {
-        return this.getRowToMap(tableName, rowKey, familyName, null);
+    public HBaseRowData getToRowData(String tableName, String rowKey) {
+        return this.getToRowData(tableName, rowKey, null, null);
     }
 
     @Override
-    public Map<String, HBaseColData> getRowToMap(String tableName, String rowKey, String familyName,
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
+        return this.getToRowData(tableName, rowKey, familyName, null);
+    }
+
+    @Override
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName,
                                                  List<String> qualifiers) {
-        return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers);
-            Result result = checkGetResultIsNull(get, table);
-            if (result == null) {
-                return null;
-            }
-            return parseResultToHBaseColData(result);
-        }).orElse(new HashMap<>(0));
+        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
+        return this.getToRowData(tableName, get);
     }
 
     @Override
-    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int version) {
+        return getToRowDataWithMultiVersions(tableName, rowKey, "", null, version);
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int version) {
+        return getToRowDataWithMultiVersions(tableName, rowKey, familyName, null, version);
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers, version);
-            Result result = checkGetResultIsNull(get, table);
+            Get get = buildGetCondition(rowKey, familyName, qualifiers, versions);
+            Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
-            return parseResultToMapWithMultiVersion(result, version);
-        }).orElse(new HashMap<>(0));
+            return convertResultsToHBaseColDataListWithMultiVersion(result, versions);
+        }).orElse(HBaseRowDataWithMultiVersions.empty());
     }
 
     @Override
@@ -195,7 +203,7 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, table -> {
             List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
-            Result[] results = checkBatchGetResultIsNull(gets, table);
+            Result[] results = checkBatchGetAndReturnResult(gets, table);
             if (results == null) {
                 return null;
             }
@@ -221,7 +229,7 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
             List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
-            Result[] results = checkBatchGetResultIsNull(gets, table);
+            Result[] results = checkBatchGetAndReturnResult(gets, table);
             if (results == null) {
                 return null;
             }
@@ -234,36 +242,10 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
-        return getRowsToMap(tableName, rowKeys, null, null, withTimestamp);
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
-        return getRowsToMap(tableName, rowKeys, familyName, null, withTimestamp);
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return this.execute(tableName, table -> {
-            List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
-            Result[] results = checkBatchGetResultIsNull(gets, table);
-            if (results == null) {
-                return null;
-            }
-            Map<String, Map<String, String>> data = new HashMap<>(results.length);
-            for (Result result : results) {
-                data.put(Bytes.toString(result.getRow()), parseResultToMap(result, withTimestamp));
-            }
-            return data;
-        }).orElse(new HashMap<>(0));
-    }
-
-    @Override
-    public <T> List<T> scan(ScanQueryParamsBuilder scanQueryParams, Class<T> clazz) {
+    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScanCondition(scanQueryParams))) {
+            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
                 List<T> rs = new ArrayList<>();
                 for (Result result : scanner) {
                     rs.add(mapperRowToT(result, clazz));
@@ -274,25 +256,22 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanQueryParamsBuilder scanQueryParams) {
-        List<Map<String, Map<String, String>>> data = new ArrayList<>(4);
+    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
+        List<HBaseRowData> rowDataList = new ArrayList<>(4);
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScanCondition(scanQueryParams))) {
-
+            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
                 for (Result result : scanner) {
-                    Map<String, Map<String, String>> tmpData = new HashMap<>(result.size());
-                    tmpData.put(Bytes.toString(result.getRow()), mapperRowToMap(result));
-                    data.add(tmpData);
+                    rowDataList.add(convertResultToHBaseColData(result));
                 }
-                return data;
+                return rowDataList;
             }
         }).orElse(new ArrayList<>(0));
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanQueryParamsBuilder scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScanCondition(scanQueryParams))) {
+            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
                 List<T> rs = new ArrayList<>();
                 int rowNum = 0;
                 for (Result result : scanner) {
@@ -310,7 +289,7 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
         }
         final Class<?> clazz = t.getClass();
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
-        this.executeDelete(tableMeta.getTableName(), new Delete(createDelete(t)));
+        this.executeDelete(tableMeta.getTableName(), new Delete(buildDelete(t)));
     }
 
     @Override
@@ -353,7 +332,7 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
         List<Mutation> deleteList = new ArrayList<>(list.size());
         for (T t : list) {
-            deleteList.add(new Delete(createDelete(t)));
+            deleteList.add(new Delete(buildDelete(t)));
         }
         this.executeDeleteBatch(tableMeta.getTableName(), deleteList);
     }
@@ -387,303 +366,5 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
         } else {
             this.deleteBatch(tableName, rowKeys, familyName, Arrays.asList(qualifiers));
         }
-    }
-
-    protected abstract Scan buildScanCondition(ScanQueryParamsBuilder scanQueryParams);
-
-    /**
-     * 构造get的查询条件
-     *
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段列表
-     * @return get
-     */
-    protected Get buildGetCondition(String rowKey, String familyName, List<String> qualifiers) {
-        if (StringUtil.isBlank(rowKey)) {
-            return null;
-        }
-        Get get = new Get(Bytes.toBytes(rowKey));
-        if (familyNameOnly(familyName, qualifiers)) {
-            get.addFamily(Bytes.toBytes(familyName));
-        }
-        if (familyAndColumnNames(familyName, qualifiers)) {
-            qualifiers.forEach(qualifier -> {
-                if (StringUtil.isNotBlank(qualifier)) {
-                    get.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
-                }
-            });
-        }
-        return get;
-    }
-
-    protected Get buildGetCondition(String rowKey, String familyName, List<String> qualifiers, int version) throws IOException {
-        Get get = buildGetCondition(rowKey, familyName, qualifiers);
-        get.setMaxVersions(version);
-        return get;
-    }
-
-    protected List<Get> buildBatchGetCondition(List<String> rowKeys, String familyName, List<String> qualifiers) {
-        if (null == rowKeys || rowKeys.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return rowKeys.stream().distinct().map(rowKey -> buildGetCondition(rowKey, familyName, qualifiers))
-                .filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    protected Result checkGetResultIsNull(Get get, Table table) throws IOException {
-        if (get == null) {
-            return null;
-        }
-        Result result = table.get(get);
-        if (result == null || result.getRow() == null) {
-            return null;
-        }
-        return result;
-    }
-
-    protected Result[] checkBatchGetResultIsNull(List<Get> gets, Table table) throws IOException {
-        if (gets.isEmpty()) {
-            return null;
-        }
-        Result[] results = table.get(gets);
-        if (results == null || results.length == 0) {
-            return null;
-        }
-        return results;
-    }
-
-    /**
-     * 构造put的对象
-     *
-     * @param rowKey rowKey
-     * @param data   map类型的数据
-     * @return put
-     */
-    protected Put buildPutCondition(String rowKey, Map<String, Object> data) {
-        if (StringUtil.isBlank(rowKey)) {
-            throw new HBaseOperationsException("RowKey must not be empty.");
-        }
-        Put put = new Put(Bytes.toBytes(rowKey));
-        data.forEach((fieldName, fieldValue) -> {
-            String[] familyQualifierArr = fieldName.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
-            TypeHandler<?> fieldTypeHandler = ColumnType.findTypeHandler(fieldValue.getClass());
-            put.addColumn(Bytes.toBytes(familyQualifierArr[0]), Bytes.toBytes(familyQualifierArr[1]),
-                    ColumnType.StringType.getTypeHandler().toBytes(fieldTypeHandler.toString(fieldValue)));
-        });
-        return put;
-    }
-
-    /**
-     * 构造delete的对象
-     *
-     * @param rowKey     rowKey
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段名列表
-     * @return delete
-     */
-    protected Delete buildDeleteCondition(String rowKey, String familyName, List<String> qualifiers) {
-        if (StringUtil.isBlank(rowKey)) {
-            throw new HBaseOperationsException("RowKey must not be empty.");
-        }
-        Delete delete = new Delete(Bytes.toBytes(rowKey));
-        if (familyNameOnly(familyName, qualifiers)) {
-            delete.addFamily(Bytes.toBytes(familyName));
-        }
-        if (familyAndColumnNames(familyName, qualifiers)) {
-            qualifiers.forEach(qualifier -> {
-                if (StringUtil.isNotBlank(qualifier)) {
-                    delete.addColumn(Bytes.toBytes(familyName), Bytes.toBytes(qualifier));
-                }
-            });
-        }
-        return delete;
-    }
-
-    protected Map<String, String> parseResultToMap(Result result, boolean withTimestamp) {
-        List<Cell> cells = result.listCells();
-        if (cells == null || cells.isEmpty()) {
-            return new HashMap<>(0);
-        }
-        Map<String, String> data = new HashMap<>(cells.size());
-        for (Cell cell : cells) {
-            String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
-                    + Bytes.toString(CellUtil.cloneQualifier(cell));
-            String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
-            data.put(fieldName, value);
-            if (withTimestamp) {
-                data.put(fieldName + ":timestamp", String.valueOf(cell.getTimestamp()));
-            }
-        }
-        return data;
-    }
-
-    protected Map<String, HBaseColData> parseResultToHBaseColData(Result result) {
-        List<Cell> cells = result.listCells();
-        if (cells == null || cells.isEmpty()) {
-            return new HashMap<>(0);
-        }
-        Map<String, HBaseColData> data = new HashMap<>(cells.size());
-        for (Cell cell : cells) {
-            String fieldName = Bytes.toString(CellUtil.cloneFamily(cell)) + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
-                    + Bytes.toString(CellUtil.cloneQualifier(cell));
-            String value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
-            data.put(fieldName, new HBaseColData(value, cell.getTimestamp()));
-        }
-        return data;
-    }
-
-    protected Map<String, List<HBaseColData>> parseResultToMapWithMultiVersion(Result result, int version) {
-        List<Cell> cells = result.listCells();
-        if (cells == null || cells.isEmpty()) {
-            return new HashMap<>(0);
-        }
-
-        Map<String, List<HBaseColData>> resultMap = new HashMap<>();
-        List<HBaseColData> tmpList = new ArrayList<>(version);
-        for (int i = 0; i < cells.size(); i++) {
-            String preField = "";
-            if (i > 0) {
-                preField = Bytes.toString(CellUtil.cloneFamily(cells.get(i - 1)))
-                        + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR +
-                        Bytes.toString(CellUtil.cloneQualifier(cells.get(i - 1)));
-            }
-
-            String currentField = Bytes.toString(CellUtil.cloneFamily(cells.get(i))) +
-                    HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR +
-                    Bytes.toString(CellUtil.cloneQualifier(cells.get(i)));
-
-            long timestamp = cells.get(i).getTimestamp();
-            String value = Bytes.toString(cells.get(i).getValueArray(), cells.get(i).getValueOffset(), cells.get(i).getValueLength());
-            HBaseColData colData = new HBaseColData(value, timestamp);
-
-            if (StringUtil.isNotBlank(preField) && !currentField.equals(preField)) {
-                resultMap.put(preField, tmpList);
-                tmpList = new ArrayList<>(version);
-            }
-            tmpList.add(colData);
-
-            if (i == cells.size() - 1) {
-                resultMap.put(currentField, tmpList);
-            }
-        }
-
-        return resultMap;
-    }
-
-
-    /**
-     * 把Result查询结果集映射为Map类型的结构
-     *
-     * @param result Result对象
-     * @return Map结果的数据
-     */
-    protected Map<String, String> mapperRowToMap(Result result) {
-        byte[] row = result.getRow();
-        if (row == null) {
-            return new HashMap<>(0);
-        }
-        List<Cell> cs = result.listCells();
-        Map<String, String> resultMap = new HashMap<>(cs.size());
-        StringBuilder fieldNameSb = new StringBuilder();
-        for (Cell cell : cs) {
-            fieldNameSb.delete(0, fieldNameSb.length());
-            fieldNameSb.append(Bytes.toString(CellUtil.cloneFamily(cell)));
-            fieldNameSb.append(":");
-            fieldNameSb.append(Bytes.toString(CellUtil.cloneQualifier(cell)));
-            String value = "";
-            if (cell.getValueArray() != null) {
-                value = Bytes.toString(cell.getValueArray(), cell.getValueOffset(), cell.getValueLength());
-            }
-            resultMap.put(fieldNameSb.toString(), value);
-        }
-        return resultMap;
-    }
-
-    /**
-     * 利用反射，绑定查询结果集到定义的JavaBean
-     *
-     * @param result 数据集合
-     * @param clazz  映射的JavaBean
-     * @param <T>    泛型类型
-     * @return 映射JavaBean之后的查询结果集
-     * @throws Exception 异常抛出
-     */
-    protected <T> T mapperRowToT(Result result, Class<T> clazz) throws Exception {
-        //TODO 这里的反射调用构造函数是否可以再优化
-        T t = clazz.getDeclaredConstructor().newInstance();
-        HBaseTableMeta hBaseTableMeta = ReflectFactory.getHBaseTableMeta(clazz);
-        List<FieldStruct> fieldColStructMap = hBaseTableMeta.getFieldStructList();
-        fieldColStructMap.forEach(fieldStruct -> {
-            if (fieldStruct.isRowKey()) {
-                Object rowKey = fieldStruct.getTypeHandler().toObject(fieldStruct.getType(), result.getRow());
-                hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), rowKey);
-            } else {
-                byte[] valBytes = result.getValue(Bytes.toBytes(fieldStruct.getFamily()), Bytes.toBytes(fieldStruct.getQualifier()));
-                Object value = fieldStruct.getTypeHandler().toObject(fieldStruct.getType(), valBytes);
-                hBaseTableMeta.getMethodAccess().invoke(t, fieldStruct.getSetterMethodIndex(), value);
-            }
-        });
-        return t;
-    }
-
-    private <T> Put createPut(T t)
-            throws HBaseMetaDataException {
-        Class<?> clazz = t.getClass();
-        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
-        List<FieldStruct> fieldStructList = tableMeta.getFieldStructList();
-        FieldStruct rowFieldStruct = fieldStructList.get(0);
-        if (!rowFieldStruct.isRowKey()) {
-            throw new HBaseMetaDataException("The first field is not row key, please check hbase table mata data.");
-        }
-        Object value = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
-        MyAssert.checkArgument(value != null, "The value of row key must not be null.");
-        Put put = new Put(rowFieldStruct.getTypeHandler().toBytes(rowFieldStruct.getType(), value));
-
-        fieldStructList.forEach(fieldStruct -> {
-            if (!fieldStruct.isRowKey()) {
-                Object fieldValue = tableMeta.getMethodAccess().invoke(t, fieldStruct.getGetterMethodIndex());
-                put.addColumn(Bytes.toBytes(fieldStruct.getFamily()),
-                        Bytes.toBytes(fieldStruct.getQualifier()),
-                        fieldStruct.getTypeHandler().toBytes(fieldStruct.getType(), fieldValue));
-            }
-        });
-
-        return put;
-    }
-
-    private <T> Delete createDelete(T t) throws HBaseMetaDataException {
-        Class<?> clazz = t.getClass();
-        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
-        List<FieldStruct> fieldStructList = tableMeta.getFieldStructList();
-        FieldStruct rowFieldStruct = fieldStructList.get(0);
-        if (!rowFieldStruct.isRowKey()) {
-            throw new HBaseMetaDataException("The first field is not row key, please check hbase table mata data.");
-        }
-        Object value = tableMeta.getMethodAccess().invoke(t, rowFieldStruct.getGetterMethodIndex());
-        MyAssert.checkArgument(value != null, "The value of row key must not be null.");
-        return new Delete(rowFieldStruct.getTypeHandler().toBytes(rowFieldStruct.getType(), value));
-    }
-
-    /**
-     * 判断列簇名满足条件，需要筛选的字段列表未指定
-     *
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段列表
-     * @return 最终数据
-     */
-    protected boolean familyNameOnly(String familyName, List<String> qualifiers) {
-        return StringUtil.isNotBlank(familyName) && (qualifiers == null || qualifiers.isEmpty());
-    }
-
-    /**
-     * 判断列簇名和需要筛选的字段列表同时成立
-     *
-     * @param familyName 列簇名
-     * @param qualifiers 需要筛选的字段列表
-     * @return 最终数据
-     */
-    protected boolean familyAndColumnNames(String familyName, List<String> qualifiers) {
-        return StringUtil.isNotBlank(familyName) && (qualifiers != null && !qualifiers.isEmpty());
     }
 }

@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.example;
 
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
@@ -48,7 +48,7 @@ public class HBaseServiceExample {
 
     public static void main(String[] args) {
         IHBaseTableTemplate hBaseTemplate = new HBaseTableTemplateImpl.Builder().properties(getProperties()).build();
-        ScanQueryParamsBuilder scanQueryParamsBuilder = new ScanQueryParamsBuilder.Builder()
+        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .startRow("a10001")

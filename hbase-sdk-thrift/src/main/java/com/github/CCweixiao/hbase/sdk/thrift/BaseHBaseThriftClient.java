@@ -5,7 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
-import com.github.CCweixiao.hbase.sdk.common.query.ScanQueryParamsBuilder;
+import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
@@ -244,7 +244,7 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return res;
     }
 
-    protected TScan buildScan(ScanQueryParamsBuilder scanQueryParams) {
+    protected TScan buildScan(ScanParams scanQueryParams) {
         TScan scan = new TScan();
         if (StringUtil.isNotBlank(scanQueryParams.getStartRow())) {
             scan.setStartRow(ColumnType.toByteBufferFromStr(scanQueryParams.getStartRow()));
