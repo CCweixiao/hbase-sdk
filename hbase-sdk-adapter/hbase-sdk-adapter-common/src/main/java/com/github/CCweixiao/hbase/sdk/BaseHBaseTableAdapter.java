@@ -4,8 +4,7 @@ import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableDeleteAdapter;
 import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableGetAdapter;
 import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTablePutAdapter;
 import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableScanAdapter;
-import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOpAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
@@ -20,11 +19,9 @@ import org.apache.hadoop.hbase.client.Mutation;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,16 +34,16 @@ import java.util.stream.Collectors;
  * @author leo.jie (leojie1314@gmail.com)
  */
 @InterfaceAudience.Private
-public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableOperations, IHBaseTableGetAdapter, IHBaseTablePutAdapter, IHBaseTableDeleteAdapter, IHBaseTableScanAdapter {
-    public AbstractHBaseTableAdapter(Configuration configuration) {
+public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableOpAdapter, IHBaseTableGetAdapter, IHBaseTablePutAdapter, IHBaseTableDeleteAdapter, IHBaseTableScanAdapter {
+    public BaseHBaseTableAdapter(Configuration configuration) {
         super(configuration);
     }
 
-    public AbstractHBaseTableAdapter(String zkHost, String zkPort) {
+    public BaseHBaseTableAdapter(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
 
-    public AbstractHBaseTableAdapter(Properties properties) {
+    public BaseHBaseTableAdapter(Properties properties) {
         super(properties);
     }
 
@@ -167,19 +164,24 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int version) {
-        return getToRowDataWithMultiVersions(tableName, rowKey, "", null, version);
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+        return getToRowDataWithMultiVersions(tableName, rowKey, "", null, versions);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int version) {
-        return getToRowDataWithMultiVersions(tableName, rowKey, familyName, null, version);
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+        return getToRowDataWithMultiVersions(tableName, rowKey, familyName, null, versions);
     }
 
     @Override
     public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+        Get get = buildGetCondition(rowKey, familyName, qualifiers, versions);
+        return this.getToRowDataWithMultiVersions(tableName, get, versions);
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, Get get, int versions) {
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers, versions);
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
@@ -227,8 +229,13 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
 
     @Override
     public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
+        List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
+        return this.getRowsToRowData(tableName, gets, rowMapper);
+    }
+
+    @Override
+    public <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
             Result[] results = checkBatchGetAndReturnResult(gets, table);
             if (results == null) {
                 return null;
@@ -242,10 +249,36 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
+    public List<HBaseRowData> getRowsToRowData(String tableName, List<Get> gets) {
+        return this.getRowsToRowData(tableName, gets, new RowMapper<HBaseRowData>() {
+            @Override
+            public <R> HBaseRowData mapRow(R r, int rowNum) throws Exception {
+                Result result = (Result) r;
+                return convertResultToHBaseColData(result);
+            }
+        });
+    }
+
+    @Override
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
+        return null;
+    }
+
+    @Override
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
+        return null;
+    }
+
+    @Override
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
+        return null;
+    }
+
+    @Override
+    public <T> List<T> scan(ScanParams scanParams, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
+            try (ResultScanner scanner = table.getScanner(buildScan(scanParams))) {
                 List<T> rs = new ArrayList<>();
                 for (Result result : scanner) {
                     rs.add(mapperRowToT(result, clazz));
@@ -256,10 +289,10 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
+    public List<HBaseRowData> scan(String tableName, ScanParams scanParams) {
         List<HBaseRowData> rowDataList = new ArrayList<>(4);
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
+            try (ResultScanner scanner = table.getScanner(buildScan(scanParams))) {
                 for (Result result : scanner) {
                     rowDataList.add(convertResultToHBaseColData(result));
                 }
@@ -269,9 +302,9 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     }
 
     @Override
-    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
+    public <T> List<T> scan(String tableName, ScanParams scanParams, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScan(scanQueryParams))) {
+            try (ResultScanner scanner = table.getScanner(buildScan(scanParams))) {
                 List<T> rs = new ArrayList<>();
                 int rowNum = 0;
                 for (Result result : scanner) {
@@ -305,10 +338,10 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     @Override
     public void delete(String tableName, String rowKey, String familyName, List<String> qualifiers) {
         if (StringUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("the table name is not empty.");
+            throw new IllegalArgumentException("the table name is not empty.");
         }
         if (StringUtil.isBlank(rowKey)) {
-            throw new HBaseOperationsException("the row key of the table will be deleted is not empty.");
+            throw new IllegalArgumentException("the row key of the table will be deleted is not empty.");
         }
         Delete delete = buildDeleteCondition(rowKey, familyName, qualifiers);
         this.executeDelete(tableName, delete);
@@ -350,10 +383,10 @@ public abstract class AbstractHBaseTableAdapter extends AbstractHBaseBaseAdapter
     @Override
     public void deleteBatch(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
         if (StringUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("the table name is not empty.");
+            throw new IllegalArgumentException("the table name is not empty.");
         }
         if (rowKeys == null || rowKeys.isEmpty()) {
-            throw new HBaseOperationsException("the row keys of the table will be deleted is not empty.");
+            throw new IllegalArgumentException("the row keys of the table will be deleted is not empty.");
         }
         List<Mutation> mutations = rowKeys.stream().map(rowKey -> buildDeleteCondition(rowKey, familyName, qualifiers)).collect(Collectors.toList());
         this.executeDeleteBatch(tableName, mutations);

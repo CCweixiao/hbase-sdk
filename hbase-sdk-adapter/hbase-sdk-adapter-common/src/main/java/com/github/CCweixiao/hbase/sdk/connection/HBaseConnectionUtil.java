@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.connection;
 
+import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkConnectionException;
 import com.github.CCweixiao.hbase.sdk.common.util.DigestUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
@@ -11,7 +12,6 @@ import java.util.Properties;
  * @author leojie 2023/7/6 08:18
  */
 public class HBaseConnectionUtil {
-    private static final String KERBEROS_PROXY_USER = "kerberos.proxy.user";
 
     public static String generateUniqueConnectionKey(Properties properties) {
         String zkQuorum = properties.getProperty(HConstants.ZOOKEEPER_QUORUM);
@@ -36,6 +36,6 @@ public class HBaseConnectionUtil {
     }
 
     public static String proxyUser(Properties properties) {
-        return properties.getProperty(KERBEROS_PROXY_USER);
+        return properties.getProperty(HBaseConfigKeys.KERBEROS_PROXY_USER);
     }
 }

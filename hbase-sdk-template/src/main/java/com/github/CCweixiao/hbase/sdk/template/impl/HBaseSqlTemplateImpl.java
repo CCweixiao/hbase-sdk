@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
-import com.github.CCweixiao.hbase.sdk.HBaseSqlAdapterImpl;
+import com.github.CCweixiao.hbase.sdk.HBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.IHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
@@ -19,7 +19,7 @@ public class HBaseSqlTemplateImpl implements IHBaseSqlTemplate {
 
     private HBaseSqlTemplateImpl(HBaseSqlTemplateImpl.Builder builder) {
         this.properties = builder.properties;
-        this.sqlAdapter = new HBaseSqlAdapterImpl(properties);
+        this.sqlAdapter = new HBaseSqlAdapter(properties);
     }
 
     @Override

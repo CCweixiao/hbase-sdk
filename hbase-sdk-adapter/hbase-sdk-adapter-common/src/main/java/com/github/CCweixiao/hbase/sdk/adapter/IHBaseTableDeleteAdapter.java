@@ -7,7 +7,7 @@ import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.github.CCweixiao.hbase.sdk.util.FamilyQualifierUtil;
+import com.github.CCweixiao.hbase.sdk.common.query.FamilyQualifierUtil;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.util.Bytes;
 

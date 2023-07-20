@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common.query;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ public class ScanParams {
     private final long timestamp;
     private final long minTimestamp;
     private final long maxTimestamp;
-    private final int readVersions;
+    private final int versions;
     private final boolean reversed;
     private final int caching;
     private final int batch;
@@ -35,7 +36,7 @@ public class ScanParams {
         this.timestamp = builder.timestamp;
         this.minTimestamp = builder.minTimestamp;
         this.maxTimestamp = builder.maxTimestamp;
-        this.readVersions = builder.readVersions;
+        this.versions = builder.versions;
         this.reversed = builder.reversed;
         this.caching = builder.caching;
         this.batch = builder.batch;
@@ -55,7 +56,7 @@ public class ScanParams {
         private long timestamp;
         private long minTimestamp;
         private long maxTimestamp;
-        private int readVersions;
+        private int versions;
         private boolean reversed;
         private int caching;
         private int batch;
@@ -76,6 +77,14 @@ public class ScanParams {
 
         public Builder columnNames(List<String> columnNames) {
             this.columnNames = columnNames;
+            return this;
+        }
+
+        public Builder columnName(String colName) {
+            if (this.columnNames == null) {
+                this.columnNames = new ArrayList<>();
+            }
+            this.columnNames.add(colName);
             return this;
         }
 
@@ -114,8 +123,8 @@ public class ScanParams {
             return this;
         }
 
-        public Builder readVersions(int readVersions) {
-            this.readVersions = readVersions;
+        public Builder versions(int versions) {
+            this.versions = versions;
             return this;
         }
 
@@ -195,8 +204,8 @@ public class ScanParams {
         return maxTimestamp;
     }
 
-    public int getReadVersions() {
-        return readVersions;
+    public int getVersions() {
+        return versions;
     }
 
     public boolean isReversed() {
@@ -240,6 +249,14 @@ public class ScanParams {
         return new Builder();
     }
 
+    public boolean onlyFamily() {
+        return FamilyQualifierUtil.familyNameOnly(this.getFamilyName(), this.getColumnNames());
+    }
+
+    public boolean familyWithQualifiers() {
+        return FamilyQualifierUtil.familyAndColumnNames(this.getFamilyName(), this.getColumnNames());
+    }
+
     @Override
     public String toString() {
         return "ScanParams{" +
@@ -252,7 +269,7 @@ public class ScanParams {
                 ", timestamp=" + timestamp +
                 ", minTimestamp=" + minTimestamp +
                 ", maxTimestamp=" + maxTimestamp +
-                ", readVersions=" + readVersions +
+                ", versions=" + versions +
                 ", reversed=" + reversed +
                 ", caching=" + caching +
                 ", batch=" + batch +

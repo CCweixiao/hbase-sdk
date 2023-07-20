@@ -5,6 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
@@ -212,36 +213,30 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return list;
     }
 
-    protected Map<String, String> parseResultsToMap(TRowResult result, boolean withTimestamp) {
+    protected HBaseRowData convertResultToHBaseColData(TRowResult result) {
         if (result == null) {
-            return new HashMap<>(0);
+            return HBaseRowData.empty();
         }
         Map<ByteBuffer, TCell> resultColumns = result.getColumns();
         if (resultColumns == null || resultColumns.isEmpty()) {
-            return new HashMap<>(0);
+            return HBaseRowData.empty();
         }
-        Map<String, String> res = new HashMap<>(result.getColumnsSize());
+        HBaseRowData.Builder builder = HBaseRowData.of(Bytes.toString(result.getRow()));
         for (Map.Entry<ByteBuffer, TCell> entry : result.getColumns().entrySet()) {
             String colName = ColumnType.toString(entry.getKey().array());
             String value = ColumnType.toString(entry.getValue().getValue());
-            res.put(colName, value);
-            if (withTimestamp) {
-                res.put(colName + ":timestamp", String.valueOf(entry.getValue().getTimestamp()));
-            }
+            builder = builder.appendColData(colName, value, entry.getValue().getTimestamp());
         }
-        return res;
+        return builder.build();
     }
 
-    protected Map<String, Map<String, String>> parseResultsToMap(List<TRowResult> results, boolean withTimestamp) {
+    protected List<HBaseRowData> convertResultsToHBaseColDataList(List<TRowResult> results) {
         if (results == null || results.isEmpty()) {
-            return new HashMap<>(0);
+            return new ArrayList<>(0);
         }
-        Map<String, Map<String, String>> res = new HashMap<>(results.size());
-        results.forEach(result -> {
-            String rowVal = ColumnType.toString(result.getRow());
-            res.put(rowVal, parseResultsToMap(result, withTimestamp));
-        });
-        return res;
+        List<HBaseRowData> rowDataList = new ArrayList<>(results.size());
+        results.forEach(result -> rowDataList.add(convertResultToHBaseColData(result)));
+        return rowDataList;
     }
 
     protected TScan buildScan(ScanParams scanQueryParams) {

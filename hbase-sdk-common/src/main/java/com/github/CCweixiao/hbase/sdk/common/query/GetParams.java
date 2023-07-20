@@ -149,6 +149,14 @@ public class GetParams {
         return versions;
     }
 
+    public boolean onlyFamily() {
+        return FamilyQualifierUtil.familyNameOnly(this.getFamilyName(), this.getColumnNames());
+    }
+
+    public boolean familyWithQualifiers() {
+        return FamilyQualifierUtil.familyAndColumnNames(this.getFamilyName(), this.getColumnNames());
+    }
+
     @Override
     public String toString() {
         return "GetParams{" +

@@ -5,7 +5,8 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkUnsupportedFuncti
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
@@ -94,8 +95,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public <T> T save(T t) {
-        return this.pSave(t);
+    public <T> void save(T t) {
+        this.pSave(t);
     }
 
     @Override
@@ -153,25 +154,35 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
-        return getRowToMap(tableName, rowKey, "", new ArrayList<>(0), withTimestamp);
+    public HBaseRowData getToRowData(String tableName, String rowKey) {
+        return getToRowData(tableName, rowKey, "", new ArrayList<>(0));
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
-        return getRowToMap(tableName, rowKey, familyName, new ArrayList<>(0), withTimestamp);
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
+        return getToRowData(tableName, rowKey, familyName, new ArrayList<>(0));
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName, List<String> qualifiers) {
         return this.execute(thriftClient -> {
             List<TRowResult> results = getToRowResultList(thriftClient, tableName, rowKey, familyName, qualifiers);
-            return parseResultsToMap(results.get(0), withTimestamp);
-        }).orElse(new HashMap<>(0));
+            return convertResultToHBaseColData(results.get(0));
+        }).orElse(HBaseRowData.empty());
     }
 
     @Override
-    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+        return null;
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+        return null;
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         return null;
     }
 
@@ -217,21 +228,19 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
-        return getRowsToMap(tableName, rowKeys, "", new ArrayList<>(0), withTimestamp);
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
+        // todo
+        return null;
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
-        return getRowsToMap(tableName, rowKeys, familyName, new ArrayList<>(0), withTimestamp);
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
+        return null;
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return this.execute(thriftClient -> {
-            List<TRowResult> results = getToRowsResultList(thriftClient, tableName, rowKeys, familyName, qualifiers);
-            return parseResultsToMap(results, withTimestamp);
-        }).orElse(new HashMap<>(0));
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
+        return null;
     }
 
     @Override
@@ -326,7 +335,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
+    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
         Map<String, String> attributes = new HashMap<>(0);
 
         int scannerId = scannerOpen(tableName, scanQueryParams, attributes);
@@ -335,7 +344,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
         AtomicInteger nReturned = new AtomicInteger();
         int nFetched = 0;
         int howMany;
-        List<Map<String, Map<String, String>>> results = new ArrayList<>();
+        List<HBaseRowData> rowDataList = new ArrayList<>();
 
         try {
             while (true) {
@@ -347,14 +356,8 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 final List<TRowResult> items = hbaseClient.scannerGetList(scannerId, howMany);
                 if (items != null && !items.isEmpty()) {
                     nFetched += items.size();
-                    items.forEach(scannerResult -> {
-                        Map<String, Map<String, String>> data = new HashMap<>();
-                        Map<String, String> tmpValue = new HashMap<>();
-                        scannerResult.columns.forEach((colName, value) ->
-                                tmpValue.put(ColumnType.toString(colName.array()),
-                                        ColumnType.toString(value.value.array())));
-                        data.put(ColumnType.toString(scannerResult.row.array()), tmpValue);
-                        results.add(data);
+                    items.forEach(result -> {
+                        rowDataList.add(convertResultToHBaseColData(result));
                         nReturned.addAndGet(1);
                     });
                     if (nReturned.get() == limit) {
@@ -374,7 +377,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 LOG.error("close scanner id failed. ", e);
             }
         }
-        return results;
+        return rowDataList;
     }
 
     @Override

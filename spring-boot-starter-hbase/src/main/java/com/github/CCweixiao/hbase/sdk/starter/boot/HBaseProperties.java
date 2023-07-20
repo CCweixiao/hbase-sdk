@@ -9,30 +9,32 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "spring.datasource.hbase")
 public class HBaseProperties {
-    private String zkHostList ="localhost";
+    private String zkQuorum = "localhost";
     private String zkClientPort = "2181";
-    private String dfsRootDir ="/hbase";
-    private String zkNodeParent ="/hbase";
+    private String zkNodeParent = "/hbase";
+    private String dfsRootDir = "/hbase";
     private String securityAuthWay = "simple";
     private String kerberosPrincipal = "";
     private String keytabFilePath = "";
+
+    private String kerberosProxyUser = "";
     private String rsKerberosPrincipal = "";
     private String masterKerberosPrincipal = "";
     private String krb5ConfPath = "";
     private String krb5Realm = "";
     private String krb5KdcServerAddr = "";
-    private String threadPoolName="HBase-DataSource";
-    private String clientProperties="";
-    private int corePoolSize=2;
-    private int maximumPoolSize=4;
-    private long keepAliveTime=60000;
+    private String threadPoolName = "HBase-DataSource";
+    private String clientProperties = "";
+    private int corePoolSize = 2;
+    private int maximumPoolSize = 4;
+    private long keepAliveTime = 60000;
 
-    public String getZkHostList() {
-        return zkHostList;
+    public String getZkQuorum() {
+        return zkQuorum;
     }
 
-    public void setZkHostList(String zkHostList) {
-        this.zkHostList = zkHostList;
+    public void setZkQuorum(String zkQuorum) {
+        this.zkQuorum = zkQuorum;
     }
 
     public String getZkClientPort() {
@@ -81,6 +83,14 @@ public class HBaseProperties {
 
     public void setKeytabFilePath(String keytabFilePath) {
         this.keytabFilePath = keytabFilePath;
+    }
+
+    public String getKerberosProxyUser() {
+        return kerberosProxyUser;
+    }
+
+    public void setKerberosProxyUser(String kerberosProxyUser) {
+        this.kerberosProxyUser = kerberosProxyUser;
     }
 
     public String getRsKerberosPrincipal() {

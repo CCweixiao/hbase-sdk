@@ -23,7 +23,7 @@ public class StringUtil {
     }
 
     public static boolean isBlank(String str) {
-        return isBlank(str);
+        return isBlank((CharSequence) str);
     }
 
     private static boolean isBlank(CharSequence str) {

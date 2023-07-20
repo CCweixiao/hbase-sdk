@@ -4,12 +4,12 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
+import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
+import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractHBaseTemplateTest {
     protected IHBaseAdminTemplate adminTemplate;
-    protected IHBaseTableTemplate tableTemplate;
+    protected BaseHBaseTableTemplate tableTemplate;
     protected IHBaseSqlTemplate sqlTemplate;
 
     protected void initIHBaseAdminTemplate() {
@@ -35,8 +35,7 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void initIHBaseTableTemplate() {
-        tableTemplate = new HBaseTableTemplateImpl.Builder()
-                .properties(getProperties()).build();
+        tableTemplate = HBaseTableTemplate.of(getProperties());
     }
 
     protected void initIHBaseSqlTemplate() {

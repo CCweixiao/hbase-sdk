@@ -1,10 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.example;
 
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
+import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
+import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseTableTemplateImpl;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -47,8 +47,8 @@ public class HBaseServiceExample {
     }
 
     public static void main(String[] args) {
-        IHBaseTableTemplate hBaseTemplate = new HBaseTableTemplateImpl.Builder().properties(getProperties()).build();
-        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
+        BaseHBaseTableTemplate hBaseTemplate = HBaseTableTemplate.of(getProperties());
+        ScanParams scanQueryParamsBuilder = ScanParams.builder()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .startRow("a10001")

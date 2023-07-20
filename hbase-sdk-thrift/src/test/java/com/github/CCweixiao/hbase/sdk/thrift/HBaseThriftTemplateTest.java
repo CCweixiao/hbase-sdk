@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.thrift.model.UserModel;
@@ -63,7 +64,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     public void testGetRow() {
         Optional<UserModel> userModel = thriftTemplate.getRow("u10001", UserModel.class);
         System.out.println(userModel);
-        Map<String, String> data = thriftTemplate.getRowToMap("test:t1", "u10002", false);
+        HBaseRowData data = thriftTemplate.getToRowData("test:t1", "u10002");
         System.out.println(data);
     }
 
@@ -81,7 +82,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
 
     @Test
     public void testScanWithLimit() {
-        ScanParams queryParams = new ScanParams.Builder()
+        ScanParams queryParams = ScanParams.builder()
                 .limit(2)
                 .build();
         // 全表扫描所有数据，并设置limit
@@ -93,7 +94,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithStarAndRow() {
         // 根据起止row key扫描数据，不包含stopRow
-        ScanParams queryParams = new ScanParams.Builder()
+        ScanParams queryParams = ScanParams.builder()
                 .startRow("u10001")
                 .stopRow("u21000")
                 .build();
@@ -105,7 +106,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithFilter() {
         // 设置过滤器扫描，列名为nick_前缀，且列对应值ascii码比：不会飞的猪2大的被筛选出
-        ScanParams queryParams = new ScanParams.Builder()
+        ScanParams queryParams = ScanParams.builder()
                 .filter(new IHBaseFilter<String>() {
                     @Override
                     public String customFilter() {

@@ -1,7 +1,11 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
-import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOperations;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
+import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
@@ -16,10 +20,6 @@ import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 定义HBase的数据操作接口
@@ -37,6 +37,11 @@ public interface IHBaseTableGetAdapter {
 
     HBaseRowData getToRowData(String tableName, Get get);
 
+    List<HBaseRowData> getRowsToRowData(String tableName, List<Get> gets);
+
+    <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper);
+
+    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, Get get, int versions);
 
     /**
      * 利用反射，绑定查询结果集到定义的实体对象
@@ -169,10 +174,10 @@ public interface IHBaseTableGetAdapter {
                                   int versions, long ts, long minTs, long maxTs) {
         GetParams.Builder builder = GetParams.builder(rowKey);
         if (ts > 0) {
-            builder.withTimestamp(ts);
+            builder = builder.withTimestamp(ts);
         }
         if (minTs > 0 && maxTs > 0) {
-            builder.withTimeRange(minTs, maxTs);
+            builder = builder.withTimeRange(minTs, maxTs);
         }
         if (versions <= 0) {
             versions = 1;

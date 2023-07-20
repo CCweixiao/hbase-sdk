@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.common;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
@@ -15,7 +14,7 @@ import java.util.Optional;
  *
  * @author leojie 2020/9/26 11:04 上午
  */
-public interface IHBaseTableOperations {
+public interface IHBaseTableOpAdapter {
 
     /**
      * 保存数据，需构造Map类型的数据参数<br/>
@@ -25,7 +24,7 @@ public interface IHBaseTableOperations {
      * <p>1. HBase数据都以字节形成存储，存取都需要字段值的类型，才能对值做正确的类型转换，<br/>
      * 因此在此API的封装中，非字符串的基础类型数据，底层会被自动序列化成字符串类型。</p>
      * <p>2. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson处理json格式数据<br/></p>
-     * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOperations#save(Object)} <br/><p/>
+     * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOpAdapter#save(Object)} <br/><p/>
      *
      * @param tableName HBase表名
      * @param rowKey    指定row key，row key默认被限定必须使用String类型
@@ -53,7 +52,7 @@ public interface IHBaseTableOperations {
      * <p>1. HBase数据都以字节形成存储，存取都需要字段值的类型，才能对值做正确的类型转换，<br/>
      * 因此在此API的封装中，非字符串的基础类型数据，底层会被自动序列化成字符串类型。</p>
      * <p>2. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson处理json格式数据<br/></p>
-     * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOperations#save(Object)} <br/><p/>
+     * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOpAdapter#save(Object)} <br/><p/>
      *
      * @param tableName 表名
      * @param data      需要保存的数据. 如样例格式数据
@@ -217,10 +216,10 @@ public interface IHBaseTableOperations {
      *
      * @param tableName  HBase表名
      * @param rowKey     row key
-     * @param version    需要查询的版本数
+     * @param versions    需要查询的版本数
      * @return 查询结果集
      */
-    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int version);
+    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions);
 
     /**
      * 根据row key查询数据，支持指定特定列簇，并支持指定最大版本号，数据返回格式如下： <br/>
@@ -233,10 +232,10 @@ public interface IHBaseTableOperations {
      * @param tableName  HBase表名
      * @param rowKey     row key
      * @param familyName 列簇名称，可为空
-     * @param version    需要查询的版本数
+     * @param versions    需要查询的版本数
      * @return 查询结果集
      */
-    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int version);
+    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions);
 
     /**
      * 根据row key查询数据，支持指定特定列簇下的多个字段名，并支持指定最大版本号，数据返回格式如下： <br/>
@@ -324,6 +323,9 @@ public interface IHBaseTableOperations {
      */
     <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper);
 
+    List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys);
+    List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName);
+    List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers);
 
     /**
      * scan HBase表数据，查询结果集映射为JavaBean列表

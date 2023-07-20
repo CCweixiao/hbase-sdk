@@ -5,13 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyHasExistsExcep
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotFoundException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
-import com.github.CCweixiao.hbase.sdk.common.model.HBaseRegionRecord;
-import com.github.CCweixiao.hbase.sdk.common.model.HBaseTableRecord;
-import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
-import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;
-import com.github.CCweixiao.hbase.sdk.common.util.DateAndTimeUtil;
-import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
-import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import com.github.CCweixiao.hbase.sdk.common.model.*;
 import com.github.CCweixiao.hbase.sdk.hbtop.HBaseMetricOperations;
 import com.github.CCweixiao.hbase.sdk.hbtop.Record;
 import com.github.CCweixiao.hbase.sdk.hbtop.RecordFilter;
@@ -19,7 +13,11 @@ import com.github.CCweixiao.hbase.sdk.hbtop.Summary;
 import com.github.CCweixiao.hbase.sdk.hbtop.field.Field;
 import com.github.CCweixiao.hbase.sdk.hbtop.field.FieldValue;
 import com.github.CCweixiao.hbase.sdk.hbtop.field.FieldValueType;
+import com.github.CCweixiao.hbase.sdk.hbtop.field.Size;
 import com.github.CCweixiao.hbase.sdk.hbtop.mode.Mode;
+import com.github.CCweixiao.hbase.sdk.common.util.DateAndTimeUtil;
+import com.github.CCweixiao.hbase.sdk.common.util.SplitGoEnum;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.schema.BaseColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.BaseHTableDesc;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
@@ -28,16 +26,14 @@ import com.github.CCweixiao.hbase.sdk.util.RegionSplitter;
 import com.github.CCweixiao.hbase.sdk.util.SplitKeyUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.protobuf.generated.HBaseProtos;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import static com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants.DISABLE_REPLICATION_SCOPE;
 import static com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants.ENABLE_REPLICATION_SCOPE;
 
@@ -45,19 +41,18 @@ import static com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants.E
  * @author leojie 2020/9/25 11:11 下午
  */
 @InterfaceAudience.Private
-public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements HBaseMetricOperations {
-    public static final Logger LOG = LoggerFactory.getLogger(HBaseAdminAdapterImpl.class);
+public class HBaseAdminAdapter extends AbstractHBaseAdminAdapter implements HBaseMetricOperations {
     public static final Pattern REGION_COMPILE = Pattern.compile("\\.(\\w+)\\.");
 
-    public HBaseAdminAdapterImpl(Configuration configuration) {
+    public HBaseAdminAdapter(Configuration configuration) {
         super(configuration);
     }
 
-    public HBaseAdminAdapterImpl(Properties properties) {
+    public HBaseAdminAdapter(Properties properties) {
         super(properties);
     }
 
-    public HBaseAdminAdapterImpl(String zkHost, String zkPort) {
+    public HBaseAdminAdapter(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
 
@@ -65,17 +60,21 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @SuppressWarnings("unchecked")
     public List<HTableDesc> listTableDesc(String regex, boolean includeSysTables) {
         return this.execute(admin -> {
-            List<TableDescriptor> tableDescriptors;
+            HTableDescriptor[] tableDescriptors;
             if (StringUtil.isBlank(regex)) {
-                tableDescriptors = admin.listTableDescriptors(null, includeSysTables);
+                tableDescriptors = admin.listTables((Pattern) null, includeSysTables);
             } else {
-                tableDescriptors = admin.listTableDescriptors(Pattern.compile(regex), includeSysTables);
+                tableDescriptors = admin.listTables(regex, includeSysTables);
             }
-            if (tableDescriptors == null || tableDescriptors.isEmpty()) {
+            if (tableDescriptors == null || tableDescriptors.length == 0) {
                 return new ArrayList<>();
             }
-            return tableDescriptors.stream().map(tableDescriptor ->
-                    new HTableDesc().convertTo(tableDescriptor)).collect(Collectors.toList());
+            List<HTableDesc> tableDescList = new ArrayList<>(tableDescriptors.length);
+            for (HTableDescriptor tableDescriptor : tableDescriptors) {
+                HTableDesc tableDesc = new HTableDesc().convertTo(tableDescriptor);
+                tableDescList.add(tableDesc);
+            }
+            return tableDescList;
         });
     }
 
@@ -95,12 +94,11 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @SuppressWarnings("unchecked")
     public List<HTableDesc> listTableDescByNamespace(String namespaceName) {
         return this.execute(admin -> {
-            final List<TableDescriptor> tableDescriptors = admin.listTableDescriptorsByNamespace(Bytes.toBytes(namespaceName));
-            if (tableDescriptors == null || tableDescriptors.isEmpty()) {
+            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
+            if (tableDescriptors == null || tableDescriptors.length == 0) {
                 return new ArrayList<>();
             }
-            return tableDescriptors.stream()
-                    .map(t -> new HTableDesc().convertTo(t)).collect(Collectors.toList());
+            return Arrays.stream(tableDescriptors).map(t -> new HTableDesc().convertTo(t)).collect(Collectors.toList());
         });
     }
 
@@ -109,9 +107,9 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public List<ColumnFamilyDesc> listFamilyDescOfTable(String tableName) {
         return this.execute(admin -> {
             tableIsNotExistsThrowError(admin, tableName);
-            TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            final ColumnFamilyDescriptor[] families = tableDescriptor.getColumnFamilies();
-            return Arrays.stream(families).map(c -> new ColumnFamilyDesc().convertTo(c)).collect(Collectors.toList());
+            HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            final Collection<HColumnDescriptor> families = tableDescriptor.getFamilies();
+            return families.stream().map(c -> new ColumnFamilyDesc().convertTo(c)).collect(Collectors.toList());
         });
     }
 
@@ -119,8 +117,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @SuppressWarnings("unchecked")
     public HTableDesc getTableDesc(String tableName) {
         return this.execute(admin -> {
-            tableIsNotExistsThrowError(admin, tableName);
-            TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
+            HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
             return new HTableDesc().convertTo(tableDescriptor);
         });
     }
@@ -135,7 +132,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public <HTD extends BaseHTableDesc> boolean createTable(HTD tableDesc) {
         MyAssert.checkNotNull(tableDesc);
         return this.execute(admin -> {
-            TableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
+            HTableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
             tableIsExistsThrowError(admin, tableDescriptor.getTableName().getNameAsString());
             admin.createTable(tableDescriptor);
             return true;
@@ -146,7 +143,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public <HTD extends BaseHTableDesc> boolean createTable(HTD tableDesc, String startKey, String endKey, int numRegions, boolean isAsync) {
         MyAssert.checkNotNull(tableDesc);
         return this.execute(admin -> {
-            TableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
+            HTableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
             tableIsExistsThrowError(admin, tableDescriptor.getTableName().getNameAsString());
             boolean preSplit = (StringUtil.isNotBlank(startKey) && StringUtil.isNotBlank(endKey) && numRegions > 0);
 
@@ -194,7 +191,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public <HTD extends BaseHTableDesc> boolean createTable(HTD tableDesc, String[] splitKeys, boolean isAsync) {
         MyAssert.checkNotNull(tableDesc);
         return this.execute(admin -> {
-            TableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
+            HTableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
             tableIsExistsThrowError(admin, tableDescriptor.getTableName().getNameAsString());
             boolean preSplit = splitKeys != null && splitKeys.length > 0;
 
@@ -216,7 +213,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public <HTD extends BaseHTableDesc> boolean createTable(HTD tableDesc, SplitGoEnum splitGoEnum, int numRegions, boolean isAsync) {
         MyAssert.checkNotNull(tableDesc);
         return this.execute(admin -> {
-            TableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
+            HTableDescriptor tableDescriptor = ((HTableDesc) tableDesc).convertFor();
             tableIsExistsThrowError(admin, tableDescriptor.getTableName().getNameAsString());
             boolean preSplit = splitGoEnum != null && numRegions > 0;
 
@@ -246,7 +243,20 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
 
     @Override
     public boolean modifyTableConfiguration(final String tableName, Map<String, String> configuration, boolean isAsync) {
-        throw new UnsupportedOperationException("Unsupported function modifyTableConfiguration.");
+        return this.execute(admin -> {
+            tableIsNotExistsThrowError(admin, tableName);
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (configuration != null && !configuration.isEmpty()) {
+                configuration.forEach(tableDescriptor::setValue);
+                if (isAsync) {
+                    admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+                } else {
+                    admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
+                }
+                return true;
+            }
+            return true;
+        });
     }
 
     @Override
@@ -280,7 +290,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotDisableThrowError(admin, tableName);
 
             if (isAsync) {
-                admin.deleteTableAsync(TableName.valueOf(tableName));
+                admin.deleteTable(TableName.valueOf(tableName));
             } else {
                 admin.deleteTable(TableName.valueOf(tableName));
             }
@@ -294,7 +304,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             tableIsNotExistsThrowError(admin, tableName);
             tableIsNotDisableThrowError(admin, tableName);
             if (isAsync) {
-                admin.truncateTableAsync(TableName.valueOf(tableName), preserveSplits);
+                admin.truncateTable(TableName.valueOf(tableName), preserveSplits);
             } else {
                 admin.truncateTable(TableName.valueOf(tableName), preserveSplits);
             }
@@ -308,40 +318,31 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
         return this.execute(admin -> {
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
-            final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            if (tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
                 throw new HBaseFamilyHasExistsException(String.format("The family %s in the table %s has created.",
                         columnFamilyDesc.getNameAsString(), tableName));
             }
-            if (isAsync) {
-                admin.addColumnFamilyAsync(TableName.valueOf(tableName), columnFamilyDesc.convertFor());
-            } else {
-                admin.addColumnFamily(TableName.valueOf(tableName), columnFamilyDesc.convertFor());
-            }
+            admin.addColumn(TableName.valueOf(tableName), columnFamilyDesc.convertFor());
             return true;
         });
     }
 
     @Override
     public <CF extends BaseColumnFamilyDesc> boolean addFamilyAsync(String tableName, CF familyDesc) {
-        return addFamily(tableName, familyDesc, true);
+        return false;
     }
 
     @Override
     public boolean deleteFamily(String tableName, String familyName, boolean isAsync) {
         return this.execute(admin -> {
             tableIsNotExistsThrowError(admin, tableName);
-            final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(familyName))) {
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (!tableDescriptor.hasFamily(Bytes.toBytes(familyName))) {
                 throw new HBaseFamilyNotFoundException(String.format("The family %s in the table %s is not exists.",
                         familyName, tableName));
             }
-            if (isAsync) {
-                admin.deleteColumnFamilyAsync(TableName.valueOf(tableName), Bytes.toBytes(familyName));
-            } else {
-                admin.deleteColumnFamily(TableName.valueOf(tableName), Bytes.toBytes(familyName));
-            }
-
+            admin.deleteColumn(TableName.valueOf(tableName), Bytes.toBytes(familyName));
             return true;
         });
     }
@@ -352,18 +353,18 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
         return this.execute(admin -> {
             tableIsNotExistsThrowError(admin, tableName);
             ColumnFamilyDesc columnFamilyDesc = (ColumnFamilyDesc) familyDesc;
-            final TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            if (!tableDescriptor.hasColumnFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
+            final HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
+            if (!tableDescriptor.hasFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()))) {
                 throw new HBaseFamilyNotFoundException(String.format("The family %s in the table %s is not exists.",
                         columnFamilyDesc.getNameAsString(), tableName));
             }
-            ColumnFamilyDescriptor oldColumnDescriptor = tableDescriptor.getColumnFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()));
-            ColumnFamilyDescriptor newColumnDescriptor = columnFamilyDesc.convertFor();
+            HColumnDescriptor oldColumnDescriptor = tableDescriptor.getFamily(Bytes.toBytes(columnFamilyDesc.getNameAsString()));
+            HColumnDescriptor newColumnDescriptor = columnFamilyDesc.convertFor();
             if (!oldColumnDescriptor.equals(newColumnDescriptor)) {
                 if (isAsync) {
-                    admin.modifyColumnFamilyAsync(TableName.valueOf(tableName), newColumnDescriptor);
+                    admin.modifyColumn(TableName.valueOf(tableName), newColumnDescriptor);
                 } else {
-                    admin.modifyColumnFamily(TableName.valueOf(tableName), newColumnDescriptor);
+                    admin.modifyColumn(TableName.valueOf(tableName), newColumnDescriptor);
                 }
             }
             return true;
@@ -372,7 +373,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
 
     @Override
     public <CF extends BaseColumnFamilyDesc> boolean modifyFamilyAsync(String tableName, CF familyDesc) {
-        return modifyFamily(tableName, familyDesc, true);
+        return false;
     }
 
     @Override
@@ -390,17 +391,14 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
         if (namespaceIsExists(namespaceDesc.getNamespaceName())) {
             throw new HBaseOperationsException("命名空间[" + namespaceDesc.getNamespaceName() + "]已经存在");
         }
+
         return this.execute(admin -> {
             NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(namespaceDesc.getNamespaceName()).build();
             final Map<String, String> namespaceProps = namespaceDesc.getNamespaceProps();
             if (namespaceProps != null && !namespaceProps.isEmpty()) {
                 namespaceProps.forEach(namespaceDescriptor::setConfiguration);
             }
-            if (isAsync) {
-                admin.createNamespaceAsync(namespaceDescriptor);
-            } else {
-                admin.createNamespace(namespaceDescriptor);
-            }
+            admin.createNamespace(namespaceDescriptor);
             return true;
         });
     }
@@ -408,15 +406,11 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public boolean deleteNamespace(String namespaceName, boolean isAsync) {
         return this.execute(admin -> {
-            final List<TableDescriptor> tableDescriptors = admin.listTableDescriptorsByNamespace(Bytes.toBytes(namespaceName));
-            if (tableDescriptors != null && !tableDescriptors.isEmpty()) {
+            final HTableDescriptor[] tableDescriptors = admin.listTableDescriptorsByNamespace(namespaceName);
+            if (tableDescriptors != null && tableDescriptors.length > 0) {
                 throw new HBaseOperationsException("命名空间[" + namespaceName + "]下存在表，不能被删除");
             }
-            if (isAsync) {
-                admin.deleteNamespaceAsync(namespaceName);
-            } else {
-                admin.deleteNamespace(namespaceName);
-            }
+            admin.deleteNamespace(namespaceName);
             return true;
         });
     }
@@ -424,20 +418,19 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public List<SnapshotDesc> listSnapshots() {
         return this.execute(admin -> {
-            final List<SnapshotDescription> listSnapshots = admin.listSnapshots();
+            final List<HBaseProtos.SnapshotDescription> listSnapshots = admin.listSnapshots();
             if (listSnapshots == null || listSnapshots.isEmpty()) {
                 return new ArrayList<>();
             } else {
                 return listSnapshots.stream().map(snapshotDescription -> {
                     SnapshotDesc snapshotDesc = new SnapshotDesc();
                     snapshotDesc.setSnapshotName(snapshotDescription.getName());
-                    snapshotDesc.setTableName(snapshotDescription.getTableName().getNameAsString());
+                    snapshotDesc.setTableName(snapshotDescription.getTable());
                     snapshotDesc.setCreateTime(snapshotDescription.getCreationTime());
                     return snapshotDesc;
                 }).collect(Collectors.toList());
             }
         });
-
     }
 
     @Override
@@ -469,7 +462,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public boolean mergeRegions(byte[] firstRegion, byte[] secondRegion, boolean force) {
         return this.execute(admin -> {
-            admin.mergeRegionsAsync(firstRegion, secondRegion, force);
+            admin.mergeRegions(firstRegion, secondRegion, force);
             return true;
         });
     }
@@ -484,7 +477,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             for (int i = 0, j = 1; i < mergeRegionsNum - 1; i += 2, j += 2) {
                 byte[] firstByteRegionName = regions[i];
                 byte[] secondByteRegionName = regions[j];
-                admin.mergeRegionsAsync(firstByteRegionName, secondByteRegionName, force);
+                admin.mergeRegions(firstByteRegionName, secondByteRegionName, force);
             }
             return true;
         });
@@ -493,12 +486,11 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public boolean mergeTableSmallRegions(String tableName, int limitRegionsNum, int limitRegionSize) {
         return this.execute(admin -> {
-            final ClusterMetrics clusterStatus = admin.getClusterMetrics();
-            final Map<ServerName, ServerMetrics> serverStatus = clusterStatus.getLiveServerMetrics();
+            final ClusterStatus clusterStatus = admin.getClusterStatus();
             List<String> biggerRegions = new ArrayList<>();
-            serverStatus.forEach(((serverName, serverMetrics) ->
-                    serverMetrics.getRegionMetrics().forEach((region, regionMetric) -> {
-                        final String regionStrName = regionMetric.getNameAsString();
+            clusterStatus.getServers().forEach((serverName ->
+                    clusterStatus.getLoad(serverName).getRegionsLoad().forEach((region, regionLoad) -> {
+                        final String regionStrName = regionLoad.getNameAsString();
                         if (regionStrName.startsWith(tableName)) {
                             Matcher regionNameMatcher = REGION_COMPILE.matcher(regionStrName);
                             String regionEncodedName = "";
@@ -508,14 +500,14 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
                             if (StringUtil.isBlank(regionEncodedName)) {
                                 throw new HBaseOperationsException("无法获取region[" + regionStrName + "]的加密名称");
                             }
-                            final double regionStoreFileSize = regionMetric.getStoreFileSize().get();
+                            final int regionStoreFileSize = regionLoad.getStorefileSizeMB();
                             if (regionStoreFileSize > limitRegionSize) {
                                 biggerRegions.add(regionEncodedName);
                             }
                         }
                     })));
-            List<RegionInfo> mergedRegions = new ArrayList<>();
-            admin.getRegions(TableName.valueOf(tableName)).forEach(regionInfo -> {
+            List<HRegionInfo> mergedRegions = new ArrayList<>();
+            admin.getTableRegions(TableName.valueOf(tableName)).forEach(regionInfo -> {
                 if (biggerRegions.contains(regionInfo.getEncodedName())) {
                     // 把大region设置成null，使之不会参与合并
                     mergedRegions.add(null);
@@ -523,7 +515,7 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
                     mergedRegions.add(regionInfo);
                 }
             });
-            List<RegionInfo> subMergedRegions;
+            List<HRegionInfo> subMergedRegions;
             int mergedRegionsSize = mergedRegions.size();
             if (mergedRegionsSize > limitRegionsNum) {
                 subMergedRegions = mergedRegions.subList(0, limitRegionsNum);
@@ -532,8 +524,8 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             }
             // 保证region相邻
             for (int i = 0, j = 1; i < subMergedRegions.size() - 1; i += 2, j += 2) {
-                RegionInfo firstRegionInfo = subMergedRegions.get(i);
-                RegionInfo secondRegionInfo = subMergedRegions.get(j);
+                HRegionInfo firstRegionInfo = subMergedRegions.get(i);
+                HRegionInfo secondRegionInfo = subMergedRegions.get(j);
                 if (firstRegionInfo == null) {
                     continue;
                 }
@@ -546,11 +538,10 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
                 if (secondRegionInfo.isOffline() || secondRegionInfo.isSplit()) {
                     continue;
                 }
-                if (!RegionInfo.areAdjacent(firstRegionInfo, secondRegionInfo)) {
+                if (!HRegionInfo.areAdjacent(firstRegionInfo, secondRegionInfo)) {
                     continue;
                 }
-                admin.mergeRegionsAsync(firstRegionInfo.getEncodedNameAsBytes(), secondRegionInfo.getEncodedNameAsBytes(), false);
-                LOG.info("表:" + tableName + ", Region:" + firstRegionInfo.getEncodedName() + ", " + secondRegionInfo.getEncodedName() + " 异步合并指令运行成功");
+                admin.mergeRegions(firstRegionInfo.getEncodedNameAsBytes(), secondRegionInfo.getEncodedNameAsBytes(), false);
             }
             return true;
         });
@@ -572,21 +563,18 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
 
         return this.execute(admin -> {
             tableIsNotExistsThrowError(admin, tableName);
-            TableDescriptor tableDescriptor = admin.getDescriptor(TableName.valueOf(tableName));
-            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableDescriptor);
+            HTableDescriptor tableDescriptor = admin.getTableDescriptor(TableName.valueOf(tableName));
             boolean change = false;
             for (String family : families) {
-                final ColumnFamilyDescriptor hd = tableDescriptor.getColumnFamily(Bytes.toBytes(family));
-                ColumnFamilyDescriptorBuilder columnFamilyDescriptorBuilder = ColumnFamilyDescriptorBuilder.newBuilder(hd);
+                final HColumnDescriptor hd = tableDescriptor.getFamily(Bytes.toBytes(family));
                 final int currentScope = hd.getScope();
                 if (currentScope != replicationScope) {
-                    columnFamilyDescriptorBuilder.setScope(replicationScope);
-                    tableDescriptorBuilder.setColumnFamily(columnFamilyDescriptorBuilder.build());
+                    hd.setScope(replicationScope);
                     change = true;
                 }
             }
             if (change) {
-                admin.modifyTable(tableDescriptorBuilder.build());
+                admin.modifyTable(TableName.valueOf(tableName), tableDescriptor);
             }
             return true;
         });
@@ -595,33 +583,32 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public Summary refreshSummary() {
         return this.execute(admin -> {
-            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
+            ClusterStatus clusterStatus = admin.getClusterStatus();
             String currentTime = DateAndTimeUtil.parseTimestampToTimeStr(System.currentTimeMillis());
 
-            String version = clusterMetrics.getHBaseVersion();
-            String clusterId = clusterMetrics.getClusterId();
-            int liveServers = clusterMetrics.getLiveServerMetrics().size();
-            int deadServers = clusterMetrics.getDeadServerNames().size();
-            int regionCount = clusterMetrics.getRegionCount();
-            int ritCount = clusterMetrics.getRegionStatesInTransition().size();
+            String version = clusterStatus.getHBaseVersion();
+            String clusterId = clusterStatus.getClusterId();
+
+            int liveServers = clusterStatus.getServersSize();
+            int deadServers = clusterStatus.getDeadServerNames().size();
+            int regionCount = clusterStatus.getRegionsCount();
+            int ritCount = clusterStatus.getRegionsInTransition().size();
             int namespaceCount = admin.listNamespaceDescriptors().length;
             int tableCount = admin.listTableNames().length;
             int snapshotCount = admin.listSnapshots().size();
 
-            double averageLoad = clusterMetrics.getAverageLoad();
-
-            long aggregateRequestPerSecond = clusterMetrics.getLiveServerMetrics().values().stream()
-                    .mapToLong(ServerMetrics::getRequestCountPerSecond).sum();
-
+            double averageLoad = clusterStatus.getAverageLoad();
+            long aggregateRequestPerSecond = 0;
+            for (ServerName sn : clusterStatus.getServers()) {
+                ServerLoad sl = clusterStatus.getLoad(sn);
+                aggregateRequestPerSecond += sl.getNumberOfRequests();
+            }
             Summary clusterSummary = new Summary(currentTime, version, clusterId, liveServers + deadServers,
                     liveServers, deadServers, namespaceCount, tableCount, snapshotCount, regionCount, ritCount, averageLoad, aggregateRequestPerSecond);
-            List<String> liveServerNames = new ArrayList<>(liveServers);
-
-            clusterMetrics.getLiveServerMetrics().forEach(((serverName, serverMetrics) -> liveServerNames.add(serverName.getServerName())));
-            List<String> deadServerNames = clusterMetrics.getDeadServerNames().stream().map(ServerName::getServerName).collect(Collectors.toList());
+            List<String> liveServerNames = clusterStatus.getServers().stream().map(ServerName::getServerName).collect(Collectors.toList());
+            List<String> deadServerNames = clusterStatus.getDeadServerNames().stream().map(ServerName::getServerName).collect(Collectors.toList());
             clusterSummary.setLiveServerNames(liveServerNames);
             clusterSummary.setDeadServerNames(deadServerNames);
-
             return clusterSummary;
         });
     }
@@ -629,11 +616,9 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public List<Record> refreshRecords(Mode currentMode, List<RecordFilter> filters, Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
-            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
-            List<Record> records = currentMode.getRecords(clusterMetrics);
-
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = currentMode.getRecords(clusterStatus);
             return filterAndSortRecords(records, filters, currentSortField, ascendingSort);
-
         });
     }
 
@@ -644,8 +629,9 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
             RecordFilter recordFilter = RecordFilter.newBuilder(Field.NAMESPACE, false)
                     .notEqual(new FieldValue(HMHBaseConstants.DEFAULT_SYS_TABLE_NAMESPACE, FieldValueType.STRING));
             recordFilters.add(recordFilter);
-            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
-            List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = Mode.TABLE.getRecords(clusterStatus);
+
             records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
             return records.stream().map(this::convertRecordToHBaseTableRecord).collect(Collectors.toList());
         });
@@ -670,8 +656,8 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     public HBaseTableRecord refreshTableRecord(String fullTableName) {
         return this.execute(admin -> {
             List<RecordFilter> recordFilters = createTableRecordFilters(fullTableName);
-            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
-            List<Record> records = Mode.TABLE.getRecords(clusterMetrics);
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = Mode.TABLE.getRecords(clusterStatus);
             if (records.isEmpty()) {
                 return null;
             }
@@ -684,9 +670,10 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
     @Override
     public List<HBaseRegionRecord> refreshRegionRecords(String tableName, Field currentSortField, boolean ascendingSort) {
         return this.execute(admin -> {
-            final ClusterMetrics clusterMetrics = admin.getClusterMetrics();
-            List<Record> records = Mode.REGION.getRecords(clusterMetrics);
             List<RecordFilter> recordFilters = createTableRecordFilters(tableName);
+
+            ClusterStatus clusterStatus = admin.getClusterStatus();
+            List<Record> records = Mode.REGION.getRecords(clusterStatus);
             records = filterAndSortRecords(records, recordFilters, currentSortField, ascendingSort);
 
             List<HBaseRegionRecord> regionRecords = new ArrayList<>(records.size());
@@ -706,7 +693,6 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
                 regionRecord.setTableName(firstRegionRecord.get(Field.TABLE).asString());
                 regionRecord.setRegionName(firstRegionRecord.get(Field.REGION_NAME).asString());
                 regionRecord.setEncodedRegionName(firstRegionRecord.get(Field.REGION).asString());
-
                 regionRecord.setStartCode(DateAndTimeUtil.parseTimestampToTimeStr(Long.parseLong(firstRegionRecord.get(Field.START_CODE).asString())));
                 regionRecord.setRegionServer(firstRegionRecord.get(Field.REGION_SERVER).asString());
 
@@ -745,7 +731,6 @@ public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements 
                     .filter(r -> recordFilters.stream().allMatch(f -> f.execute(r)))
                     .collect(Collectors.toList());
         }
-
         return Collections.unmodifiableList(sortAndFilterRecords);
     }
 

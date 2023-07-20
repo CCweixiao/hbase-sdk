@@ -20,13 +20,13 @@ public class HBaseThriftThreadPoolSingleTests {
         @Override
         public void run() {
             Random random = new Random();
-            System.out.println(thriftService.getRowToMap("LEO_USER", "a10001", false));
+            System.out.println(thriftService.getToRowData("LEO_USER", "a10001"));
             while (true) {
                 try {
                     int r = random.nextInt(10) + 1;
                     System.out.println("Thread-" + Thread.currentThread().getName() + "即将等待：" + r + "分钟");
                     Thread.sleep(r * 60 * 1000);
-                    System.out.println(thriftService.getRowToMap("LEO_USER", "a10001", false));
+                    System.out.println(thriftService.getToRowData("LEO_USER", "a10001"));
                     System.out.println("Thread-" + Thread.currentThread().getName() + "等待时间：" + r + "分钟");
                 } catch (InterruptedException e) {
                     e.printStackTrace();

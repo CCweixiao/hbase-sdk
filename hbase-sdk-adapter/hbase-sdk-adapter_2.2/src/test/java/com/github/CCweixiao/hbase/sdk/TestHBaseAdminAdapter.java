@@ -1,9 +1,7 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
-import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +14,6 @@ import java.util.regex.Pattern;
  * @author leojie 2023/5/20 23:31
  */
 public class TestHBaseAdminAdapter extends BaseTestAdapter {
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        TEST_UTIL.shutdownMiniCluster();
-    }
 
     @Before
     public void beforeMethod() throws IOException {
@@ -51,7 +44,7 @@ public class TestHBaseAdminAdapter extends BaseTestAdapter {
 
     @Test
     public void testCreateTable() {
-        boolean res = testCreateTestTable();
+        boolean res = createTestTable();
         Assert.assertTrue(res);
         List<HTableDesc> tableDescList = adminAdapter.listTableDesc();
         Assert.assertFalse(tableDescList.isEmpty());

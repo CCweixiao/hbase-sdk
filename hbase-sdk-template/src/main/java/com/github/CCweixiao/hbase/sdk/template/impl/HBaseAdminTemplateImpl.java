@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.template.impl;
 
-import com.github.CCweixiao.hbase.sdk.HBaseAdminAdapterImpl;
-import com.github.CCweixiao.hbase.sdk.IHBaseAdminAdapter;
+import com.github.CCweixiao.hbase.sdk.HBaseAdminAdapter;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseRegionRecord;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseTableRecord;
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
@@ -26,11 +25,11 @@ import java.util.Properties;
  */
 public class HBaseAdminTemplateImpl implements IHBaseAdminTemplate {
     private final Properties properties;
-    private final HBaseAdminAdapterImpl adminAdapter;
+    private final HBaseAdminAdapter adminAdapter;
 
     private HBaseAdminTemplateImpl(Builder builder) {
         this.properties = builder.properties;
-        this.adminAdapter = new HBaseAdminAdapterImpl(properties);
+        this.adminAdapter = new HBaseAdminAdapter(properties);
     }
 
     @Override

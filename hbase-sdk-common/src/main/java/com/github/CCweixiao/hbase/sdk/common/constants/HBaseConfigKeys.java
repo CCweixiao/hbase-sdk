@@ -8,11 +8,14 @@ import org.apache.hadoop.hbase.HConstants;
 public class HBaseConfigKeys {
     public static final String FILTER_NAMESPACE_PREFIX = "filter.namespace.prefix";
     public static final String FILTER_TABLE_NAME_PREFIX = "filter.table.name.prefix";
+
+    public static final String KERBEROS_PROXY_USER = "kerberos.proxy.user";
     public static final String KERBEROS_PRINCIPAL = "kerberos.principal";
     public static final String KERBEROS_KEYTAB_FILE = "keytab.file";
     public static final String JAVA_SECURITY_PREFIX = "java.security";
 
     public static final String ZOOKEEPER_QUORUM = HConstants.ZOOKEEPER_QUORUM;
+    public static final String LOCAL_HOST_ZOOKEEPER_QUORUM = "localhost";
     public static final String ZOOKEEPER_CLIENT_PORT = HConstants.ZOOKEEPER_CLIENT_PORT;
     public static final String ZOOKEEPER_NODE_PARENT = HConstants.ZOOKEEPER_ZNODE_PARENT;
     public static final String HBASE_DFS_ROOT_DIR = HConstants.HBASE_DIR;

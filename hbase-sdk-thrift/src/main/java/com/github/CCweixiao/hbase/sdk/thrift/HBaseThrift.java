@@ -1,7 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 
 import java.io.Closeable;
@@ -46,8 +47,8 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public <T> T save(T t) {
-        return hBaseThriftClient.save(t);
+    public <T> void save(T t) {
+        hBaseThriftClient.save(t);
     }
 
     @Override
@@ -91,22 +92,32 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
-        return hBaseThriftClient.getRowToMap(tableName, rowKey, withTimestamp);
+    public HBaseRowData getToRowData(String tableName, String rowKey) {
+        return hBaseThriftClient.getToRowData(tableName, rowKey);
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
-        return hBaseThriftClient.getRowToMap(tableName, rowKey, familyName, withTimestamp);
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
+        return hBaseThriftClient.getToRowData(tableName, rowKey, familyName);
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return hBaseThriftClient.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName, List<String> qualifiers) {
+        return hBaseThriftClient.getToRowData(tableName, rowKey, familyName, qualifiers);
     }
 
     @Override
-    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+        return null;
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+        return null;
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         return null;
     }
 
@@ -141,18 +152,18 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
-        return hBaseThriftClient.getRowsToMap(tableName, rowKeys, withTimestamp);
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
+        return hBaseThriftClient.getToRowsData(tableName, rowKeys);
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
-        return hBaseThriftClient.getRowsToMap(tableName, rowKeys, familyName, withTimestamp);
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
+        return hBaseThriftClient.getToRowsData(tableName, rowKeys, familyName);
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
-        return hBaseThriftClient.getRowsToMap(tableName, rowKeys, familyName, qualifiers, withTimestamp);
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
+        return hBaseThriftClient.getToRowsData(tableName, rowKeys, familyName, qualifiers);
     }
 
     @Override
@@ -166,7 +177,7 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
+    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
         return hBaseThriftClient.scan(tableName, scanQueryParams);
     }
 

@@ -42,18 +42,18 @@ import static com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants.E
  * @author leojie 2020/9/25 11:11 下午
  */
 @InterfaceAudience.Private
-public class HBaseAdminAdapterImpl extends AbstractHBaseAdminAdapter implements HBaseMetricOperations {
+public class HBaseAdminAdapter extends AbstractHBaseAdminAdapter implements HBaseMetricOperations {
     public static final Pattern REGION_COMPILE = Pattern.compile("\\.(\\w+)\\.");
 
-    public HBaseAdminAdapterImpl(Configuration configuration) {
+    public HBaseAdminAdapter(Configuration configuration) {
         super(configuration);
     }
 
-    public HBaseAdminAdapterImpl(Properties properties) {
+    public HBaseAdminAdapter(Properties properties) {
         super(properties);
     }
 
-    public HBaseAdminAdapterImpl(String zkHost, String zkPort) {
+    public HBaseAdminAdapter(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
 

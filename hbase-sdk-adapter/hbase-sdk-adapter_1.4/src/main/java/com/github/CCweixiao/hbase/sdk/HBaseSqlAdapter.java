@@ -1,12 +1,12 @@
 package com.github.CCweixiao.hbase.sdk;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -28,17 +28,17 @@ import java.util.*;
  * @author leojie 2020/11/28 8:36 下午
  */
 @InterfaceAudience.Private
-public class HBaseSqlAdapterImpl extends AbstractHBaseSqlAdapter {
+public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
-    public HBaseSqlAdapterImpl(Properties properties) {
+    public HBaseSqlAdapter(Properties properties) {
         super(properties);
     }
 
-    public HBaseSqlAdapterImpl(String zkHost, String zkPort) {
+    public HBaseSqlAdapter(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
 
-    public HBaseSqlAdapterImpl(Configuration configuration) {
+    public HBaseSqlAdapter(Configuration configuration) {
         super(configuration);
     }
 
@@ -216,14 +216,6 @@ public class HBaseSqlAdapterImpl extends AbstractHBaseSqlAdapter {
         });
     }
 
-    public String parseTableNameFromHql(String hql) {
-        return super.parseTableNameFromHql(hql);
-    }
-
-    public HQLType parseHQLType(String hql) {
-        return super.parseHQLType(hql);
-    }
-
     @Override
     public void delete(String hsql) {
         HBaseSQLParser.ProgContext progContext = parseProgContext(hsql);
@@ -265,6 +257,14 @@ public class HBaseSqlAdapterImpl extends AbstractHBaseSqlAdapter {
             Util.checkRowKey(endRowKey);
             deleteWithScanFirst(tableName, startRowKey, endRowKey, filter, deleteColumnSchemaList, ts);
         }
+    }
+
+    public String parseTableNameFromHql(String hql) {
+        return super.parseTableNameFromHql(hql);
+    }
+
+    public HQLType parseHQLType(String hql) {
+        return super.parseHQLType(hql);
     }
 
     private void deleteInEqRowKey(String tableName, RowKey<?> eqRowKey,

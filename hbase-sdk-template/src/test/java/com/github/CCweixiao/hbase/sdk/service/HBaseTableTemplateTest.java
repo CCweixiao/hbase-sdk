@@ -3,7 +3,8 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
@@ -32,8 +33,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     @Test
     public void testSaveJavaBean() {
         try {
-            CityModel city = tableTemplate.save(createDefaultCityModel());
-            System.out.println(city);
+            tableTemplate.save(createDefaultCityModel());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -59,7 +59,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testScanWithLimit() {
-        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
+        ScanParams scanQueryParamsBuilder = ScanParams.builder()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .limit(2)
@@ -71,7 +71,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     @Test
     public void testScanWithStartAndEndRow() {
         // 不包含endRow的数据
-        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
+        ScanParams scanQueryParamsBuilder = ScanParams.builder()
                 .startRow("a10001")
                 .stopRow("a10002")
                 .build();
@@ -81,7 +81,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testScanWithFilter() {
-        ScanParams scanQueryParamsBuilder = new ScanParams.Builder()
+        ScanParams scanQueryParamsBuilder = ScanParams.builder()
                 .filter(new IHBaseFilter<Filter>() {
                     @Override
                     public Filter customFilter() {
@@ -172,27 +172,22 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testGetRow() {
-        Map<String, String> d1 = tableTemplate.getRowToMap("t1", "1001", true);
-        JSONArray objects = JSON.parseArray(d1.get("f3:tags"));
-        Map<String, String> d2 = tableTemplate.getRowToMap("t1", "1002", false);
+        HBaseRowData d1 = tableTemplate.getToRowData("t1", "1001");
+        JSONArray objects = JSON.parseArray(d1.getColDataContainer().get("f3:tags").getValue());
+        HBaseRowData d2 = tableTemplate.getToRowData("t1", "1002");
         List<String> rows = new ArrayList<>(2);
         rows.add("1001");
         rows.add("1002");
-        Map<String, Map<String, String>> d3 = tableTemplate.getRowsToMap("t1", rows, true);
-        System.out.println(d1);
-        System.out.println(d2);
-        System.out.println(d3);
+
     }
 
     @Test
     public void testGetRows() {
-        Map<String, Map<String, String>> d1 = tableTemplate.getRowsToMap("t1", Arrays.asList("1001", "1102"), false);
-        System.out.println(d1);
     }
 
     @Test
     public void getRowToMapWithMultiVersions() {
-        Map<String, List<HBaseColData>> rowToMapWithMultiVersions = tableTemplate.getRowToMapWithMultiVersions("leo_test", "1001",
+        HBaseRowDataWithMultiVersions rowToMapWithMultiVersions = tableTemplate.getToRowDataWithMultiVersions("leo_test", "1001",
                 "f1", Arrays.asList("name", "age", "address"), 3);
         System.out.println(rowToMapWithMultiVersions);
 

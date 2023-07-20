@@ -28,17 +28,17 @@ import java.util.*;
  * @author leojie 2020/11/28 8:36 下午
  */
 @InterfaceAudience.Private
-public class HBaseSqlAdapterImpl extends AbstractHBaseSqlAdapter {
+public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
-    public HBaseSqlAdapterImpl(Properties properties) {
+    public HBaseSqlAdapter(Properties properties) {
         super(properties);
     }
 
-    public HBaseSqlAdapterImpl(String zkHost, String zkPort) {
+    public HBaseSqlAdapter(String zkHost, String zkPort) {
         super(zkHost, zkPort);
     }
 
-    public HBaseSqlAdapterImpl(Configuration configuration) {
+    public HBaseSqlAdapter(Configuration configuration) {
         super(configuration);
     }
 

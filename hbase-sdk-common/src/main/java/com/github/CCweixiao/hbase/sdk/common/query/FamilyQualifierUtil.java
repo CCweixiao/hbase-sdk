@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.util;
+package com.github.CCweixiao.hbase.sdk.common.query;
 
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 

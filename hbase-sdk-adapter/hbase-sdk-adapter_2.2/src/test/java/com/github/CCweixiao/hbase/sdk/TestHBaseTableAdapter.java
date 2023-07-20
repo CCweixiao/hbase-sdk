@@ -1,37 +1,42 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @author leojie 2023/7/3 11:00
  */
-public class TestHBaseTableAdapter extends TestHBaseAdminAdapter{
+public class TestHBaseTableAdapter extends BaseTestAdapter {
     private static final Logger LOG = LoggerFactory.getLogger(TestHBaseTableAdapter.class);
 
-    public static final String TEST_TABLE = "test_table";
+    @Before
+    public void beforeMethod() throws IOException {
+        createTestTable();
+    }
 
     @Test
-    public void testPut() {
-        testCreateTestTable();
-        Map<String, Object> data = new HashMap<>();
+    public void testSave() {
+        createTestTable();
+        Map<String, Object> data = new HashMap<>(2);
         data.put("f:name", "leo");
         data.put("f:age", 18);
         tableAdapter.save(TEST_TABLE, "1001", data);
-        Map<String, String> result = tableAdapter.getRowToMap(TEST_TABLE, "1001", false);
-        Assert.assertEquals(2, result.size());
-        System.out.println("");
+        HBaseRowData result = tableAdapter.getToRowData(TEST_TABLE, "1001");
+        Assert.assertEquals(2, result.getColDataContainer().size());
     }
 
     @Test
     public void testSaveBatch() {
-        testCreateTestTable();
+        createTestTable();
         Map<String, Object> data1 = new HashMap<>();
         data1.put("f:name", "leo1");
         data1.put("f:age", 17);
@@ -45,8 +50,10 @@ public class TestHBaseTableAdapter extends TestHBaseAdminAdapter{
         data.put("1002", data2);
 
         tableAdapter.saveBatch(TEST_TABLE, data);
-        Map<String, Map<String, String>> result =
-                tableAdapter.getRowsToMap(TEST_TABLE, Arrays.asList("1001", "1002"), true);
-        Assert.assertEquals(2, result.size());
+    }
+
+    @After
+    public void afterMethod() throws IOException {
+        deleteTestTable();
     }
 }

@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.thrift.model.CityModel;
 import org.junit.Assert;
@@ -13,8 +14,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
     public void testSavePOJO() {
         CityModel cityModel = createDefaultCityModel();
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            CityModel data = hBaseThrift.save(cityModel);
-            Assert.assertEquals("a10001", data.getCityId());
+            hBaseThrift.save(cityModel);
         }
     }
 
@@ -53,7 +53,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
 
     @Test
     public void testScanToPOJO() {
-        ScanParams params = new ScanParams.Builder()
+        ScanParams params = ScanParams.builder()
                 .familyName("")
                 .limit(2)
                 .reversed(true)
@@ -87,30 +87,21 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
     @Test
     public void testGetRowToMap() {
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            Map<String, String> data = hBaseThrift.getRowToMap("t1", "100011", false);
-            Assert.assertEquals("18", data.get("f1:age"));
-        }
-    }
-
-    @Test
-    public void testGetRowsToMap() {
-        try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            Map<String, Map<String, String>> t1 =
-                    hBaseThrift.getRowsToMap("t1", Arrays.asList("a100011", "b120011"), true);
-            Assert.assertEquals(2, t1.size());
+            HBaseRowData data = hBaseThrift.getToRowData("t1", "100011", "f1");
+            Assert.assertEquals("18", data.getColDataContainer().get("f1:age").getValue());
         }
     }
 
     @Test
     public void testScanToMap() {
-        ScanParams params = new ScanParams.Builder()
+        ScanParams params = ScanParams.builder()
                 .familyName("")
                 .limit(10)
                 .reversed(true)
                 .build();
 
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            List<Map<String, Map<String, String>>> data = hBaseThrift.scan("t1", params);
+            List<HBaseRowData> data = hBaseThrift.scan("t1", params);
             Assert.assertEquals(9, data.size());
         }
     }

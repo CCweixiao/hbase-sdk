@@ -1,7 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
-import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseColData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 
 import java.util.List;
@@ -51,9 +52,9 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
         }
     }
     @Override
-    public <T> T save(T t) {
+    public <T> void save(T t) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.save(t);
+            hBaseThrift.save(t);
         }
     }
 
@@ -107,30 +108,44 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, boolean withTimestamp) {
+    public HBaseRowData getToRowData(String tableName, String rowKey) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowToMap(tableName, rowKey, withTimestamp);
+            return hBaseThrift.getToRowData(tableName, rowKey);
         }
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, boolean withTimestamp) {
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowToMap(tableName, rowKey, familyName, withTimestamp);
+            return hBaseThrift.getToRowData(tableName, rowKey, familyName);
         }
     }
 
     @Override
-    public Map<String, String> getRowToMap(String tableName, String rowKey, String familyName, List<String> qualifiers, boolean withTimestamp) {
+    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName, List<String> qualifiers) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowToMap(tableName, rowKey, familyName, qualifiers, withTimestamp);
+            return hBaseThrift.getToRowData(tableName, rowKey, familyName, qualifiers);
         }
     }
 
     @Override
-    public Map<String, List<HBaseColData>> getRowToMapWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int version) {
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowToMapWithMultiVersions(tableName, rowKey, familyName, qualifiers, version);
+            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, "", null, versions);
+        }
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, familyName, null, versions);
+        }
+    }
+
+    @Override
+    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+        try (HBaseThrift hBaseThrift = pool.getResource()) {
+            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
         }
     }
 
@@ -177,23 +192,23 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, boolean withTimestamp) {
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowsToMap(tableName, rowKeys, withTimestamp);
+            return hBaseThrift.getToRowsData(tableName, rowKeys);
         }
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, boolean withTimestamp) {
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowsToMap(tableName, rowKeys, familyName, withTimestamp);
+            return hBaseThrift.getToRowsData(tableName, rowKeys, familyName);
         }
     }
 
     @Override
-    public Map<String, Map<String, String>> getRowsToMap(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, boolean withTimestamp) {
+    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getRowsToMap(tableName, rowKeys, familyName, qualifiers, withTimestamp);
+            return hBaseThrift.getToRowsData(tableName, rowKeys, familyName, qualifiers);
         }
     }
 
@@ -212,7 +227,7 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public List<Map<String, Map<String, String>>> scan(String tableName, ScanParams scanQueryParams) {
+    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
             return hBaseThrift.scan(tableName, scanQueryParams);
         }
