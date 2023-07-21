@@ -4,12 +4,7 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
-import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.*;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
@@ -25,13 +20,12 @@ import java.util.stream.Collectors;
  * @author leojie 2022/11/4 20:58
  */
 public abstract class AbstractHBaseTemplateTest {
-    protected IHBaseAdminTemplate adminTemplate;
+    protected BaseHBaseAdminTemplate adminTemplate;
     protected BaseHBaseTableTemplate tableTemplate;
-    protected IHBaseSqlTemplate sqlTemplate;
+    protected BaseHBaseSqlTemplate sqlTemplate;
 
     protected void initIHBaseAdminTemplate() {
-        adminTemplate = new HBaseAdminTemplateImpl.Builder()
-                .properties(getProperties()).build();
+        adminTemplate = HBaseAdminTemplate.of(getProperties());
     }
 
     protected void initIHBaseTableTemplate() {
@@ -53,8 +47,7 @@ public abstract class AbstractHBaseTemplateTest {
         System.out.println("tableSchema.printSchema();");
         tableSchema.printSchema();
         HBaseSqlContext.registerTableSchema(tableSchema);
-        sqlTemplate = new HBaseSqlTemplateImpl.Builder()
-                .properties(getProperties()).build();
+        sqlTemplate = HBaseSqlTemplate.of(getProperties());
     }
 
     protected Properties getProperties() {

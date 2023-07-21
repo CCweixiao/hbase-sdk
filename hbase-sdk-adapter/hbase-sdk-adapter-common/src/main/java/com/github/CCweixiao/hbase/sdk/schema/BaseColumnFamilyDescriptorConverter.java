@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Converter;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.google.common.base.Converter;
 import org.apache.hadoop.hbase.KeepDeletedCells;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding;
@@ -81,9 +81,15 @@ public abstract class BaseColumnFamilyDescriptorConverter<CF extends BaseColumnF
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         BaseColumnFamilyDescriptorConverter<?, ?> that = (BaseColumnFamilyDescriptorConverter<?, ?>) o;
         return columnFamilyDesc.equals(that.columnFamilyDesc);
     }

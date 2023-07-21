@@ -52,33 +52,6 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>${artifactId}-${project.version}</finalName>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.google</pattern>
-                                    <shadedPattern>com.github.CCweixiao.hbase.sdk.common.google.guava</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.alibaba.fastjson2</pattern>
-                                    <shadedPattern>com.github.CCweixiao.hbase.sdk.common.fastjson2</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 

@@ -1,7 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.service;
 
-import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.BaseHBaseAdminTemplate;
+import com.github.CCweixiao.hbase.sdk.template.HBaseAdminTemplate;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,7 +11,7 @@ import java.util.Properties;
  * @author leojie 2022/12/9 22:40
  */
 public class HBaseKerberosTemplateTest {
-    private IHBaseAdminTemplate adminTemplate;
+    private BaseHBaseAdminTemplate adminTemplate;
 
     @Before
     public void init() {
@@ -32,7 +32,7 @@ public class HBaseKerberosTemplateTest {
         properties.put("java.security.krb5.kdc", "你自己的kdc服务地址");
         // 一些额外的客户端参数
         properties.put("hbase.client.retries.number", "3");
-        adminTemplate = new HBaseAdminTemplateImpl.Builder().properties(properties).build();
+        adminTemplate = HBaseAdminTemplate.of(properties);
     }
 
 

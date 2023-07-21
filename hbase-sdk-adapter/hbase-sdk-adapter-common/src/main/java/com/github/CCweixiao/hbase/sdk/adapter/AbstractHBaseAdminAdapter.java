@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk;
+package com.github.CCweixiao.hbase.sdk.adapter;
 
 import com.github.CCweixiao.hbase.sdk.common.model.NamespaceDesc;
 import com.github.CCweixiao.hbase.sdk.common.model.SnapshotDesc;

@@ -15,7 +15,7 @@ import java.util.Map;
  *
  * @author leojie 2020/9/25 10:44 下午
  */
-public interface IHBaseAdminTemplate extends HBaseMetricOperations {
+public interface BaseHBaseAdminTemplate extends HBaseMetricOperations {
     /**
      * 判断表是否存在
      *

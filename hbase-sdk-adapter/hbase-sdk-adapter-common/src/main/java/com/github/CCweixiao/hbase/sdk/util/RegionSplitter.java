@@ -1,10 +1,9 @@
 package com.github.CCweixiao.hbase.sdk.util;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.Preconditions;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.util.Bytes;
-import com.google.common.base.Preconditions;
-
 import java.math.BigInteger;
 import java.util.Arrays;
 

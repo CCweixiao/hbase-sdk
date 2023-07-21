@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.schema;
 
-import com.google.common.base.Converter;
+import com.github.CCweixiao.hbase.sdk.common.lang.Converter;
 import org.apache.yetus.audience.InterfaceAudience;
 
 import java.util.Objects;

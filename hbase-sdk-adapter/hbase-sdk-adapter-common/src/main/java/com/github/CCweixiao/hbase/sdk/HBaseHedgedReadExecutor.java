@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
-import com.google.common.base.Preconditions;
+import com.github.CCweixiao.hbase.sdk.common.lang.Preconditions;
 import org.apache.hadoop.util.Daemon;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.SynchronousQueue;

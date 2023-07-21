@@ -1,9 +1,5 @@
-package com.github.CCweixiao.hbase.sdk;
+package com.github.CCweixiao.hbase.sdk.adapter;
 
-import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableDeleteAdapter;
-import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableGetAdapter;
-import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTablePutAdapter;
-import com.github.CCweixiao.hbase.sdk.adapter.IHBaseTableScanAdapter;
 import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOpAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
@@ -103,14 +99,19 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     @Override
     public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
+        return Optional.of(this.getRow(tableName, get, clazz));
+    }
+
+    @Override
+    public <T> T getRow(String tableName, Get get, Class<T> clazz) {
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
             return mapperRowToT(result, clazz);
-        });
+        }).orElse(null);
     }
 
     @Override
@@ -125,14 +126,19 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
 
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
+        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
+        return Optional.of(this.getRow(tableName, get, rowMapper));
+    }
+
+    @Override
+    public <T> T getRow(String tableName, Get get, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
-            Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
             return rowMapper.mapRow(result, 0);
-        });
+        }).orElse(null);
     }
 
     @Override

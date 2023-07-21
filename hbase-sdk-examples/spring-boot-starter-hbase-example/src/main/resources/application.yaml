@@ -1,13 +1,14 @@
 spring:
   datasource:
     hbase:
-      zk-host-list: localhost
+      zk-quorum: myhbase
       zk-client-port: 2181
       dfs-root-dir: /hbase
       zk-node-parent: /hbase
       security-auth-way: simple
       kerberos-principal: hbase@HADOOP.LEO.COM
       keytab-file-path: /etc/hbase/conf/hbase.keytab
+      kerberos-proxy-user: test
       rs-kerberos-principal: hbase/_HOST@HADOOP.LEO.COM
       master-kerberos-principal: hbase/_HOST@HADOOP.LEO.COM
       krb5-conf-path: /etc/krb5.conf

@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseAdminAdapter;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyHasExistsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseFamilyNotFoundException;

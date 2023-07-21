@@ -6,10 +6,7 @@ import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.Get;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -63,6 +60,11 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     }
 
     @Override
+    <T> T getRow(String tableName, Get get, Class<T> clazz) {
+        return tableOpAdapter.getRow(tableName, get, clazz);
+    }
+
+    @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
         return tableOpAdapter.getRow(tableName, rowKey, rowMapper);
     }
@@ -75,6 +77,11 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     @Override
     public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
         return tableOpAdapter.getRow(tableName, rowKey, familyName, qualifiers, rowMapper);
+    }
+
+    @Override
+    <T> T getRow(String tableName, Get get, RowMapper<T> rowMapper) {
+        return tableOpAdapter.getRow(tableName, get, rowMapper);
     }
 
     @Override
@@ -237,47 +244,8 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
         tableOpAdapter.deleteBatch(tableName, rowKeys, familyName, qualifiers);
     }
 
-    public static class Builder {
-        private Configuration configuration;
-
-        private Builder() {
-        }
-
-        public Builder configuration(Configuration configuration) {
-            this.configuration = configuration;
-            return this;
-        }
-
-        public Builder configuration(Properties properties) {
-            if (properties == null || properties.isEmpty()) {
-                this.configuration = HBaseConfiguration.create();
-                return this;
-            }
-            if (this.configuration == null) {
-                this.configuration = HBaseConfiguration.create();
-                for (String k : properties.stringPropertyNames()) {
-                    this.configuration.set(k, properties.getProperty(k));
-                }
-            }
-            return this;
-        }
-
-        public Builder configuration(String key, String value) {
-            if (this.configuration == null) {
-                this.configuration = HBaseConfiguration.create();
-            }
-            this.configuration.set(key, value);
-            return this;
-        }
-
-        public Builder zookeeperQuorum(String zkQuorum) {
-            return this.configuration(HConstants.ZOOKEEPER_QUORUM, zkQuorum);
-        }
-
-        public Builder zookeeperClientPort(String zkClientPort) {
-            return this.configuration(HConstants.ZOOKEEPER_CLIENT_PORT, zkClientPort);
-        }
-
+    public static class Builder extends BaseTemplateBuilder<HBaseTableTemplate> {
+        @Override
         public HBaseTableTemplate build() {
             return new HBaseTableTemplate(this);
         }

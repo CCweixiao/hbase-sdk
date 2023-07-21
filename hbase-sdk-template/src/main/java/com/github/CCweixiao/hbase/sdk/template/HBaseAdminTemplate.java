@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk.template.impl;
+package com.github.CCweixiao.hbase.sdk.template;
 
 import com.github.CCweixiao.hbase.sdk.HBaseAdminAdapter;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseRegionRecord;
@@ -13,9 +13,7 @@ import com.github.CCweixiao.hbase.sdk.hbtop.field.Field;
 import com.github.CCweixiao.hbase.sdk.hbtop.mode.Mode;
 import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import org.apache.hadoop.hbase.HConstants;
-
+import org.apache.hadoop.conf.Configuration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -23,13 +21,13 @@ import java.util.Properties;
 /**
  * @author leojie 2022/10/22 18:57
  */
-public class HBaseAdminTemplateImpl implements IHBaseAdminTemplate {
-    private final Properties properties;
+public class HBaseAdminTemplate implements BaseHBaseAdminTemplate {
+    private final Configuration configuration;
     private final HBaseAdminAdapter adminAdapter;
 
-    private HBaseAdminTemplateImpl(Builder builder) {
-        this.properties = builder.properties;
-        this.adminAdapter = new HBaseAdminAdapter(properties);
+    private HBaseAdminTemplate(Builder builder) {
+        this.configuration = builder.configuration;
+        this.adminAdapter = new HBaseAdminAdapter(this.configuration);
     }
 
     @Override
@@ -377,41 +375,30 @@ public class HBaseAdminTemplateImpl implements IHBaseAdminTemplate {
         return null;
     }
 
-    public static class Builder {
-        private Properties properties;
-
-        public Builder() {
-        }
-
-        public Builder properties(Properties properties) {
-            this.properties = properties;
-            return this;
-        }
-
-        public Builder addProp(String key, String value) {
-            if (this.properties == null) {
-                this.properties = new Properties();
-            }
-            this.properties.setProperty(key, value);
-            return this;
-        }
-
-        public Builder zookeeperQuorum(String zookeeperQuorum) {
-            addProp(HConstants.ZOOKEEPER_QUORUM, zookeeperQuorum);
-            return this;
-        }
-
-        public Builder zookeeperClientPort(String zookeeperClientPort) {
-            addProp(HConstants.ZOOKEEPER_CLIENT_PORT, zookeeperClientPort);
-            return this;
-        }
-
-        public HBaseAdminTemplateImpl build() {
-            return new HBaseAdminTemplateImpl(this);
+    public static class Builder extends BaseTemplateBuilder<HBaseAdminTemplate> {
+        @Override
+        public HBaseAdminTemplate build() {
+            return new HBaseAdminTemplate(this);
         }
     }
 
-    public Properties getProperties() {
-        return properties;
+    public static HBaseAdminTemplate of(Configuration configuration) {
+        return new HBaseAdminTemplate.Builder().configuration(configuration).build();
+    }
+
+    public static HBaseAdminTemplate of(Properties properties) {
+        return new HBaseAdminTemplate.Builder().configuration(properties).build();
+    }
+
+    public static HBaseAdminTemplate of(String zkQuorum, String zkClientPort) {
+        return new HBaseAdminTemplate.Builder().configuration(zkQuorum, zkClientPort).build();
+    }
+
+    public static HBaseAdminTemplate.Builder builder() {
+        return new HBaseAdminTemplate.Builder();
+    }
+
+    public Configuration getConfiguration() {
+        return configuration;
     }
 }

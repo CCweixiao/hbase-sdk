@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;

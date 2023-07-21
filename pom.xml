@@ -82,6 +82,8 @@
         <jruby.verison>9.3.4.0</jruby.verison>
         <jcodings.version>1.0.56</jcodings.version>
         <joni.version>2.1.42</joni.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <log4j.version>2.17.1</log4j.version>
         <hbase.sdk.adapter.default.version>1.2</hbase.sdk.adapter.default.version>
         <hbase.sdk.adapter.version>${hbase.sdk.adapter.default.version}</hbase.sdk.adapter.version>
     </properties>
@@ -197,14 +199,6 @@
                 <profiles.active>hbase-1.2</profiles.active>
                 <hbase.sdk.adapter.version>1.2</hbase.sdk.adapter.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase1.2.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
             <dependencyManagement>
                 <dependencies>
                     <dependency>
@@ -229,14 +223,6 @@
                 <profiles.active>hbase-1.4</profiles.active>
                 <hbase.sdk.adapter.version>1.4</hbase.sdk.adapter.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase1.4.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
             <dependencyManagement>
                 <dependencies>
                     <dependency>
@@ -261,14 +247,6 @@
                 <profiles.active>hbase-2.2</profiles.active>
                 <hbase.sdk.adapter.version>2.2</hbase.sdk.adapter.version>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.hbase</groupId>
-                    <artifactId>hbase-shaded-client</artifactId>
-                    <version>${hbase2.2.version}</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
             <dependencyManagement>
                 <dependencies>
                     <dependency>

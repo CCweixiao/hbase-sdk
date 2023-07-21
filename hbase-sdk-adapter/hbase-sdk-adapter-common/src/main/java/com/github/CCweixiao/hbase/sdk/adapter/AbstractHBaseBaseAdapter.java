@@ -1,5 +1,6 @@
-package com.github.CCweixiao.hbase.sdk;
+package com.github.CCweixiao.hbase.sdk.adapter;
 
+import com.github.CCweixiao.hbase.sdk.adapter.IHBaseBaseAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsExistsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotDisabledException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotExistsException;
@@ -14,20 +15,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import static com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys.*;
+
 /**
  * @author leojie 2020/11/13 11:52 下午
  */
 @InterfaceAudience.Private
 public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
-    private static final String HBASE_CLIENT_HEDGED_READ_SWITCH = "hbase.client.hedged.read.open";
-    private static final String HBASE_CLIENT_HEDGED_READ_SWITCH_DEFAULT = "false";
-    private static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT = "hbase.client.hedged.read.timeout";
-    private static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT_DEFAULT_MS = "100";
-
-    private static final String HBASE_CLIENT_HEDGED_READ_POOL_SIZE = "hbase.client.hedged.thread.pool.size";
-    private static final String HBASE_CLIENT_HEDGED_READ_POOL_DEFAULT_SIZE = "10";
-
-    private static final String HEDGED_READ_CONF_SUFFIX = ".hedged.read";
     private Properties properties;
     private Properties hedgedClusterProp;
 

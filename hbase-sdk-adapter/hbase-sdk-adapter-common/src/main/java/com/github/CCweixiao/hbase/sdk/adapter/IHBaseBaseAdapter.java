@@ -1,5 +1,6 @@
-package com.github.CCweixiao.hbase.sdk;
+package com.github.CCweixiao.hbase.sdk.adapter;
 
+import com.github.CCweixiao.hbase.sdk.HBaseHedgedReadExecutor;
 import com.github.CCweixiao.hbase.sdk.common.callback.AdminCallback;
 import com.github.CCweixiao.hbase.sdk.common.callback.MutatorCallback;
 import com.github.CCweixiao.hbase.sdk.common.callback.TableCallback;

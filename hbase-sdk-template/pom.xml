@@ -11,6 +11,10 @@
     <packaging>jar</packaging>
     <artifactId>hbase-sdk-template_${hbase.sdk.adapter.version}</artifactId>
 
+    <properties>
+        <shading.prefix>hbase.sdk.shaded</shading.prefix>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.github.CCweixiao</groupId>
@@ -116,6 +120,98 @@
                                 ${project.build.directory}/${project.artifactId}-${project.version}.jar
                             </file>
                             <pomFile>${project.build.directory}/${hbase.sdk.adapter.version}/replacer/pom.xml</pomFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.3</version>
+                <executions>
+                    <execution>
+                        <id>uber-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createSourcesJar>true</createSourcesJar>
+                            <shadeSourcesContent>true</shadeSourcesContent>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <finalName>${artifactId}-${project.version}</finalName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <artifactSet>
+                                <excludes>
+                                    <!-- Leave slf4j unshaded so downstream users can configure logging -->
+                                    <exclude>org.slf4j:*</exclude>
+                                    <!-- Leave commons-logging unshaded so downstream users can configure logging -->
+                                    <exclude>commons-logging:commons-logging</exclude>
+                                    <!-- Leave log4j unshaded so downstream users can configure logging -->
+                                    <exclude>log4j:log4j</exclude>
+                                    <exclude>org.apache.logging.log4j:log4j-api</exclude>
+                                    <exclude>org.apache.logging.log4j:log4j-core</exclude>
+                                    <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <filters>
+                                <!-- Exclude source code included in non-source jar -->
+                                <filter>
+                                    <artifact>org.apache.zookeeper:zookeeper-jute</artifact>
+                                    <excludes>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>LICENSE</exclude>
+                                        <exclude>META-INF/LICENSE</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.google</pattern>
+                                    <shadedPattern>${shading.prefix}.common.google</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.yetus</pattern>
+                                    <shadedPattern>${shading.prefix}.org.apache.yetus</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.stringtemplate</pattern>
+                                    <shadedPattern>${shading.prefix}.org.stringtemplate</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.antlr</pattern>
+                                    <shadedPattern>${shading.prefix}.org.antlr</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.alibaba.fastjson2</pattern>
+                                    <shadedPattern>${shading.prefix}.fastjson2</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                                    <resources>
+                                        <resource>NOTICE.txt</resource>
+                                        <resource>NOTICE</resource>
+                                        <resource>LICENSE</resource>
+                                        <resource>Log4j-charsets.properties</resource>
+                                        <resource>Log4j-config.xsd</resource>
+                                        <resource>Log4j-events.dtd</resource>
+                                        <resource>Log4j-events.xsd</resource>
+                                        <resource>Log4j-levels.xsd</resource>
+                                    </resources>
+                                </transformer>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>

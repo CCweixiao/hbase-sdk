@@ -2,7 +2,6 @@ package com.github.CCweixiao.hbase.sdk.schema;
 
 import org.apache.hadoop.hbase.client.ColumnFamilyDescriptor;
 import org.apache.yetus.audience.InterfaceAudience;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * @author leojie 2020/9/9 10:25 下午
@@ -55,7 +54,7 @@ public class ColumnFamilyDesc extends BaseColumnFamilyDesc implements Comparable
     }
 
     @Override
-    public boolean equals(@Nullable Object obj) {
+    public boolean equals(Object obj) {
         boolean res = super.equals(obj);
         if (!res) {
             return false;

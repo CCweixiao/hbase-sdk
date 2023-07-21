@@ -1,7 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.common.util;
 
-import com.google.common.base.Strings;
-
 import java.util.HashMap;
 import java.util.Map;
 

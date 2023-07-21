@@ -37,6 +37,10 @@ public interface IHBaseTableGetAdapter {
 
     HBaseRowData getToRowData(String tableName, Get get);
 
+    <T> T getRow(String tableName, Get get, Class<T> clazz);
+
+    <T> T getRow(String tableName, Get get, RowMapper<T> rowMapper);
+
     List<HBaseRowData> getRowsToRowData(String tableName, List<Get> gets);
 
     <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper);

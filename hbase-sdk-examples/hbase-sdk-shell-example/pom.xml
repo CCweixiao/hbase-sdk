@@ -22,6 +22,11 @@
             <artifactId>hbase-sdk-shell_${hbase.sdk.adapter.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-server</artifactId>
             <version>${hbase1.4.version}</version>

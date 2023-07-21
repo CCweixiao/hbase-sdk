@@ -16,7 +16,6 @@ public class HBaseProperties {
     private String securityAuthWay = "simple";
     private String kerberosPrincipal = "";
     private String keytabFilePath = "";
-
     private String kerberosProxyUser = "";
     private String rsKerberosPrincipal = "";
     private String masterKerberosPrincipal = "";

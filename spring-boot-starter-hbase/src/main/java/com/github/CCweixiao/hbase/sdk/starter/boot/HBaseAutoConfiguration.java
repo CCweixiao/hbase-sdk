@@ -3,12 +3,7 @@ package com.github.CCweixiao.hbase.sdk.starter.boot;
 import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.security.AuthType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseSqlTemplate;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseSqlTemplateImpl;
+import com.github.CCweixiao.hbase.sdk.template.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -25,7 +20,7 @@ import java.util.Properties;
  */
 @Configuration
 @EnableConfigurationProperties(HBaseProperties.class)
-@ConditionalOnClass({IHBaseAdminTemplate.class, BaseHBaseTableTemplate.class})
+@ConditionalOnClass({BaseHBaseAdminTemplate.class, BaseHBaseSqlTemplate.class, BaseHBaseTableTemplate.class})
 public class HBaseAutoConfiguration {
 
     private final HBaseProperties properties;
@@ -35,23 +30,21 @@ public class HBaseAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(BaseHBaseAdminTemplate.class)
+    public BaseHBaseAdminTemplate hbaseAdminTemplate() {
+        return HBaseAdminTemplate.of(createHBaseProperties());
+    }
+
+    @Bean
     @ConditionalOnMissingBean(BaseHBaseTableTemplate.class)
     public BaseHBaseTableTemplate hbaseTableTemplate() {
         return HBaseTableTemplate.of(createHBaseProperties());
     }
 
     @Bean
-    @ConditionalOnMissingBean(IHBaseSqlTemplate.class)
-    public IHBaseSqlTemplate hbaseSqlTemplate() {
-        return new HBaseSqlTemplateImpl.Builder()
-                .properties(createHBaseProperties()).build();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(IHBaseAdminTemplate.class)
-    public IHBaseAdminTemplate hbaseAdminTemplate() {
-        return new HBaseAdminTemplateImpl.Builder()
-                .properties(createHBaseProperties()).build();
+    @ConditionalOnMissingBean(BaseHBaseSqlTemplate.class)
+    public BaseHBaseSqlTemplate hbaseSqlTemplate() {
+        return HBaseSqlTemplate.of(createHBaseProperties());
     }
 
     private Properties createHBaseProperties() {

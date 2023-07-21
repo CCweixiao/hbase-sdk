@@ -1,11 +1,10 @@
 package com.github.CCweixiao.hbase.sdk.example;
 
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
+import com.github.CCweixiao.hbase.sdk.template.BaseHBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
+import com.github.CCweixiao.hbase.sdk.template.HBaseAdminTemplate;
 import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.IHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.impl.HBaseAdminTemplateImpl;
-
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,7 +30,7 @@ public class HBaseServiceExample {
 
             while (true) {
                 try {
-                    IHBaseAdminTemplate adminTemplate = new HBaseAdminTemplateImpl.Builder().properties(getProperties()).build();
+                    BaseHBaseAdminTemplate adminTemplate = HBaseAdminTemplate.of(getProperties());
                     int r = random.nextInt(10) + 1;
                     System.out.println(adminTemplate.listTableNames());
                     System.out.println("Thread-" + Thread.currentThread().getName() + "即将等待：" + r + "秒钟");

@@ -1,4 +1,4 @@
-package com.github.CCweixiao.hbase.sdk;
+package com.github.CCweixiao.hbase.sdk.adapter;
 
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;

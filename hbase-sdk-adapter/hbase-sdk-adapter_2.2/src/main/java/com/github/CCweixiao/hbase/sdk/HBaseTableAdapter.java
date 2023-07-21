@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
+import com.github.CCweixiao.hbase.sdk.adapter.BaseHBaseTableAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
 import com.github.CCweixiao.hbase.sdk.common.query.GetParams;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
