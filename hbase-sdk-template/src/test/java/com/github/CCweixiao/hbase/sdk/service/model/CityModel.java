@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author leojie 2022/11/5 13:56
  */
-@HBaseTable(namespaceName = "default", tableName = "t2", defaultFamilyName = "info")
+@HBaseTable(namespaceName = "default", tableName = "test_table", defaultFamilyName = "info")
 public class CityModel {
     @HBaseRowKey
     private String cityId;

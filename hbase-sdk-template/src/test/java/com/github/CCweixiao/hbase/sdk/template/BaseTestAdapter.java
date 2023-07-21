@@ -29,13 +29,13 @@ public class BaseTestAdapter {
     public static void setUp() throws Exception {
         Properties c1 = new Properties();
         c1.setProperty("hbase.zookeeper.quorum", "myhbase");
-        c1.setProperty("hbase.zookeeper.property.clientPort", "2182");
+        c1.setProperty("hbase.zookeeper.property.clientPort", "2181");
         // 开启hedged read
-        c1.setProperty("hbase.zookeeper.quorum.hedged.read", "myhbase");
-        c1.setProperty("hbase.zookeeper.property.clientPort.hedged.read", "2181");
-        c1.setProperty("hbase.client.hedged.read.open", "true");
-        c1.setProperty("hbase.client.hedged.read.timeout", "50");
-        c1.setProperty("hbase.client.hedged.thread.pool.size", "10");
+//        c1.setProperty("hbase.zookeeper.quorum.hedged.read", "myhbase");
+//        c1.setProperty("hbase.zookeeper.property.clientPort.hedged.read", "2181");
+//        c1.setProperty("hbase.client.hedged.read.open", "true");
+//        c1.setProperty("hbase.client.hedged.read.timeout", "50");
+//        c1.setProperty("hbase.client.hedged.thread.pool.size", "10");
         adminTemplate = HBaseAdminTemplate.of(c1);
         tableTemplate = HBaseTableTemplate.of(c1);
     }

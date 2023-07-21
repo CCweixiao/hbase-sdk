@@ -1,5 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.query;
 
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +69,15 @@ public class ScanParams {
         private boolean cacheBlocks;
 
         private Builder() {
+        }
 
+        public Builder of() {
+            this.inclusiveStartRow = true;
+            this.inclusiveStopRow = true;
+            this.versions = 1;
+            this.caching = 100;
+            this.cacheBlocks = false;
+            return this;
         }
 
         public Builder familyName(String familyName) {
@@ -124,6 +134,9 @@ public class ScanParams {
         }
 
         public Builder versions(int versions) {
+            if (versions < 1) {
+                throw new IllegalArgumentException("The version must be a positive number.");
+            }
             this.versions = versions;
             return this;
         }
@@ -214,7 +227,7 @@ public class ScanParams {
 
     public int getCaching() {
         if (caching <= 0) {
-            return 1000;
+            return 100;
         }
         return caching;
     }
@@ -232,7 +245,7 @@ public class ScanParams {
 
     public int getLimit() {
         if (limit <= 0) {
-            return 1000;
+            return 100;
         }
         return limit;
     }
@@ -246,7 +259,7 @@ public class ScanParams {
     }
 
     public static Builder builder() {
-        return new Builder();
+        return new Builder().of();
     }
 
     public boolean onlyFamily() {
@@ -255,6 +268,22 @@ public class ScanParams {
 
     public boolean familyWithQualifiers() {
         return FamilyQualifierUtil.familyAndColumnNames(this.getFamilyName(), this.getColumnNames());
+    }
+
+    public boolean startRowIsSet() {
+        return StringUtil.isNotBlank(this.getStartRow());
+    }
+
+    public boolean endRowIsSet() {
+        return StringUtil.isNotBlank(this.getStopRow());
+    }
+
+    public boolean timeRangeIsSet() {
+        return this.getMinTimestamp() > 0 && this.getMaxTimestamp() > 0;
+    }
+
+    public boolean timestampIsSet() {
+        return this.getTimestamp() > 0;
     }
 
     @Override

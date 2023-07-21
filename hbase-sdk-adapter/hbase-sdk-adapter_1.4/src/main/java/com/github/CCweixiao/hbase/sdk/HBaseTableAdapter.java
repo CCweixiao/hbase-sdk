@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.BaseHBaseTableAdapter;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
 import com.github.CCweixiao.hbase.sdk.common.query.GetParams;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
@@ -11,7 +10,6 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -71,11 +69,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             });
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStartRow())) {
+        if (scanParams.startRowIsSet()) {
             scan.withStartRow(Bytes.toBytes(scanParams.getStartRow()), scanParams.isInclusiveStartRow());
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStopRow())) {
+        if (scanParams.endRowIsSet()) {
             scan.withStopRow(Bytes.toBytes(scanParams.getStopRow()), scanParams.isInclusiveStopRow());
         }
 
@@ -83,7 +81,7 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             scan.setFilter((Filter) scanParams.getFilter().customFilter());
         }
 
-        if (scanParams.getMinTimestamp() > 0 && scanParams.getMaxTimestamp() > 0) {
+        if (scanParams.timeRangeIsSet()) {
             try {
                 scan.setTimeRange(scanParams.getMinTimestamp(), scanParams.getMaxTimestamp());
             } catch (IOException e) {
@@ -91,11 +89,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             }
         }
 
-        if (scanParams.getTimestamp() > 0) {
+        if (scanParams.timestampIsSet()) {
             try {
                 scan.setTimeStamp(scanParams.getTimestamp());
             } catch (IOException e) {
-                throw new HBaseOperationsException(e);
+                throw new HBaseQueryParamsException(e);
             }
         }
 

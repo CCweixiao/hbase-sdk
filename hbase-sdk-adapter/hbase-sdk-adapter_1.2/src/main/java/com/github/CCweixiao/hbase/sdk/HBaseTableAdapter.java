@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.BaseHBaseTableAdapter;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
 import com.github.CCweixiao.hbase.sdk.common.query.GetParams;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
@@ -72,11 +71,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             });
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStartRow())) {
+        if (scanParams.startRowIsSet()) {
             scan.setStartRow(Bytes.toBytes(scanParams.getStartRow()));
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStopRow())) {
+        if (scanParams.endRowIsSet()) {
             scan.setStopRow(Bytes.toBytes(scanParams.getStopRow()));
         }
 
@@ -84,7 +83,7 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             scan.setFilter((Filter) scanParams.getFilter().customFilter());
         }
 
-        if (scanParams.getMinTimestamp() > 0 && scanParams.getMaxTimestamp() > 0) {
+        if (scanParams.timeRangeIsSet()) {
             try {
                 scan.setTimeRange(scanParams.getMinTimestamp(), scanParams.getMaxTimestamp());
             } catch (IOException e) {
@@ -92,11 +91,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             }
         }
 
-        if (scanParams.getTimestamp() > 0) {
+        if (scanParams.timestampIsSet()) {
             try {
                 scan.setTimeStamp(scanParams.getTimestamp());
             } catch (IOException e) {
-                throw new HBaseOperationsException(e);
+                throw new HBaseQueryParamsException(e);
             }
         }
 

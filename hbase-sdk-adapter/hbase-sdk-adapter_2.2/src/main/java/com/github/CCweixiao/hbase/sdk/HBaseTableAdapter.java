@@ -71,11 +71,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             });
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStartRow())) {
+        if (scanParams.startRowIsSet()) {
             scan.withStartRow(Bytes.toBytes(scanParams.getStartRow()), scanParams.isInclusiveStartRow());
         }
 
-        if (StringUtil.isNotBlank(scanParams.getStopRow())) {
+        if (scanParams.endRowIsSet()) {
             scan.withStopRow(Bytes.toBytes(scanParams.getStopRow()), scanParams.isInclusiveStopRow());
         }
 
@@ -83,7 +83,7 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             scan.setFilter((Filter) scanParams.getFilter().customFilter());
         }
 
-        if (scanParams.getMinTimestamp() > 0 && scanParams.getMaxTimestamp() > 0) {
+        if (scanParams.timeRangeIsSet()) {
             try {
                 scan.setTimeRange(scanParams.getMinTimestamp(), scanParams.getMaxTimestamp());
             } catch (IOException e) {
@@ -91,12 +91,16 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             }
         }
 
-        if (scanParams.getTimestamp() > 0) {
-            scan.setTimestamp(scanParams.getTimestamp());
+        if (scanParams.timestampIsSet()) {
+            try {
+                scan.setTimeStamp(scanParams.getTimestamp());
+            } catch (IOException e) {
+                throw new HBaseQueryParamsException(e);
+            }
         }
 
         if (scanParams.getVersions() > 0) {
-            scan.readVersions(scanParams.getVersions());
+            scan.setMaxVersions(scanParams.getVersions());
         }
 
         if (scanParams.isCacheBlocks()) {

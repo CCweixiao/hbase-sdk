@@ -60,12 +60,12 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         });
     }
 
-    protected int saveBatch(String tableName, List<BatchMutation> batchMutations) {
-        return this.execute(thriftClient -> {
+    protected void saveBatch(String tableName, List<BatchMutation> batchMutations) {
+        this.execute(thriftClient -> {
             thriftClient.mutateRows(ColumnType.toByteBufferFromStr(tableName), batchMutations,
                     getAttributesMap(new HashMap<>(0)));
             return batchMutations.size();
-        }).orElse(0);
+        });
     }
 
     protected void delete() {

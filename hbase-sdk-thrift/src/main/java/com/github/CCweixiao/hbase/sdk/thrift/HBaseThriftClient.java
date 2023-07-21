@@ -71,10 +71,10 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
+    public void saveBatch(String tableName, Map<String, Map<String, Object>> data) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be empty.");
         if (data == null || data.isEmpty()) {
-            return 0;
+            return;
         }
         List<BatchMutation> batchMutations = new ArrayList<>(data.size());
         data.forEach((rowKey, colAndValMap) -> {
@@ -91,7 +91,7 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
                 batchMutations.add(new BatchMutation(ColumnType.toByteBuffer(rowKey), mutations));
             }
         });
-        return this.saveBatch(tableName, batchMutations);
+        this.saveBatch(tableName, batchMutations);
     }
 
     @Override
@@ -100,14 +100,14 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public <T> int saveBatch(List<T> lst) {
+    public <T> void saveBatch(List<T> lst) {
         if (lst == null || lst.isEmpty()) {
-            return 0;
+            return;
         }
         final Class<?> clazz0 = lst.get(0).getClass();
         HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
         List<BatchMutation> batchMutationList = this.createBatchMutationList(lst, tableMeta);
-        return saveBatch(tableMeta.getTableName(), batchMutationList);
+        this.saveBatch(tableMeta.getTableName(), batchMutationList);
     }
 
     @Override
@@ -172,17 +172,17 @@ public class HBaseThriftClient extends BaseHBaseThriftClient implements IHBaseTh
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
         return null;
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
         return null;
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         return null;
     }
 

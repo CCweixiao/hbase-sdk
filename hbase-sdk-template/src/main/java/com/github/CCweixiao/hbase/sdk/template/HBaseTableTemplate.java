@@ -7,6 +7,8 @@ import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVer
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Get;
+import org.apache.hadoop.hbase.client.Scan;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,8 +32,8 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     }
 
     @Override
-    public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
-        return tableOpAdapter.saveBatch(tableName, data);
+    public void saveBatch(String tableName, Map<String, Map<String, Object>> data) {
+        tableOpAdapter.saveBatch(tableName, data);
     }
 
     @Override
@@ -40,8 +42,8 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) {
-        return tableOpAdapter.saveBatch(list);
+    public <T> void saveBatch(List<T> list) {
+        tableOpAdapter.saveBatch(list);
     }
 
     @Override
@@ -100,28 +102,28 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, Get get) {
-        return tableOpAdapter.getToRowData(tableName, get);
+    public HBaseRowData getRowToRowData(String tableName, Get get) {
+        return tableOpAdapter.getRowToRowData(tableName, get);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
-        return tableOpAdapter.getToRowDataWithMultiVersions(tableName, rowKey, versions);
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
+        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, versions);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
-        return tableOpAdapter.getToRowDataWithMultiVersions(tableName, rowKey, familyName, versions);
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, familyName, versions);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
-        return tableOpAdapter.getToRowDataWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
     }
 
     @Override
     public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, Get get, int versions) {
-        return tableOpAdapter.getToRowDataWithMultiVersions(tableName, get, versions);
+        return tableOpAdapter.getRowWithMultiVersions(tableName, get, versions);
     }
 
     @Override
@@ -132,6 +134,26 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     @Override
     <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
         return tableOpAdapter.getRowsToRowData(tableName, gets, rowMapper);
+    }
+
+    @Override
+    List<HBaseRowData> scan(String tableName, String startRow, String endRow) {
+        return tableOpAdapter.scan(tableName, startRow, endRow);
+    }
+
+    @Override
+    List<HBaseRowData> scanToRowDataList(String tableName, Scan scan) {
+        return tableOpAdapter.scanToRowDataList(tableName, scan);
+    }
+
+    @Override
+    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, String startRow, String endRow, int versions) {
+        return tableOpAdapter.scanToMultiVersions(tableName, startRow, endRow, versions);
+    }
+
+    @Override
+    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, Scan scan, int versions) {
+        return tableOpAdapter.scanToMultiVersions(tableName, scan, versions);
     }
 
     @Override
@@ -192,6 +214,11 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     @Override
     public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
         return tableOpAdapter.scan(tableName, scanQueryParams);
+    }
+
+    @Override
+    public List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, ScanParams scanParams) {
+        return tableOpAdapter.scanToMultiVersions(tableName, scanParams);
     }
 
     @Override

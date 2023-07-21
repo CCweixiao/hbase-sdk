@@ -42,8 +42,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
     @Test
     public void testSaveBatchJavaBean() {
         try {
-            int rows = tableTemplate.saveBatch(createDefaultCityModelList());
-            System.out.println(rows);
+            tableTemplate.saveBatch(createDefaultCityModelList());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -187,7 +186,7 @@ public class HBaseTableTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void getRowToMapWithMultiVersions() {
-        HBaseRowDataWithMultiVersions rowToMapWithMultiVersions = tableTemplate.getToRowDataWithMultiVersions("leo_test", "1001",
+        HBaseRowDataWithMultiVersions rowToMapWithMultiVersions = tableTemplate.getRowWithMultiVersions("leo_test", "1001",
                 "f1", Arrays.asList("name", "age", "address"), 3);
         System.out.println(rowToMapWithMultiVersions);
 

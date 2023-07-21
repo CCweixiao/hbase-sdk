@@ -52,13 +52,13 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
-        return hBaseThriftClient.saveBatch(tableName, data);
+    public void saveBatch(String tableName, Map<String, Map<String, Object>> data) {
+        hBaseThriftClient.saveBatch(tableName, data);
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) {
-        return hBaseThriftClient.saveBatch(list);
+    public <T> void saveBatch(List<T> list) {
+        hBaseThriftClient.saveBatch(list);
     }
 
     @Override
@@ -107,17 +107,17 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
         return null;
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
         return null;
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         return null;
     }
 

@@ -35,7 +35,7 @@ public interface IHBaseTableGetAdapter {
      */
     Get buildGet(GetParams getParams);
 
-    HBaseRowData getToRowData(String tableName, Get get);
+    HBaseRowData getRowToRowData(String tableName, Get get);
 
     <T> T getRow(String tableName, Get get, Class<T> clazz);
 
@@ -45,7 +45,7 @@ public interface IHBaseTableGetAdapter {
 
     <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper);
 
-    HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, Get get, int versions);
+    HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, Get get, int versions);
 
     /**
      * 利用反射，绑定查询结果集到定义的实体对象

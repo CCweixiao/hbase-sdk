@@ -46,9 +46,9 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
         }
     }
     @Override
-    public int saveBatch(String tableName, Map<String, Map<String, Object>> data) {
+    public void saveBatch(String tableName, Map<String, Map<String, Object>> data) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-           return hBaseThrift.saveBatch(tableName, data);
+            hBaseThrift.saveBatch(tableName, data);
         }
     }
     @Override
@@ -59,9 +59,9 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public <T> int saveBatch(List<T> list) {
+    public <T> void saveBatch(List<T> list) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.saveBatch(list);
+            hBaseThrift.saveBatch(list);
         }
     }
 
@@ -129,23 +129,23 @@ public class HBaseThriftTemplate implements IHBaseThriftOperations {
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, "", null, versions);
+            return hBaseThrift.getRowWithMultiVersions(tableName, rowKey, "", null, versions);
         }
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, familyName, null, versions);
+            return hBaseThrift.getRowWithMultiVersions(tableName, rowKey, familyName, null, versions);
         }
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
+    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
         try (HBaseThrift hBaseThrift = pool.getResource()) {
-            return hBaseThrift.getToRowDataWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
+            return hBaseThrift.getRowWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
         }
     }
 

@@ -34,8 +34,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
     public void testSaveBatchPOJO() {
         List<CityModel> defaultCityModelList = createDefaultCityModelList();
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            int rows = hBaseThrift.saveBatch(defaultCityModelList);
-            Assert.assertEquals(4, rows);
+           hBaseThrift.saveBatch(defaultCityModelList);
         }
     }
 
@@ -79,8 +78,7 @@ public class HBaseThriftApiTest extends BaseHBaseThriftTemplateTest {
         String t1 = "t1";
         Map<String, Map<String, Object>> data = createDefaultListDataMap();
         try (HBaseThrift hBaseThrift = thriftPool.getResource()) {
-            int rows = hBaseThrift.saveBatch(t1, data);
-            Assert.assertEquals(4, rows);
+            hBaseThrift.saveBatch(t1, data);
         }
     }
 
