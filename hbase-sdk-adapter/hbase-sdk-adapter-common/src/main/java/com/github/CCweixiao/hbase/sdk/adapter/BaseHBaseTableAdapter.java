@@ -4,6 +4,8 @@ import com.github.CCweixiao.hbase.sdk.common.IHBaseTableOpAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
 import com.github.CCweixiao.hbase.sdk.common.reflect.ReflectFactory;
@@ -44,10 +46,9 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
         super(properties);
     }
 
-
     @Override
     public void save(String tableName, String rowKey, Map<String, Object> data) {
-        this.executeSave(tableName, buildPutCondition(rowKey, data));
+        this.executeSave(tableName, buildPut(rowKey, data));
     }
 
     @Override
@@ -65,7 +66,7 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
         List<Mutation> puts = new ArrayList<>(data.size());
         data.forEach((row, d) -> {
             if (d != null && !d.isEmpty()) {
-                puts.add(buildPutCondition(row, d));
+                puts.add(buildPut(row, d));
             }
         });
         this.executeSaveBatch(tableName, puts);
@@ -76,8 +77,8 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
         if (list == null || list.isEmpty()) {
             return;
         }
-        final Class<?> clazz0 = list.get(0).getClass();
-        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz0);
+        final Class<?> clazz = list.get(0).getClass();
+        HBaseTableMeta tableMeta = ReflectFactory.getHBaseTableMeta(clazz);
         List<Mutation> putList = new ArrayList<>(list.size());
         for (T t : list) {
             putList.add(new Put(buildPut(t)));
@@ -86,62 +87,48 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
-        return this.getRow(rowKey, null, null, clazz);
+    public <T> Optional<T> getRow(GetRowParam getRowParam, Class<T> clazz) {
+        Get get = this.buildGet(getRowParam);
+        return this.get(get, clazz);
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
-        return this.getRow(rowKey, familyName, null, clazz);
-    }
-
-    @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
+    public <T> Optional<T> get(Get get, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
-        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
-        return Optional.of(this.getRow(tableName, get, clazz));
-    }
-
-    @Override
-    public <T> T getRow(String tableName, Get get, Class<T> clazz) {
         return this.execute(tableName, table -> {
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
             return mapperRowToT(result, clazz);
-        }).orElse(null);
+        });
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
-        return this.getRow(tableName, rowKey, null, null, rowMapper);
+    public <T> Optional<T> getRow(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        Get get = buildGet(getRowParam);
+        return this.get(tableName, get, rowMapper);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
-        return this.getRow(tableName, rowKey, familyName, null, rowMapper);
-    }
-
-    @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
-        return Optional.of(this.getRow(tableName, get, rowMapper));
-    }
-
-    @Override
-    public <T> T getRow(String tableName, Get get, RowMapper<T> rowMapper) {
+    public <T> Optional<T> get(String tableName, Get get, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
                 return null;
             }
             return rowMapper.mapRow(result, 0);
-        }).orElse(null);
+        });
     }
 
     @Override
-    public HBaseRowData getRowToRowData(String tableName, Get get) {
+    public HBaseRowData getRow(String tableName, GetRowParam getRowParam) {
+        Get get = buildGet(getRowParam);
+        return this.get(tableName, get);
+    }
+
+    @Override
+    public HBaseRowData get(String tableName, Get get) {
         return this.execute(tableName, table -> {
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
@@ -152,40 +139,50 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey) {
-        return this.getToRowData(tableName, rowKey, null, null);
+    public <T> List<T> getWithMultiVersions(Get get, int versions, Class<T> clazz) {
+        String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        return this.execute(tableName, table -> {
+            Result result = checkGetAndReturnResult(get, table);
+            if (result == null) {
+                return null;
+            }
+            return mapperRowToList(result, versions, clazz);
+        }).orElse(new ArrayList<>(0));
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
-        return this.getToRowData(tableName, rowKey, familyName, null);
+    public <T> List<T> getWithMultiVersions(GetRowParam getRowParam, Class<T> clazz) {
+        Get get = this.buildGet(getRowParam);
+        int versions = getRowParam.getVersions();
+        return this.getWithMultiVersions(get, versions, clazz);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName,
-                                                 List<String> qualifiers) {
-        Get get = buildGetCondition(rowKey, familyName, qualifiers, 1);
-        return this.getRowToRowData(tableName, get);
+    public <T> List<T> getWithMultiVersions(String tableName, Get get, int versions, RowMapper<T> rowMapper) {
+        return this.execute(tableName, table -> {
+            Result result = checkGetAndReturnResult(get, table);
+            if (result == null) {
+                return null;
+            }
+            return rowMapper.mapRowWithVersions(result, 0);
+        }).orElse(new ArrayList<>(0));
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
-        return getRowWithMultiVersions(tableName, rowKey, "", null, versions);
+    public <T> List<T> getWithMultiVersions(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        Get get = this.buildGet(getRowParam);
+        int versions = getRowParam.getVersions();
+        return this.getWithMultiVersions(tableName, get, versions, rowMapper);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
-        return getRowWithMultiVersions(tableName, rowKey, familyName, null, versions);
+    public HBaseRowDataWithMultiVersions getWithMultiVersions(String tableName, GetRowParam getRowParam) {
+        Get get = buildGet(getRowParam);
+        return this.getWithMultiVersions(tableName, get, getRowParam.getVersions());
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
-        Get get = buildGetCondition(rowKey, familyName, qualifiers, versions);
-        return this.getRowWithMultiVersions(tableName, get, versions);
-    }
-
-    @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, Get get, int versions) {
+    public HBaseRowDataWithMultiVersions getWithMultiVersions(String tableName, Get get, int versions) {
         return this.execute(tableName, table -> {
             Result result = checkGetAndReturnResult(get, table);
             if (result == null) {
@@ -196,25 +193,20 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public <T> List<T> getRows(List<String> rowKeys, Class<T> clazz) {
-        return getRows(rowKeys, null, null, clazz);
-    }
-
-    @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz) {
-        return getRows(rowKeys, familyName, null, clazz);
-    }
-
-    @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
+    public <T> List<T> getRows(GetRowsParam getRowsParam, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
+        List<Get> gets = this.buildGets(getRowsParam);
+        return this.gets(tableName, gets, clazz);
+    }
+
+    @Override
+    public <T> List<T> gets(String tableName, List<Get> gets, Class<T> clazz) {
         return this.execute(tableName, table -> {
-            List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
             Result[] results = checkBatchGetAndReturnResult(gets, table);
             if (results == null) {
                 return null;
             }
-            List<T> data = new ArrayList<>();
+            List<T> data = new ArrayList<>(results.length);
             for (Result result : results) {
                 data.add(mapperRowToT(result, clazz));
             }
@@ -223,23 +215,13 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper) {
-        return getRows(tableName, rowKeys, null, null, rowMapper);
+    public <T> List<T> getRows(String tableName, GetRowsParam getRowsParam, RowMapper<T> rowMapper) {
+        List<Get> gets = this.buildGets(getRowsParam);
+        return this.gets(tableName, gets, rowMapper);
     }
 
     @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper) {
-        return getRows(tableName, rowKeys, familyName, null, rowMapper);
-    }
-
-    @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        List<Get> gets = buildBatchGetCondition(rowKeys, familyName, qualifiers);
-        return this.getRowsToRowData(tableName, gets, rowMapper);
-    }
-
-    @Override
-    public <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
+    public <T> List<T> gets(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
         return this.execute(tableName, table -> {
             Result[] results = checkBatchGetAndReturnResult(gets, table);
             if (results == null) {
@@ -254,8 +236,14 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public List<HBaseRowData> getRowsToRowData(String tableName, List<Get> gets) {
-        return this.getRowsToRowData(tableName, gets, new RowMapper<HBaseRowData>() {
+    public List<HBaseRowData> getRows(String tableName, GetRowsParam getRowsParam) {
+        List<Get> gets = this.buildGets(getRowsParam);
+        return this.gets(tableName, gets);
+    }
+
+    @Override
+    public List<HBaseRowData> gets(String tableName, List<Get> gets) {
+        return this.gets(tableName, gets, new RowMapper<HBaseRowData>() {
             @Override
             public <R> HBaseRowData mapRow(R r, int rowNum) throws Exception {
                 Result result = (Result) r;
@@ -265,32 +253,16 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
-        return this.getToRowsData(tableName, rowKeys, "", null);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
-        return this.getToRowsData(tableName, rowKeys, familyName, null);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        if (rowKeys == null || rowKeys.isEmpty()) {
-            return new ArrayList<>(0);
-        }
-        List<Get> gets = new ArrayList<>(rowKeys.size());
-        for (String rowKey : rowKeys) {
-            gets.add(buildGetCondition(rowKey, familyName, qualifiers));
-        }
-        return this.getRowsToRowData(tableName, gets);
-    }
-
-    @Override
     public <T> List<T> scan(ScanParams scanParams, Class<T> clazz) {
+        Scan scan = buildScan(scanParams);
+        return this.scan(scan, clazz);
+    }
+
+    @Override
+    public <T> List<T> scan(Scan scan, Class<T> clazz) {
         String tableName = ReflectFactory.getHBaseTableMeta(clazz).getTableName();
         return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScan(scanParams))) {
+            try (ResultScanner scanner = table.getScanner(scan)) {
                 List<T> rs = new ArrayList<>();
                 for (Result result : scanner) {
                     rs.add(mapperRowToT(result, clazz));
@@ -301,22 +273,33 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public List<HBaseRowData> scan(String tableName, String startRow, String endRow) {
-        ScanParams scanParams = ScanParams.builder().of()
-                .startRow(startRow)
-                .stopRow(endRow)
-                .build();
-        return this.scan(tableName, scanParams);
+    public <T> List<T> scan(String tableName, ScanParams scanParams, RowMapper<T> rowMapper) {
+        Scan scan = buildScan(scanParams);
+        return this.scan(tableName, scan, rowMapper);
+    }
+
+    @Override
+    public <T> List<T> scan(String tableName, Scan scan, RowMapper<T> rowMapper) {
+        return this.execute(tableName, table -> {
+            try (ResultScanner scanner = table.getScanner(scan)) {
+                List<T> rs = new ArrayList<>();
+                int rowNum = 0;
+                for (Result result : scanner) {
+                    rs.add(rowMapper.mapRow(result, rowNum++));
+                }
+                return rs;
+            }
+        }).orElse(new ArrayList<>(0));
     }
 
     @Override
     public List<HBaseRowData> scan(String tableName, ScanParams scanParams) {
         Scan scan = buildScan(scanParams);
-        return this.scanToRowDataList(tableName, scan);
+        return this.scan(tableName, scan);
     }
 
     @Override
-    public List<HBaseRowData> scanToRowDataList(String tableName, Scan scan) {
+    public List<HBaseRowData> scan(String tableName, Scan scan) {
         List<HBaseRowData> rowDataList = new ArrayList<>();
         return this.execute(tableName, table -> {
             try (ResultScanner scanner = table.getScanner(scan)) {
@@ -329,21 +312,14 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
     }
 
     @Override
-    public List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, String startRow, String endRow, int versions) {
-        ScanParams scanParams = ScanParams.builder().of()
-                .startRow(startRow).stopRow(endRow).versions(versions).build();
-        return this.scanToMultiVersions(tableName, scanParams);
-    }
-
-    @Override
-    public List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, ScanParams scanParams) {
+    public List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, ScanParams scanParams) {
         Scan scan = buildScan(scanParams);
         int versions = scanParams.getVersions();
-        return this.scanToMultiVersions(tableName, scan, versions);
+        return this.scanWithMultiVersions(tableName, scan, versions);
     }
 
     @Override
-    public List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, Scan scan, int versions) {
+    public List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, Scan scan, int versions) {
         List<HBaseRowDataWithMultiVersions> rowDataListWithMultiVersions = new ArrayList<>();
         return this.execute(tableName, table -> {
             try (ResultScanner scanner = table.getScanner(scan)) {
@@ -351,20 +327,6 @@ public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter imp
                     rowDataListWithMultiVersions.add(convertResultsToHBaseColDataListWithMultiVersion(result, versions));
                 }
                 return rowDataListWithMultiVersions;
-            }
-        }).orElse(new ArrayList<>(0));
-    }
-
-    @Override
-    public <T> List<T> scan(String tableName, ScanParams scanParams, RowMapper<T> rowMapper) {
-        return this.execute(tableName, table -> {
-            try (ResultScanner scanner = table.getScanner(buildScan(scanParams))) {
-                List<T> rs = new ArrayList<>();
-                int rowNum = 0;
-                for (Result result : scanner) {
-                    rs.add(rowMapper.mapRow(result, rowNum++));
-                }
-                return rs;
             }
         }).orElse(new ArrayList<>(0));
     }

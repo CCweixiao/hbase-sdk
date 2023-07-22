@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.common.type.handler;
 import com.alibaba.fastjson2.JSON;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseColumnTypeCastException;
 import com.github.CCweixiao.hbase.sdk.common.type.AbstractTypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
 
 import java.nio.charset.Charset;
 

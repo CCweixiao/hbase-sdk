@@ -3,6 +3,8 @@ package com.github.CCweixiao.hbase.sdk.thrift;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 
 import java.io.Closeable;
@@ -62,109 +64,50 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
-        return hBaseThriftClient.getRow(rowKey, clazz);
+    public <T> Optional<T> getRow(GetRowParam getRowParam, Class<T> clazz) {
+        return hBaseThriftClient.getRow(getRowParam, clazz);
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
-        return hBaseThriftClient.getRow(rowKey, familyName, clazz);
+    public <T> Optional<T> getRow(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        return hBaseThriftClient.getRow(tableName, getRowParam, rowMapper);
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return hBaseThriftClient.getRow(rowKey, familyName, qualifiers, clazz);
+    public HBaseRowData getRow(String tableName, GetRowParam getRowParam) {
+        return hBaseThriftClient.getRow(tableName, getRowParam);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRow(tableName, rowKey, rowMapper);
+    public <T> List<T> getWithMultiVersions(GetRowParam getRowParam, Class<T> clazz) {
+        return hBaseThriftClient.getWithMultiVersions(getRowParam, clazz);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRow(tableName, rowKey, familyName, rowMapper);
+    public <T> List<T> getWithMultiVersions(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        return hBaseThriftClient.getWithMultiVersions(tableName, getRowParam, rowMapper);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRow(tableName, rowKey, familyName, qualifiers, rowMapper);
+    public HBaseRowDataWithMultiVersions getWithMultiVersions(String tableName, GetRowParam getRowParam) {
+        return hBaseThriftClient.getWithMultiVersions(tableName, getRowParam);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey) {
-        return hBaseThriftClient.getToRowData(tableName, rowKey);
+    public <T> List<T> getRows(GetRowsParam getRowsParam, Class<T> clazz) {
+        return hBaseThriftClient.getRows(getRowsParam, clazz);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
-        return hBaseThriftClient.getToRowData(tableName, rowKey, familyName);
+    public <T> List<T> getRows(String tableName, GetRowsParam getRowsParams, RowMapper<T> rowMapper) {
+        return hBaseThriftClient.getRows(tableName, getRowsParams, rowMapper);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        return hBaseThriftClient.getToRowData(tableName, rowKey, familyName, qualifiers);
+    public List<HBaseRowData> getRows(String tableName, GetRowsParam getRowsParam) {
+        return hBaseThriftClient.getRows(tableName, getRowsParam);
     }
 
-    @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
-        return null;
-    }
-
-    @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
-        return null;
-    }
-
-    @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
-        return null;
-    }
-
-    @Override
-    public <T> List<T> getRows(List<String> rowKeys, Class<T> clazz) {
-        return hBaseThriftClient.getRows(rowKeys, clazz);
-    }
-
-    @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz) {
-        return hBaseThriftClient.getRows(rowKeys, familyName, clazz);
-    }
-
-    @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return hBaseThriftClient.getRows(rowKeys, familyName, qualifiers, clazz);
-    }
-
-    @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRows(tableName, rowKeys, rowMapper);
-    }
-
-    @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRows(tableName, rowKeys, familyName, rowMapper);
-    }
-
-    @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return hBaseThriftClient.getRows(tableName, rowKeys, familyName, qualifiers, rowMapper);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
-        return hBaseThriftClient.getToRowsData(tableName, rowKeys);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
-        return hBaseThriftClient.getToRowsData(tableName, rowKeys, familyName);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        return hBaseThriftClient.getToRowsData(tableName, rowKeys, familyName, qualifiers);
-    }
 
     @Override
     public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
@@ -179,6 +122,11 @@ public class HBaseThrift implements Closeable, IHBaseThriftOperations {
     @Override
     public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
         return hBaseThriftClient.scan(tableName, scanQueryParams);
+    }
+
+    @Override
+    public List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, ScanParams scanParams) {
+        return null;
     }
 
     @Override

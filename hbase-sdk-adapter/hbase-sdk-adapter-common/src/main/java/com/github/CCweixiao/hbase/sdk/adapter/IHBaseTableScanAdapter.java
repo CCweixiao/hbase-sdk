@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
+import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
@@ -12,13 +13,11 @@ import java.util.List;
  */
 public interface IHBaseTableScanAdapter {
     Scan buildScan(ScanParams scanParams);
+    <T> List<T> scan(Scan scan, Class<T> clazz);
 
-    List<HBaseRowData> scan(String tableName, String startRow, String endRow);
+    <T> List<T> scan(String tableName, Scan scan, RowMapper<T> rowMapper);
 
-    List<HBaseRowData> scanToRowDataList(String tableName, Scan scan);
+    List<HBaseRowData> scan(String tableName, Scan scan);
 
-    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, String startRow, String endRow, int versions);
-
-    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, Scan scan, int versions);
-
+    List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, Scan scan, int versions);
 }

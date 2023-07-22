@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
 import com.github.CCweixiao.hbase.sdk.adapter.IHBaseBaseAdapter;
+import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsExistsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotDisabledException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotExistsException;
@@ -127,5 +128,13 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
             }
         }
         return prop;
+    }
+
+    protected int getClientScannerCaching() {
+        Configuration configuration = this.getConfiguration();
+        if (configuration == null) {
+            return HBASE_CLIENT_DEFAULT_SCANNER_CACHING;
+        }
+        return configuration.getInt(HBASE_CLIENT_SCANNER_CACHING, HBASE_CLIENT_DEFAULT_SCANNER_CACHING);
     }
 }

@@ -1,5 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.common.mapper;
 
+import java.util.List;
+
 /**
  * <p>HBase's data query result set maps the field properties of POJO objects.</p>
  *
@@ -15,4 +17,8 @@ public interface RowMapper<T> {
      * @throws Exception throw error
      */
     <R> T mapRow(R r, int rowNum) throws Exception;
+
+    default <R> List<T> mapRowWithVersions(R r, int rowNum) throws Exception {
+        return null;
+    }
 }

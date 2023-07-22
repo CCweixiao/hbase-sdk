@@ -11,6 +11,7 @@ import java.util.List;
 public class ScanParams {
     private final String familyName;
     private final List<String> columnNames;
+    private final String rowPrefix;
     private final String startRow;
     private final boolean inclusiveStartRow;
     private final String stopRow;
@@ -22,7 +23,6 @@ public class ScanParams {
     private final boolean reversed;
     private final int caching;
     private final int batch;
-
     private final long maxResultSize;
     private final int limit;
     private final IHBaseFilter<?> filter;
@@ -31,6 +31,7 @@ public class ScanParams {
     public ScanParams(Builder builder) {
         this.familyName = builder.familyName;
         this.columnNames = builder.columnNames;
+        this.rowPrefix = builder.rowPrefix;
         this.startRow = builder.startRow;
         this.inclusiveStartRow = builder.inclusiveStartRow;
         this.stopRow = builder.stopRow;
@@ -51,6 +52,7 @@ public class ScanParams {
     public static class Builder {
         private String familyName;
         private List<String> columnNames;
+        private String rowPrefix;
         private String startRow;
         private boolean inclusiveStartRow;
         private String stopRow;
@@ -62,7 +64,6 @@ public class ScanParams {
         private boolean reversed;
         private int caching;
         private int batch;
-
         private long maxResultSize;
         private int limit;
         private IHBaseFilter<?> filter;
@@ -71,11 +72,10 @@ public class ScanParams {
         private Builder() {
         }
 
-        public Builder of() {
+        private Builder of() {
             this.inclusiveStartRow = true;
             this.inclusiveStopRow = true;
             this.versions = 1;
-            this.caching = 100;
             this.cacheBlocks = false;
             return this;
         }
@@ -95,6 +95,11 @@ public class ScanParams {
                 this.columnNames = new ArrayList<>();
             }
             this.columnNames.add(colName);
+            return this;
+        }
+
+        public Builder rowPrefix(String rowPrefix) {
+            this.rowPrefix = rowPrefix;
             return this;
         }
 
@@ -189,6 +194,10 @@ public class ScanParams {
         return columnNames;
     }
 
+    public String getRowPrefix() {
+        return rowPrefix;
+    }
+
     public String getStartRow() {
         return startRow;
     }
@@ -227,15 +236,12 @@ public class ScanParams {
 
     public int getCaching() {
         if (caching <= 0) {
-            return 100;
+            return 1000;
         }
         return caching;
     }
 
     public int getBatch() {
-        if (batch <= 0) {
-            return 100;
-        }
         return batch;
     }
 
@@ -244,9 +250,6 @@ public class ScanParams {
     }
 
     public int getLimit() {
-        if (limit <= 0) {
-            return 100;
-        }
         return limit;
     }
 
@@ -258,7 +261,7 @@ public class ScanParams {
         return cacheBlocks;
     }
 
-    public static Builder builder() {
+    public static Builder of() {
         return new Builder().of();
     }
 

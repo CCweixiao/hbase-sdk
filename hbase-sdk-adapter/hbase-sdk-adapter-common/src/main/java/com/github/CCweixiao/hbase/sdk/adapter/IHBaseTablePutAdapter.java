@@ -20,7 +20,7 @@ import java.util.Map;
  */
 public interface IHBaseTablePutAdapter {
 
-    default Put buildPutCondition(String rowKey, Map<String, Object> data) {
+    default Put buildPut(String rowKey, Map<String, Object> data) {
         if (StringUtil.isBlank(rowKey)) {
             throw new IllegalArgumentException("rowKey must not be empty.");
         }

@@ -3,6 +3,8 @@ package com.github.CCweixiao.hbase.sdk.template;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.IHBaseFilter;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
@@ -21,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,8 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
         data.put("info:name", "leo");
         data.put("info:age", 18);
         tableTemplate.save(TEST_TABLE, "1001", data);
-        HBaseRowData result = tableTemplate.getToRowData(TEST_TABLE, "1001");
+        GetRowParam getRowParam = GetRowParam.of("1001").build();
+        HBaseRowData result = tableTemplate.getRow(TEST_TABLE, getRowParam);
         Assert.assertEquals(2, result.getColDataContainer().size());
     }
 
@@ -47,7 +49,8 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
     public void testSave() {
         CityModel cityModel = createDefaultCityModel();
         tableTemplate.save(cityModel);
-        Optional<CityModel> cityModelRes = tableTemplate.getRow(cityModel.getCityId(), CityModel.class);
+        GetRowParam getRowParam = GetRowParam.of(cityModel.getCityId()).build();
+        Optional<CityModel> cityModelRes = tableTemplate.getRow(getRowParam, CityModel.class);
         Assert.assertNotNull(cityModelRes);
     }
 
@@ -66,7 +69,9 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
         data.put("1002", data2);
 
         tableTemplate.saveBatch(TEST_TABLE, data);
-        List<HBaseRowData> rowDataList = tableTemplate.getToRowsData(TEST_TABLE, Arrays.asList("1001", "1002"));
+        GetRowsParam getRowsParam = GetRowsParam.of().appendRowKey("1001")
+                .appendRowKey("1002").build();
+        List<HBaseRowData> rowDataList = tableTemplate.getRows(TEST_TABLE, getRowsParam);
         Assert.assertEquals(2, rowDataList.size());
     }
 
@@ -76,13 +81,16 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
         tableTemplate.saveBatch(cityModelList);
         List<String> rowKeys = cityModelList.stream().map(CityModel::getCityId)
                 .collect(Collectors.toList());
-        List<CityModel> rows = tableTemplate.getRows(rowKeys, CityModel.class);
+
+        GetRowsParam getRowsParam = GetRowsParam.of().rowKeyList(rowKeys).build();
+        List<CityModel> rows = tableTemplate.getRows(getRowsParam, CityModel.class);
         Assert.assertEquals(rowKeys.size(), rows.size());
     }
 
     @Test
     public void testGetByRowMapper() {
-        Map<String, String> data = tableTemplate.getRow(TEST_TABLE, "1001", new RowMapper<Map<String, String>>() {
+        GetRowParam getRowParam = GetRowParam.of("1001").build();
+        Map<String, String> data = tableTemplate.getRow(TEST_TABLE, getRowParam, new RowMapper<Map<String, String>>() {
             @Override
             public <R> Map<String, String> mapRow(R r, int rowNum) throws Exception {
                 Result result = (Result) r;
@@ -103,7 +111,7 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
 
     @Test
     public void testScanWithCustomFilter() {
-        ScanParams scanParams = ScanParams.builder().of()
+        ScanParams scanParams = ScanParams.of()
                 .filter(new IHBaseFilter<Filter>() {
                     @Override
                     public Filter customFilter() {
@@ -129,6 +137,18 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
                 .build();
         List<CityModel> cityModels = tableTemplate.scan(scanParams, CityModel.class);
         Assert.assertEquals(1, cityModels.size());
+    }
+
+    @Test
+    public void testGetRowToList() {
+        tableTemplate.delete(TEST_TABLE, "a1000112");
+        List<CityModel> defaultCityModelList = createDefaultMultiVersionsCityModelList();
+        for (CityModel cityModel : defaultCityModelList) {
+            tableTemplate.save(cityModel);
+        }
+        GetRowParam getRowParam = GetRowParam.of("a1000112").versions(5).build();
+        List<CityModel> cityModels = tableTemplate.getWithMultiVersions(getRowParam, CityModel.class);
+        Assert.assertEquals(5, cityModels.size());
     }
 
     @Test
@@ -167,7 +187,8 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
         //Thread.sleep(2000);
         tableTemplate.save(TEST_TABLE, "b1", data5);
 
-        HBaseRowDataWithMultiVersions rowData = tableTemplate.getRowWithMultiVersions(TEST_TABLE, "b1", 5);
+        GetRowParam getRowParam = GetRowParam.of("b1").versions(5).build();
+        HBaseRowDataWithMultiVersions rowData = tableTemplate.getWithMultiVersions(TEST_TABLE, getRowParam);
 
         Assert.assertEquals(3, rowData.getColDataWithMultiVersions().size());
         Assert.assertEquals(4, rowData.getColDataWithMultiVersions().get("info:name").size());
@@ -175,7 +196,7 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
 
     @Test
     public void testScan() {
-        ScanParams scanParams = ScanParams.builder()
+        ScanParams scanParams = ScanParams.of()
                 .startRow("1001")
                 .inclusiveStartRow(true)
                 .stopRow("1002")
@@ -188,8 +209,9 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
 
     @Test
     public void testScanWithMultiVersions() {
+        ScanParams scanParams = ScanParams.of().startRow("b1").stopRow("b1").versions(5).build();
         List<HBaseRowDataWithMultiVersions> hBaseRowDataWithMultiVersions =
-                tableTemplate.scanToMultiVersions(TEST_TABLE, "b1", "b1", 5);
+                tableTemplate.scanWithMultiVersions(TEST_TABLE, scanParams);
         Assert.assertEquals(1, hBaseRowDataWithMultiVersions.size());
     }
 }

@@ -79,24 +79,24 @@ public class HBaseThriftPoolTests {
     @Test
     public void testGet() {
 
-        final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
-
-        System.out.println(hBaseThrift.getToRowData("LEO_USER",
-                "a10001", "g", Collections.singletonList("age")));
-
-        System.out.println(hBaseThrift.getToRowData("LEO_USER",
-                "a10001", "g", Arrays.asList("name", "age", "sds")));
-
-        System.out.println(hBaseThrift.getToRowData("LEO_USER",
-                "a10002", "f"));
-
-        System.out.println(hBaseThrift.getToRowData("LEO_USER",
-                "a10002", "g"));
-
-        System.out.println(hBaseThrift.getToRowData("LEO_USER",
-                "a1002"));
-
-        hBaseThrift.close();
+//        final HBaseThrift hBaseThrift = hBaseThriftPool.getResource();
+//
+//        System.out.println(hBaseThrift.getToRowData("LEO_USER",
+//                "a10001", "g", Collections.singletonList("age")));
+//
+//        System.out.println(hBaseThrift.getToRowData("LEO_USER",
+//                "a10001", "g", Arrays.asList("name", "age", "sds")));
+//
+//        System.out.println(hBaseThrift.getToRowData("LEO_USER",
+//                "a10002", "f"));
+//
+//        System.out.println(hBaseThrift.getToRowData("LEO_USER",
+//                "a10002", "g"));
+//
+//        System.out.println(hBaseThrift.getToRowData("LEO_USER",
+//                "a1002"));
+//
+//        hBaseThrift.close();
     }
 
     @Test

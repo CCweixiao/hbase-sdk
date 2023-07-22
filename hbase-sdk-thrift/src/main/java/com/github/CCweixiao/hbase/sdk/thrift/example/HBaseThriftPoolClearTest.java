@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift.example;
 
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
 import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftTemplate;
 import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftTemplateFactory;
 
@@ -18,7 +19,8 @@ public class HBaseThriftPoolClearTest {
             while (true) {
                 try {
                     System.out.println(Thread.currentThread().getName());
-                    System.out.println(thriftTemplate.getToRowData("LEO_USER", "a10001"));
+                    System.out.println(thriftTemplate.getRow("LEO_USER", GetRowParam.of("a10001").build()));
+
                     Thread.sleep( 10 * 1000L);
                     // thriftService.clearThriftPool();
                 } catch (InterruptedException e) {

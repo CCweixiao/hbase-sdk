@@ -2,12 +2,14 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.BaseHBaseTableAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseQueryParamsException;
-import com.github.CCweixiao.hbase.sdk.common.query.GetParams;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.filter.PrefixFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 
@@ -33,28 +35,59 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
     }
 
     @Override
-    public Get buildGet(GetParams getParams) {
-        Get get = new Get(Bytes.toBytes(getParams.getRowKey()));
-        if (getParams.onlyFamily()) {
-            get.addFamily(Bytes.toBytes(getParams.getFamilyName()));
+    public Get buildGet(GetRowParam getRowsParam) {
+        Get get = new Get(Bytes.toBytes(getRowsParam.getRowKey()));
+        if (getRowsParam.onlyFamily()) {
+            get.addFamily(Bytes.toBytes(getRowsParam.getFamily()));
         }
-        if (getParams.familyWithQualifiers()) {
-            getParams.getColumnNames().forEach(colName -> {
+        if (getRowsParam.familyWithQualifiers()) {
+            getRowsParam.getQualifiers().forEach(colName -> {
                 if (StringUtil.isNotBlank(colName)) {
-                    get.addColumn(Bytes.toBytes(getParams.getFamilyName()), Bytes.toBytes(colName));
+                    get.addColumn(Bytes.toBytes(getRowsParam.getFamily()), Bytes.toBytes(colName));
                 }
             });
         }
         try {
-            get.readVersions(getParams.getVersions());
-            if (getParams.getTimeRange() != null) {
-                get.setTimeRange(getParams.getTimeRange().getMinTimestamp(), getParams.getTimeRange().getMaxTimestamp());
+            get.readVersions(getRowsParam.getVersions());
+            if (getRowsParam.getTimeRange() != null) {
+                get.setTimeRange(getRowsParam.getTimeRange().getMinTimestamp(), getRowsParam.getTimeRange().getMaxTimestamp());
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);
         }
 
         return get;
+    }
+
+    @Override
+    public List<Get> buildGets(GetRowsParam getRowsParam) {
+        if (getRowsParam == null || getRowsParam.getRowKeyList() == null || getRowsParam.getRowKeyList().isEmpty()) {
+            return new ArrayList<>(0);
+        }
+        List<Get> gets = new ArrayList<>(getRowsParam.getRowKeyList().size());
+        for (String rowKey : getRowsParam.getRowKeyList()) {
+            Get get = new Get(Bytes.toBytes(rowKey));
+            if (getRowsParam.onlyFamily()) {
+                get.addFamily(Bytes.toBytes(getRowsParam.getFamily()));
+            }
+            if (getRowsParam.familyWithQualifiers()) {
+                getRowsParam.getQualifiers().forEach(colName -> {
+                    if (StringUtil.isNotBlank(colName)) {
+                        get.addColumn(Bytes.toBytes(getRowsParam.getFamily()), Bytes.toBytes(colName));
+                    }
+                });
+            }
+            try {
+                get.readVersions(getRowsParam.getVersions());
+                if (getRowsParam.getTimeRange() != null) {
+                    get.setTimeRange(getRowsParam.getTimeRange().getMinTimestamp(), getRowsParam.getTimeRange().getMaxTimestamp());
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
+            }
+            gets.add(get);
+        }
+        return gets;
     }
 
     @Override
@@ -79,6 +112,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
             scan.withStopRow(Bytes.toBytes(scanParams.getStopRow()), scanParams.isInclusiveStopRow());
         }
 
+        if (StringUtil.isNotBlank(scanParams.getRowPrefix())) {
+            PrefixFilter filter = new PrefixFilter(Bytes.toBytes(scanParams.getRowPrefix()));
+            scan.setFilter(filter);
+        }
+
         if (scanParams.getFilter() != null && scanParams.getFilter().customFilter() instanceof Filter) {
             scan.setFilter((Filter) scanParams.getFilter().customFilter());
         }
@@ -92,15 +130,11 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
         }
 
         if (scanParams.timestampIsSet()) {
-            try {
-                scan.setTimeStamp(scanParams.getTimestamp());
-            } catch (IOException e) {
-                throw new HBaseQueryParamsException(e);
-            }
+            scan.setTimestamp(scanParams.getTimestamp());
         }
 
         if (scanParams.getVersions() > 0) {
-            scan.setMaxVersions(scanParams.getVersions());
+            scan.readVersions(scanParams.getVersions());
         }
 
         if (scanParams.isCacheBlocks()) {
@@ -113,6 +147,8 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
 
         if (scanParams.getCaching() > 0) {
             scan.setCaching(scanParams.getCaching());
+        } else {
+            scan.setCaching(getClientScannerCaching());
         }
 
         if (scanParams.getBatch() > 0) {

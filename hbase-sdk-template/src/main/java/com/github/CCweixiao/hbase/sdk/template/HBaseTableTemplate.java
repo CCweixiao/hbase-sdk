@@ -4,6 +4,8 @@ import com.github.CCweixiao.hbase.sdk.HBaseTableAdapter;
 import com.github.CCweixiao.hbase.sdk.common.mapper.RowMapper;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowDataWithMultiVersions;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.Get;
@@ -47,178 +49,138 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, Class<T> clazz) {
-        return tableOpAdapter.getRow(rowKey, clazz);
+    public <T> Optional<T> getRow(GetRowParam getRowParam, Class<T> clazz) {
+        return tableOpAdapter.getRow(getRowParam, clazz);
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, Class<T> clazz) {
-        return tableOpAdapter.getRow(rowKey, familyName, clazz);
+    public <T> Optional<T> getRow(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        return tableOpAdapter.getRow(tableName, getRowParam, rowMapper);
     }
 
     @Override
-    public <T> Optional<T> getRow(String rowKey, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return tableOpAdapter.getRow(rowKey, familyName, qualifiers, clazz);
+    public HBaseRowData getRow(String tableName, GetRowParam getRowParam) {
+        return tableOpAdapter.getRow(tableName, getRowParam);
     }
 
     @Override
-    <T> T getRow(String tableName, Get get, Class<T> clazz) {
-        return tableOpAdapter.getRow(tableName, get, clazz);
+    public <T> List<T> getWithMultiVersions(GetRowParam getRowParam, Class<T> clazz) {
+        return tableOpAdapter.getWithMultiVersions(getRowParam, clazz);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRow(tableName, rowKey, rowMapper);
+    public <T> List<T> getWithMultiVersions(String tableName, GetRowParam getRowParam, RowMapper<T> rowMapper) {
+        return tableOpAdapter.getWithMultiVersions(tableName, getRowParam, rowMapper);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRow(tableName, rowKey, familyName, rowMapper);
+    public HBaseRowDataWithMultiVersions getWithMultiVersions(String tableName, GetRowParam getRowParam) {
+        return tableOpAdapter.getWithMultiVersions(tableName, getRowParam);
     }
 
     @Override
-    public <T> Optional<T> getRow(String tableName, String rowKey, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRow(tableName, rowKey, familyName, qualifiers, rowMapper);
+    <T> Optional<T> get(Get get, Class<T> clazz) {
+        return tableOpAdapter.get(get, clazz);
     }
 
     @Override
-    <T> T getRow(String tableName, Get get, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRow(tableName, get, rowMapper);
+    <T> Optional<T> get(String tableName, Get get, RowMapper<T> rowMapper) {
+        return tableOpAdapter.get(tableName, get, rowMapper);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey) {
-        return tableOpAdapter.getToRowData(tableName, rowKey);
+    public HBaseRowData get(String tableName, Get get) {
+        return tableOpAdapter.get(tableName, get);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName) {
-        return tableOpAdapter.getToRowData(tableName, rowKey, familyName);
+    public <T> List<T> getWithMultiVersions(Get get, int versions, Class<T> clazz) {
+        return tableOpAdapter.getWithMultiVersions(get, versions, clazz);
     }
 
     @Override
-    public HBaseRowData getToRowData(String tableName, String rowKey, String familyName, List<String> qualifiers) {
-        return tableOpAdapter.getToRowData(tableName, rowKey, familyName, qualifiers);
+    public <T> List<T> getWithMultiVersions(String tableName, Get get, int versions, RowMapper<T> rowMapper) {
+        return tableOpAdapter.getWithMultiVersions(tableName, get, versions, rowMapper);
     }
 
     @Override
-    public HBaseRowData getRowToRowData(String tableName, Get get) {
-        return tableOpAdapter.getRowToRowData(tableName, get);
+    public HBaseRowDataWithMultiVersions getWithMultiVersions(String tableName, Get get, int versions) {
+        return tableOpAdapter.getWithMultiVersions(tableName, get, versions);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, int versions) {
-        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, versions);
+    public <T> List<T> getRows(GetRowsParam getRowsParam, Class<T> clazz) {
+        return tableOpAdapter.getRows(getRowsParam, clazz);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, int versions) {
-        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, familyName, versions);
+    public <T> List<T> getRows(String tableName, GetRowsParam getRowsParam, RowMapper<T> rowMapper) {
+        return tableOpAdapter.getRows(tableName, getRowsParam, rowMapper);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getRowWithMultiVersions(String tableName, String rowKey, String familyName, List<String> qualifiers, int versions) {
-        return tableOpAdapter.getRowWithMultiVersions(tableName, rowKey, familyName, qualifiers, versions);
+    public List<HBaseRowData> getRows(String tableName, GetRowsParam getRowsParam) {
+        return tableOpAdapter.getRows(tableName, getRowsParam);
     }
 
     @Override
-    public HBaseRowDataWithMultiVersions getToRowDataWithMultiVersions(String tableName, Get get, int versions) {
-        return tableOpAdapter.getRowWithMultiVersions(tableName, get, versions);
+    <T> List<T> gets(String tableName, List<Get> gets, Class<T> clazz) {
+        return tableOpAdapter.gets(tableName, gets, clazz);
     }
 
     @Override
-    List<HBaseRowData> getRowsToRowData(String tableName, List<Get> gets) {
-        return tableOpAdapter.getRowsToRowData(tableName, gets);
+    <T> List<T> gets(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
+        return tableOpAdapter.gets(tableName, gets, rowMapper);
     }
 
     @Override
-    <T> List<T> getRowsToRowData(String tableName, List<Get> gets, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRowsToRowData(tableName, gets, rowMapper);
+    List<HBaseRowData> gets(String tableName, List<Get> gets) {
+        return tableOpAdapter.gets(tableName, gets);
     }
 
     @Override
-    List<HBaseRowData> scan(String tableName, String startRow, String endRow) {
-        return tableOpAdapter.scan(tableName, startRow, endRow);
+    public Scan buildScan(ScanParams scanParams) {
+        return tableOpAdapter.buildScan(scanParams);
     }
 
     @Override
-    List<HBaseRowData> scanToRowDataList(String tableName, Scan scan) {
-        return tableOpAdapter.scanToRowDataList(tableName, scan);
+    public <T> List<T> scan(ScanParams scanParams, Class<T> clazz) {
+        return tableOpAdapter.scan(scanParams, clazz);
     }
 
     @Override
-    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, String startRow, String endRow, int versions) {
-        return tableOpAdapter.scanToMultiVersions(tableName, startRow, endRow, versions);
+    public <T> List<T> scan(String tableName, ScanParams scanParams, RowMapper<T> rowMapper) {
+        return tableOpAdapter.scan(tableName, scanParams, rowMapper);
     }
 
     @Override
-    List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, Scan scan, int versions) {
-        return tableOpAdapter.scanToMultiVersions(tableName, scan, versions);
+    public List<HBaseRowData> scan(String tableName, ScanParams scanParams) {
+        return tableOpAdapter.scan(tableName, scanParams);
     }
 
     @Override
-    public <T> List<T> getRows(List<String> rowKeys, Class<T> clazz) {
-        return tableOpAdapter.getRows(rowKeys, clazz);
+    public List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, ScanParams scanParams) {
+        return tableOpAdapter.scanWithMultiVersions(tableName, scanParams);
     }
 
     @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, Class<T> clazz) {
-        return tableOpAdapter.getRows(rowKeys, familyName, clazz);
+    public <T> List<T> scan(Scan scan, Class<T> clazz) {
+        return tableOpAdapter.scan(scan, clazz);
     }
 
     @Override
-    public <T> List<T> getRows(List<String> rowKeys, String familyName, List<String> qualifiers, Class<T> clazz) {
-        return tableOpAdapter.getRows(rowKeys, familyName, qualifiers, clazz);
+    public <T> List<T> scan(String tableName, Scan scan, RowMapper<T> rowMapper) {
+        return tableOpAdapter.scan(tableName, scan, rowMapper);
     }
 
     @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRows(tableName, rowKeys, rowMapper);
+    public List<HBaseRowData> scan(String tableName, Scan scan) {
+        return tableOpAdapter.scan(tableName, scan);
     }
 
     @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRows(tableName, rowKeys, familyName, rowMapper);
-    }
-
-    @Override
-    public <T> List<T> getRows(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers, RowMapper<T> rowMapper) {
-        return tableOpAdapter.getRows(tableName, rowKeys, familyName, qualifiers, rowMapper);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys) {
-        return tableOpAdapter.getToRowsData(tableName, rowKeys);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName) {
-        return tableOpAdapter.getToRowsData(tableName, rowKeys, familyName);
-    }
-
-    @Override
-    public List<HBaseRowData> getToRowsData(String tableName, List<String> rowKeys, String familyName, List<String> qualifiers) {
-        return tableOpAdapter.getToRowsData(tableName, rowKeys, familyName, qualifiers);
-    }
-
-    @Override
-    public <T> List<T> scan(ScanParams scanQueryParams, Class<T> clazz) {
-        return tableOpAdapter.scan(scanQueryParams, clazz);
-    }
-
-    @Override
-    public <T> List<T> scan(String tableName, ScanParams scanQueryParams, RowMapper<T> rowMapper) {
-        return tableOpAdapter.scan(tableName, scanQueryParams, rowMapper);
-    }
-
-    @Override
-    public List<HBaseRowData> scan(String tableName, ScanParams scanQueryParams) {
-        return tableOpAdapter.scan(tableName, scanQueryParams);
-    }
-
-    @Override
-    public List<HBaseRowDataWithMultiVersions> scanToMultiVersions(String tableName, ScanParams scanParams) {
-        return tableOpAdapter.scanToMultiVersions(tableName, scanParams);
+    public List<HBaseRowDataWithMultiVersions> scanWithMultiVersions(String tableName, Scan scan, int versions) {
+        return tableOpAdapter.scanWithMultiVersions(tableName, scan, versions);
     }
 
     @Override
@@ -288,10 +250,6 @@ public class HBaseTableTemplate extends BaseHBaseTableTemplate {
 
     public static HBaseTableTemplate of(String zkQuorum, String zkClientPort) {
         return new HBaseTableTemplate.Builder().configuration(zkQuorum, zkClientPort).build();
-    }
-
-    public static HBaseTableTemplate.Builder builder() {
-        return new HBaseTableTemplate.Builder();
     }
 
     public Configuration getConfiguration() {

@@ -6,6 +6,8 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseMetaDataException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseThriftException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowsParam;
 import com.github.CCweixiao.hbase.sdk.common.query.ScanParams;
 import com.github.CCweixiao.hbase.sdk.common.reflect.FieldStruct;
 import com.github.CCweixiao.hbase.sdk.common.reflect.HBaseTableMeta;
@@ -120,11 +122,20 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return t;
     }
 
-    protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, String rowKey, String familyName, List<String> qualifiers) {
+    protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, GetRowParam getRowParam) {
+        return getToRowResultList(thriftClient, tableName, getRowParam.getRowKey(), getRowParam.getFamily(), getRowParam.getQualifiers());
+    }
+
+    protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, GetRowsParam getRowsParam) {
+        return getToRowResultList(thriftClient, tableName, getRowsParam.getRowKeyList().get(0), getRowsParam.getFamily(), getRowsParam.getQualifiers());
+    }
+
+    protected List<TRowResult> getToRowResultList(Hbase.Client thriftClient, String tableName, String rowKey,
+                                                  String family, List<String> qualifiers) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be null.");
         MyAssert.checkArgument(StringUtil.isNotBlank(rowKey), "The value of row key must not be null.");
         ByteBuffer rowByteBuffer = ColumnType.toByteBufferFromStr(rowKey);
-        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
+        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(family, qualifiers);
         List<TRowResult> results;
         try {
             if (familyQualifiers != null && !familyQualifiers.isEmpty()) {
@@ -140,17 +151,19 @@ public abstract class BaseHBaseThriftClient extends HBaseThriftConnection {
         return results;
     }
 
-    protected List<TRowResult> getToRowsResultList(Hbase.Client thriftClient, String tableName, List<String> rowKeyList, String familyName, List<String> qualifiers) {
+    protected List<TRowResult> getToRowsResultList(Hbase.Client thriftClient, String tableName, GetRowsParam getRowsParam) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name must not be null.");
-        MyAssert.checkArgument((rowKeyList != null && !rowKeyList.isEmpty()), "The row key(s) must not be empty.");
-        if (rowKeyList.size() == 1) {
-            return getToRowResultList(thriftClient, tableName, rowKeyList.get(0), familyName, qualifiers);
+        MyAssert.checkArgument((getRowsParam != null && getRowsParam.getRowKeyList() != null &&
+                !getRowsParam.getRowKeyList().isEmpty()), "The row key(s) must not be empty.");
+        if (getRowsParam.getRowKeyList().size() == 1) {
+            return getToRowResultList(thriftClient, tableName, getRowsParam);
         }
-        List<ByteBuffer> rowByteBuffers = rowKeyList.stream().map(row -> {
+
+        List<ByteBuffer> rowByteBuffers = getRowsParam.getRowKeyList().stream().map(row -> {
             MyAssert.checkArgument(StringUtil.isNotBlank(row), "The row key must not be empty.");
             return ColumnType.toByteBufferFromStr(row);
         }).collect(Collectors.toList());
-        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(familyName, qualifiers);
+        List<ByteBuffer> familyQualifiers = createFamilyQualifiesBuffer(getRowsParam.getFamily(), getRowsParam.getQualifiers());
 
         List<TRowResult> results;
         try {

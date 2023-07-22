@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.thrift;
 
 import com.github.CCweixiao.hbase.sdk.common.model.data.HBaseRowData;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,13 +30,13 @@ public class HBaseThriftPoolSingleTests {
 
         while (true) {
 
-            System.out.println(hBaseThriftService.getToRowData("LEO_USER", "a10001"));
+            System.out.println(hBaseThriftService.getRow("LEO_USER", GetRowParam.of("a10001").build()));
             try {
                 int r = random.nextInt(10) + 1;
                 //int r = 4;
                 System.out.println("即将等待：" + r + "分钟");
                 Thread.sleep(r * 60 * 1000);
-                System.out.println(hBaseThriftService.getToRowData("LEO_USER", "a10001"));
+                System.out.println(hBaseThriftService.getRow("LEO_USER", GetRowParam.of("a10001").build()));
                 System.out.println("等待时间：" + r + "分钟");
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -49,7 +50,7 @@ public class HBaseThriftPoolSingleTests {
     public void testThriftClient() {
 //        final List<String> tableNames = hBaseThriftService.getTableNames();
 //        System.out.println(tableNames);
-        final HBaseRowData rowData = hBaseThriftService.getToRowData("LEO_USER", "a10001");
+        final HBaseRowData rowData = hBaseThriftService.getRow("LEO_USER", GetRowParam.of("a10001").build());
         System.out.println(rowData);
 
         try {
@@ -59,7 +60,7 @@ public class HBaseThriftPoolSingleTests {
             e.printStackTrace();
         }
         System.out.println("------------2--------------");
-        final HBaseRowData rowData2 = hBaseThriftService.getToRowData("LEO_USER", "a10001");
+        final HBaseRowData rowData2 = hBaseThriftService.getRow("LEO_USER", GetRowParam.of("a10001").build());
         System.out.println(rowData2);
         try {
             Thread.sleep(600 * 1000);
@@ -104,19 +105,19 @@ public class HBaseThriftPoolSingleTests {
     @Test
     public void testGet() {
 
-        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
-                "a10001", "g", Collections.singletonList("age")));
-
-        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
-                "a10001", "g", Arrays.asList("name", "age", "sds")));
-
-        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
-                "a10002", "f"));
-
-        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
-                "a10002", "g"));
-
-        System.out.println(hBaseThriftService.getToRowData("LEO_USER", "a1002"));
+//        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
+//                "a10001", "g", Collections.singletonList("age")));
+//
+//        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
+//                "a10001", "g", Arrays.asList("name", "age", "sds")));
+//
+//        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
+//                "a10002", "f"));
+//
+//        System.out.println(hBaseThriftService.getToRowData("LEO_USER",
+//                "a10002", "g"));
+//
+//        System.out.println(hBaseThriftService.getToRowData("LEO_USER", "a1002"));
     }
 
     @Test

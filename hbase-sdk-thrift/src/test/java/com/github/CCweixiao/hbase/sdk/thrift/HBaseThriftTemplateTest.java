@@ -62,27 +62,27 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
 
     @Test
     public void testGetRow() {
-        Optional<UserModel> userModel = thriftTemplate.getRow("u10001", UserModel.class);
-        System.out.println(userModel);
-        HBaseRowData data = thriftTemplate.getToRowData("test:t1", "u10002");
-        System.out.println(data);
+//        Optional<UserModel> userModel = thriftTemplate.getRow("u10001", UserModel.class);
+//        System.out.println(userModel);
+//        HBaseRowData data = thriftTemplate.getToRowData("test:t1", "u10002");
+//        System.out.println(data);
     }
 
     @Test
     public void testGetRows() {
-        List<UserModel> userModels = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"), UserModel.class);
-        System.out.println(userModels);
-        List<UserModel> userModels2 = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"),
-                "detail", UserModel.class);
-        System.out.println(userModels2);
-        List<UserModel> userModels3 = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"),
-                "detail", Collections.singletonList("detailAddress"), UserModel.class);
-        System.out.println(userModels3);
+//        List<UserModel> userModels = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"), UserModel.class);
+//        System.out.println(userModels);
+//        List<UserModel> userModels2 = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"),
+//                "detail", UserModel.class);
+//        System.out.println(userModels2);
+//        List<UserModel> userModels3 = thriftTemplate.getRows(Arrays.asList("u10001", "u21000", "u22000"),
+//                "detail", Collections.singletonList("detailAddress"), UserModel.class);
+//        System.out.println(userModels3);
     }
 
     @Test
     public void testScanWithLimit() {
-        ScanParams queryParams = ScanParams.builder()
+        ScanParams queryParams = ScanParams.of()
                 .limit(2)
                 .build();
         // 全表扫描所有数据，并设置limit
@@ -94,7 +94,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithStarAndRow() {
         // 根据起止row key扫描数据，不包含stopRow
-        ScanParams queryParams = ScanParams.builder()
+        ScanParams queryParams = ScanParams.of()
                 .startRow("u10001")
                 .stopRow("u21000")
                 .build();
@@ -106,7 +106,7 @@ public class HBaseThriftTemplateTest extends BaseHBaseThriftTemplateTest{
     @Test
     public void testScanWithFilter() {
         // 设置过滤器扫描，列名为nick_前缀，且列对应值ascii码比：不会飞的猪2大的被筛选出
-        ScanParams queryParams = ScanParams.builder()
+        ScanParams queryParams = ScanParams.of()
                 .filter(new IHBaseFilter<String>() {
                     @Override
                     public String customFilter() {

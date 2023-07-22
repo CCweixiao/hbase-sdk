@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.thrift.example;
 
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
 import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftTemplate;
 import com.github.CCweixiao.hbase.sdk.thrift.HBaseThriftTemplateFactory;
 
@@ -18,13 +19,14 @@ public class HBaseThriftPoolThreadTest {
         @Override
         public void run() {
             Random random = new Random();
-            System.out.println(thriftTemplate.getToRowData("LEO_USER", "a10001"));
+            System.out.println(thriftTemplate.getRow("LEO_USER", GetRowParam.of("a10001").build()));
+
             while (true) {
                 try {
                     int r = random.nextInt(10) + 1;
                     System.out.println("Thread-" + Thread.currentThread().getName() + "即将等待：" + r + "分钟");
                     Thread.sleep(r * 60 * 1000L);
-                    System.out.println(thriftTemplate.getToRowData("LEO_USER", "a10001"));
+                    System.out.println(thriftTemplate.getRow("LEO_USER", GetRowParam.of("a10001").build()));
                     System.out.println("Thread-" + Thread.currentThread().getName() + "等待时间：" + r + "分钟");
                 } catch (InterruptedException e) {
                     e.printStackTrace();

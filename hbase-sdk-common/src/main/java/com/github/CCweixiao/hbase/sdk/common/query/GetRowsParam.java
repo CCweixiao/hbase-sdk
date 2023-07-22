@@ -1,24 +1,22 @@
 package com.github.CCweixiao.hbase.sdk.common.query;
 
-import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author leojie 2023/7/20 11:09
  */
-public class GetParams {
-    private final String rowKey;
-    private final String familyName;
-    private final List<String> columnNames;
+public class GetRowsParam {
+    private final List<String> rowKeyList;
+    private final String family;
+    private final List<String> qualifiers;
     private final TimeRange timeRange;
     private final int versions;
 
-    public GetParams(Builder builder) {
-        this.rowKey = builder.rowKey;
-        this.familyName = builder.familyName;
-        this.columnNames = builder.columnNames;
+    public GetRowsParam(Builder builder) {
+        this.rowKeyList = builder.rowKeyList;
+        this.family = builder.family;
+        this.qualifiers = builder.qualifiers;
         this.timeRange = builder.timeRange;
         this.versions = builder.versions;
     }
@@ -59,38 +57,44 @@ public class GetParams {
     }
 
     public static class Builder {
-        private String rowKey;
-        private String familyName;
-        private List<String> columnNames;
+        private List<String> rowKeyList;
+        private String family;
+        private List<String> qualifiers;
         private TimeRange timeRange;
         private int versions;
 
         private Builder() {
+            this.versions = 1;
         }
 
-        public Builder of(String rowKey) {
-            if (StringUtil.isBlank(rowKey)) {
-                throw new IllegalArgumentException("The rowKey must be specified in the get query.");
+        public Builder rowKeyList(List<String> rowKeyList) {
+            this.rowKeyList = rowKeyList;
+            return this;
+        }
+
+        public Builder appendRowKey(String rowKey) {
+            if (this.rowKeyList == null) {
+                this.rowKeyList = new ArrayList<>();
             }
-            this.rowKey = rowKey;
+            this.rowKeyList.add(rowKey);
             return this;
         }
 
-        public Builder familyName(String familyName) {
-            this.familyName = familyName;
+        public Builder family(String family) {
+            this.family = family;
             return this;
         }
 
-        public Builder columnNames(List<String> columnNames) {
-            this.columnNames = columnNames;
+        public Builder qualifiers(List<String> qualifiers) {
+            this.qualifiers = qualifiers;
             return this;
         }
 
-        public Builder columnName(String columnName) {
-            if (this.columnNames == null) {
-                this.columnNames = new ArrayList<>();
+        public Builder qualifier(String qualifier) {
+            if (this.qualifiers == null) {
+                this.qualifiers = new ArrayList<>();
             }
-            this.columnNames.add(columnName);
+            this.qualifiers.add(qualifier);
             return this;
         }
 
@@ -115,30 +119,25 @@ public class GetParams {
             return this;
         }
 
-        public Builder readAllVersions() {
-            this.versions = Integer.MAX_VALUE;
-            return this;
-        }
-
-        public GetParams build() {
-            return new GetParams(this);
+        public GetRowsParam build() {
+            return new GetRowsParam(this);
         }
     }
 
-    public static Builder builder(String rowKey) {
-        return new GetParams.Builder().of(rowKey);
+    public static Builder of() {
+        return new GetRowsParam.Builder();
     }
 
-    public String getRowKey() {
-        return rowKey;
+    public List<String> getRowKeyList() {
+        return rowKeyList;
     }
 
-    public String getFamilyName() {
-        return familyName;
+    public String getFamily() {
+        return family;
     }
 
-    public List<String> getColumnNames() {
-        return columnNames;
+    public List<String> getQualifiers() {
+        return qualifiers;
     }
 
     public TimeRange getTimeRange() {
@@ -150,19 +149,19 @@ public class GetParams {
     }
 
     public boolean onlyFamily() {
-        return FamilyQualifierUtil.familyNameOnly(this.getFamilyName(), this.getColumnNames());
+        return FamilyQualifierUtil.familyNameOnly(this.getFamily(), this.getQualifiers());
     }
 
     public boolean familyWithQualifiers() {
-        return FamilyQualifierUtil.familyAndColumnNames(this.getFamilyName(), this.getColumnNames());
+        return FamilyQualifierUtil.familyAndColumnNames(this.getFamily(), this.getQualifiers());
     }
 
     @Override
     public String toString() {
         return "GetParams{" +
-                "rowKey='" + rowKey + '\'' +
-                ", familyName='" + familyName + '\'' +
-                ", columnNames=" + columnNames +
+                "rowKeyList='" + rowKeyList + '\'' +
+                ", familyName='" + family + '\'' +
+                ", qualifiers=" + qualifiers +
                 ", timeRange=" + timeRange +
                 ", versions=" + versions +
                 '}';

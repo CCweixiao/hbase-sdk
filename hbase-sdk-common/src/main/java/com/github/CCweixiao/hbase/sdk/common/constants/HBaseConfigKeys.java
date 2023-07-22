@@ -28,4 +28,7 @@ public class HBaseConfigKeys {
     public static final String HBASE_CLIENT_HEDGED_READ_POOL_SIZE = "hbase.client.hedged.thread.pool.size";
     public static final String HBASE_CLIENT_HEDGED_READ_POOL_DEFAULT_SIZE = "10";
     public static final String HEDGED_READ_CONF_SUFFIX = ".hedged.read";
+
+    public static final String HBASE_CLIENT_SCANNER_CACHING = "hbase.client.scanner.caching";
+    public static final int HBASE_CLIENT_DEFAULT_SCANNER_CACHING = 1000;
 }

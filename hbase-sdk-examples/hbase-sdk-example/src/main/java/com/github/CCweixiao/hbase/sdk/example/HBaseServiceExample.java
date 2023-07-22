@@ -47,7 +47,7 @@ public class HBaseServiceExample {
 
     public static void main(String[] args) {
         BaseHBaseTableTemplate hBaseTemplate = HBaseTableTemplate.of(getProperties());
-        ScanParams scanQueryParamsBuilder = ScanParams.builder()
+        ScanParams scanQueryParamsBuilder = ScanParams.of()
                 .familyName("info")
                 .columnNames(Arrays.asList("city_name", "city_address", "cityTagList"))
                 .startRow("a10001")

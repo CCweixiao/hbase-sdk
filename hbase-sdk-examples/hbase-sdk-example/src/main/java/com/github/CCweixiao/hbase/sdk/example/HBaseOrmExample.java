@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.example;
 
 import com.github.CCweixiao.hbase.sdk.common.model.example.CityModel;
+import com.github.CCweixiao.hbase.sdk.common.query.GetRowParam;
 import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
 import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
 import java.util.Optional;
@@ -14,7 +15,7 @@ public class HBaseOrmExample {
         Properties properties = HBaseServiceExample.getProperties();
         BaseHBaseTableTemplate tableTemplate = HBaseTableTemplate.of(properties);
         tableTemplate.save(CityModel.createDefaultCityModel());
-        Optional<CityModel> result = tableTemplate.getRow("a10001", CityModel.class);
+        Optional<CityModel> result = tableTemplate.getRow(GetRowParam.of("a10001").build(), CityModel.class);
         System.out.println(result.orElse(new CityModel()));
     }
 
