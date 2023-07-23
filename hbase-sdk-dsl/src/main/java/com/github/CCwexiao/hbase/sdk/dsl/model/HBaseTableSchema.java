@@ -33,7 +33,7 @@ public class HBaseTableSchema {
     public static class Builder {
         private final String tableName;
 
-        public Builder(String tableName) {
+        private Builder(String tableName) {
             this.tableName = tableName;
         }
 
@@ -217,6 +217,10 @@ public class HBaseTableSchema {
 
     public TableQuerySetting getTableQuerySetting() {
         return tableQuerySetting;
+    }
+
+    public static Builder of(String tableName) {
+        return new Builder(tableName);
     }
 
     @Override

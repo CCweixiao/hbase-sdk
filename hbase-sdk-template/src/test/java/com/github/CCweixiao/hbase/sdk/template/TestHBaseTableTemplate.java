@@ -214,4 +214,9 @@ public class TestHBaseTableTemplate extends BaseTestAdapter {
                 tableTemplate.scanWithMultiVersions(TEST_TABLE, scanParams);
         Assert.assertEquals(1, hBaseRowDataWithMultiVersions.size());
     }
+
+    @Test
+    public void testDelete() {
+        tableTemplate.delete("t1", "r1", "f", "version");
+    }
 }

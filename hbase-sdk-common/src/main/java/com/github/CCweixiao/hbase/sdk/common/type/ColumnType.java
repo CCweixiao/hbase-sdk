@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.*;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytes;
 import com.github.CCweixiao.hbase.sdk.common.type.handler.ext.HexBytesHandler;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -115,5 +116,17 @@ public enum ColumnType {
     public static ByteBuffer toByteBufferFromStr(String val) {
         TypeHandler<?> typeHandler = findTypeHandler(String.class);
         return typeHandler.toByteBuffer(val);
+    }
+
+    public static ColumnType getColumnType(String typeName) {
+        if (StringUtil.isBlank(typeName)) {
+            return null;
+        }
+        for (ColumnType value : ColumnType.values()) {
+            if (typeName.equalsIgnoreCase(value.getTypeName())) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("Unsupported type " + typeName);
     }
 }

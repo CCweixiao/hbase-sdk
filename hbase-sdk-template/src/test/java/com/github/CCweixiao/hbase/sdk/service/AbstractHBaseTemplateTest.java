@@ -33,7 +33,7 @@ public abstract class AbstractHBaseTemplateTest {
     }
 
     protected void initIHBaseSqlTemplate() {
-        HBaseTableSchema tableSchema = new HBaseTableSchema.Builder("test:test_sql")
+        HBaseTableSchema tableSchema = HBaseTableSchema.of("test:test_sql")
                 .addColumn("f1", "id")
                 .addColumn("f1", "name")
                 .addColumn("f1", "age", ColumnType.IntegerType)

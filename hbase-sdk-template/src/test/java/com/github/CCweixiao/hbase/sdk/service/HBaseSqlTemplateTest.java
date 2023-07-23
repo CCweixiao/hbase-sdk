@@ -138,4 +138,26 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
         sqlTemplate.delete(sql2);
     }
 
+    @Test
+    public void printDefaultTableSchema() {
+        System.out.println(defaultTableSchemaJsonFormat());
+    }
+    public String defaultTableSchemaJsonFormat() {
+        return "{\n" +
+                "\t\"tableName\": \"test_table\",\n" +
+                "\t\"defaultFamily\": \"cf\",\n" +
+                "\t\"columnList\": [{\n" +
+                "\t    \"familyName\": \"\",\n" +
+                "\t    \"columnName\": \"rowKey\",\n" +
+                "\t    \"columnType\": \"string\",\n" +
+                "\t    \"columnIsRow\": \"true\"\n" +
+                "\t},{\n" +
+                "\t    \"familyName\": \"cf\",\n" +
+                "\t    \"columnName\": \"name\",\n" +
+                "\t    \"columnType\": \"string\",\n" +
+                "\t    \"columnIsRow\": \"true\"\n" +
+                "\t},]\n" +
+                "}";
+    }
+
 }

@@ -19,15 +19,16 @@ import java.util.Optional;
 public interface IHBaseTableOpAdapter {
 
     /**
-     * 保存数据，需构造Map类型的数据参数<br/>
-     * 入参data的数据格式举例如下： <br/>
+     * 保存单条rowKey的数据，需构造Map类型的数据参数，其格式如下示例：<br/>
      * {"f1:name": "leo", "f2:age": 18} <br/>
      * <h3>tip:</h3>
-     * <p>1. HBase数据都以字节形成存储，存取都需要字段值的类型，才能对值做正确的类型转换，<br/>
-     * 因此在此API的封装中，非字符串的基础类型数据，底层会被自动序列化成字符串类型。<br/>
+     * <p>1. HBase表中数据都是以字节形成存储，存取时都需要字段值的类型，才能对值做正确的类型转换，否则会出现乱码字符，导致读取数据解析数据异常。
+     * 因此在此API的封装中，非字符串的基础类型数据，底层都会被自动序列化成字符串类型。<br/>
      * 2. 字段名称的命名格式必须是：family:qualifier <br/>
-     * 3. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson处理json格式数据</p>
-     * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOpAdapter#save(Object)} <br/><p/>
+     * 3. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson框架来序列化/反序列化json数据<br/>
+     * 4. rowKey只能是字符串类型</p>
+     *
+     * <p>如果对数据类型有严格要求，请使用方法: {@link IHBaseTableOpAdapter#save(Object)} <br/><p/>
      *
      * @param tableName HBase表名
      * @param rowKey    指定row key，row key默认被限定必须使用String类型
@@ -36,17 +37,18 @@ public interface IHBaseTableOpAdapter {
     void save(String tableName, String rowKey, Map<String, Object> data);
 
     /**
-     * 批量保存数据，需构造嵌套Map类型的入参<br/>
-     * 例如：<br/>
+     * 批量保存多条rowKey对应的数据，需构造嵌套Map类型的入参，默认不保证数据插入的顺序，如果对顺序有要求，使用排序Map存放待保存数据<br/>
+     * 批量保存数据入参格式举例如下：<br/>
      * {  <br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;"row_key1": {"f1:name": "leojie1", "f2:age": 18}, <br/>
      * &nbsp;&nbsp;&nbsp;&nbsp;"row_key2": {"f1:name": "leojie2", "f2:age": 17} <br/>
      * } <br/>
      * <h3>tip:</h3>
-     * <p>1. HBase数据都以字节形成存储，存取都需要字段值的类型，才能对值做正确的类型转换，<br/>
-     * 因此在此API的封装中，非字符串的基础类型数据，底层会被自动序列化成字符串类型。<br/>
+     * 1. HBase表中数据都是以字节形成存储，存取时都需要字段值的类型，才能对值做正确的类型转换，否则会出现乱码字符，导致读取数据解析数据异常。
+     * 因此在此API的封装中，非字符串的基础类型数据，底层都会被自动序列化成字符串类型。<br/>
      * 2. 字段名称的命名格式必须是：family:qualifier <br/>
-     * 3. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson处理json格式数据</p>
+     * 3. 复杂数据类型，如：List/Map/Java对象等，会先被格式化成JSON字符串后再进行存储，默认使用FastJson框架来序列化/反序列化json数据<br/>
+     * 4. rowKey只能是字符串类型
      * <p>如果对数据类型有要求，请使用方法: {@link IHBaseTableOpAdapter#saveBatch(List<Object>)} <br/><p/>
      *
      * @param tableName 表名
@@ -55,8 +57,8 @@ public interface IHBaseTableOpAdapter {
     void saveBatch(String tableName, Map<String, Map<String, Object>> data);
 
     /**
-     * 保存数据，需构造一个Java对象来定义属性与HBase列族、字段的对应关系。<br/>
-     * 例如：{@link com.github.CCweixiao.hbase.sdk.common.model.example.CityModel} <br/>
+     * 保存单条rowKey的数据，需构造一个数据实体类来定义属性与HBase列族、字段及值的对应关系。<br/>
+     * 数据实体类的定义参考：例如：{@link com.github.CCweixiao.hbase.sdk.common.model.example.CityModel} <br/>
      *
      * @param t 数据实体对象
      * @see <a href="https://github.com/CCweixiao/hbase-manager/wiki/hbase%E2%80%90sdk-ORM%E7%89%B9%E6%80%A7%E4%BD%BF%E7%94%A8">ORM特性使用文档</a>
@@ -64,9 +66,9 @@ public interface IHBaseTableOpAdapter {
     <T> void save(T t);
 
     /**
-     * 构造一个Java数据实体对象来绑定属性与HBase列族、字段的对应关系。<br/>
-     * 在批量保存数据时，传入一个数据实体对象列表，列表为空时，无报错，也不会做任何操作。<br/>
-     * 例如：{@link com.github.CCweixiao.hbase.sdk.common.model.example.CityModel} <br/>
+     * 批量保存多条rowKey的数据，需构造一个数据实体类来绑定属性与HBase列族、字段的对应关系。<br/>
+     * 在批量保存数据时，传入一个数据实体对象列表，当列表为空时，不报错，但也不会做任何操作。<br/>
+     * 数据实体类的定义参考：例如：{@link com.github.CCweixiao.hbase.sdk.common.model.example.CityModel} <br/>
      *
      * @param list 数据实体对象列表
      * @param <T>  泛型类型
@@ -75,7 +77,7 @@ public interface IHBaseTableOpAdapter {
     <T> void saveBatch(List<T> list);
 
     /**
-     * 构造一个{@link GetRowParam}参数对象，查询单条数据，不识别查询参数中的versions <br/>
+     * 构造一个{@link GetRowParam}参数对象，查询单条rowKey数据，不识别查询参数中的versions <br/>
      * 底层通过反射机制，自动把Result中的字段和值绑定到指定java对象的属性和值上
      *
      * @param getRowParam 查询参数
