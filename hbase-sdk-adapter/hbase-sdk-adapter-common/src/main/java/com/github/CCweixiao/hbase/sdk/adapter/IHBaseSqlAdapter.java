@@ -2,6 +2,7 @@ package com.github.CCweixiao.hbase.sdk.adapter;
 
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.Map;
 
@@ -10,15 +11,19 @@ import java.util.Map;
  */
 public interface IHBaseSqlAdapter {
 
-    HBaseDataSet select(String hsql);
+    HBaseDataSet select(String hql);
 
-    HBaseDataSet select(String hsql, Map<String, Object> params);
+    HBaseDataSet select(String hql, Map<String, Object> params);
 
-    void insert(String hsql);
+    void insert(String hql);
 
-    void delete(String hsql);
+    void delete(String hql);
 
     String parseTableNameFromHql(String hql);
 
     HQLType parseHQLType(String hql);
+
+    void registerTableSchema(HBaseTableSchema tableSchema);
+    HBaseTableSchema getTableSchema(String tableName);
+    void printTableSchema(String tableName);
 }

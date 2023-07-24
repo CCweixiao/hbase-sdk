@@ -68,7 +68,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
         MyAssert.checkNotNull(selectHqlContext);
         String tableName = parseTableNameFromHql(progContext);
-        HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
+        HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         // col List
         HBaseSQLParser.SelectColListContext selectColListContext = selectHqlContext.selectColList();
         final List<HBaseColumn> queryColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
@@ -174,17 +174,17 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    public HBaseDataSet select(String hsql) {
-        return select(hsql, new HashMap<>(0));
+    public HBaseDataSet select(String hql) {
+        return select(hql, new HashMap<>(0));
     }
 
     @Override
-    public void insert(String hsql) {
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hsql);
+    public void insert(String hql) {
+        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         HBaseSQLParser.InserthqlcContext insertHqlContext = HBaseSqlAnalysisUtil.parseInsertHqlContext(progContext);
         MyAssert.checkNotNull(insertHqlContext);
         String tableName = parseTableNameFromHql(progContext);
-        HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
+        HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         List<HBaseColumn> insertColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, insertHqlContext.colList());
 
         final List<HBaseSQLParser.InsertValueContext> insertValueContextList = insertHqlContext.insertValueList().insertValue();
@@ -226,11 +226,11 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    public void delete(String hsql) {
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hsql);
+    public void delete(String hql) {
+        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         HBaseSQLParser.DeletehqlcContext deleteHqlContext = HBaseSqlAnalysisUtil.parseDeleteHqlContext(progContext);
         String tableName = parseTableNameFromHql(progContext);
-        HBaseTableSchema tableSchema = HBaseSqlContext.getTableSchema(tableName);
+        HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         //delete col list
         HBaseSQLParser.SelectColListContext deleteColListContext = deleteHqlContext.selectColList();
         List<HBaseColumn> deleteColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, deleteColListContext);

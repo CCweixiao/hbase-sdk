@@ -1,39 +1,50 @@
 package com.github.CCwexiao.hbase.sdk.dsl.context;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 /**
  * @author leojie 2022/12/4 00:03
  */
 public class HBaseSqlContext {
-    private volatile static Map<String, HBaseTableSchema> tableSchemaMap;
+    private volatile static HBaseSqlContext sqlContext;
+    private static ConcurrentMap<String, HBaseTableSchema> tableSchemaMap;
 
     private HBaseSqlContext() {
+        tableSchemaMap = new ConcurrentHashMap<>();
     }
 
-    public static void registerTableSchema(HBaseTableSchema tableSchema) {
-        String tableName = tableSchema.getTableName();
-        if (tableSchemaMap == null || !tableSchemaMap.containsKey(tableName)) {
+    public static HBaseSqlContext getInstance() {
+        if (sqlContext == null) {
             synchronized (HBaseSqlContext.class) {
-                if (tableSchemaMap == null || !tableSchemaMap.containsKey(tableName)) {
-                    if (tableSchemaMap == null) {
-                        tableSchemaMap = new HashMap<>(2);
-                    }
-                    tableSchemaMap.put(tableName, tableSchema);
+                if (sqlContext == null) {
+                    sqlContext = new HBaseSqlContext();
                 }
             }
         }
+        return sqlContext;
     }
 
-    public static HBaseTableSchema getTableSchema(String tableName) {
-        if (tableSchemaMap == null || tableName.isEmpty() || !tableSchemaMap.containsKey(tableName)) {
-            throw new HBaseSqlTableSchemaMissingException(
-                    String.format("The table [%s] has no table schema, please register first.", tableName));
+    public void registerTableSchema(String schemaUniqueKey, HBaseTableSchema tableSchema) {
+        if (StringUtil.isBlank(schemaUniqueKey)) {
+            return;
         }
-        return tableSchemaMap.get(tableName);
+        if (tableSchema == null) {
+            return;
+        }
+        tableSchemaMap.remove(schemaUniqueKey);
+        tableSchemaMap.put(schemaUniqueKey, tableSchema);
     }
+
+    public HBaseTableSchema getTableSchema(String schemaUniqueKey) {
+        if (StringUtil.isBlank(schemaUniqueKey)) {
+            throw new IllegalArgumentException("The schemaUniqueKey is not empty.");
+        }
+        return tableSchemaMap.get(schemaUniqueKey);
+    }
+
+
 }

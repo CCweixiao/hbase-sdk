@@ -7,7 +7,6 @@ import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.template.*;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
-import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.ArrayList;
@@ -46,8 +45,8 @@ public abstract class AbstractHBaseTemplateTest {
                 .build();
         System.out.println("tableSchema.printSchema();");
         tableSchema.printSchema();
-        HBaseSqlContext.registerTableSchema(tableSchema);
         sqlTemplate = HBaseSqlTemplate.of(getProperties());
+        sqlTemplate.registerTableSchema(tableSchema);
     }
 
     protected Properties getProperties() {

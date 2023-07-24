@@ -1,7 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
-import com.github.CCweixiao.hbase.sdk.adapter.IHBaseBaseAdapter;
-import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsExistsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotDisabledException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSdkTableIsNotExistsException;
@@ -72,6 +70,10 @@ public abstract class AbstractHBaseBaseAdapter implements IHBaseBaseAdapter {
 
     public Configuration getConfiguration() {
         return HBaseConnectionManager.getConfiguration(this.properties);
+    }
+
+    public Properties getProperties() {
+        return properties;
     }
 
     public Configuration getHedgedReadClusterConfiguration() {

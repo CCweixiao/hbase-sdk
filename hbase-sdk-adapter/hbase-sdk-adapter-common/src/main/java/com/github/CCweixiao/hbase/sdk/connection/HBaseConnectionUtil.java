@@ -13,9 +13,7 @@ import java.util.Properties;
  */
 public class HBaseConnectionUtil {
 
-    public static String generateUniqueConnectionKey(Properties properties) {
-        String zkQuorum = properties.getProperty(HConstants.ZOOKEEPER_QUORUM);
-        String zkClientPort = properties.getProperty(HConstants.ZOOKEEPER_CLIENT_PORT);
+    public static String generateUniqueConnectionKey(String zkQuorum, String zkClientPort, String proxyUser) {
         if (StringUtil.isBlank(zkQuorum)) {
             throw new HBaseSdkConnectionException("The zkQuorum must be specified.");
         }
@@ -23,11 +21,20 @@ public class HBaseConnectionUtil {
             throw new HBaseSdkConnectionException("The zkClientPort must be specified.");
         }
         zkQuorum = DigestUtil.md5Hex(zkQuorum.concat(zkClientPort));
-        if (isProxyUserEnabled(properties)) {
-            String proxyUser = proxyUser(properties);
+        if (StringUtil.isNotBlank(proxyUser)) {
             zkQuorum = zkQuorum + "#" + proxyUser;
         }
         return zkQuorum;
+    }
+
+    public static String generateUniqueConnectionKey(Properties properties) {
+        String zkQuorum = properties.getProperty(HConstants.ZOOKEEPER_QUORUM);
+        String zkClientPort = properties.getProperty(HConstants.ZOOKEEPER_CLIENT_PORT);
+        String proxyUser = "";
+        if (isProxyUserEnabled(properties)) {
+            proxyUser = proxyUser(properties);
+        }
+        return generateUniqueConnectionKey(zkQuorum, zkClientPort, proxyUser);
     }
 
     public static boolean isProxyUserEnabled(Properties properties) {

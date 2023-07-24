@@ -4,6 +4,7 @@ import com.github.CCweixiao.hbase.sdk.HBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.adapter.IHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import org.apache.hadoop.conf.Configuration;
 import java.util.Map;
 import java.util.Properties;
@@ -17,17 +18,17 @@ public class HBaseSqlTemplate implements BaseHBaseSqlTemplate {
 
     private HBaseSqlTemplate(Builder builder) {
         this.configuration = builder.configuration;
-        this.sqlAdapter = new HBaseSqlAdapter(configuration);
+        this.sqlAdapter = new HBaseSqlAdapter(this.configuration);
     }
 
     @Override
-    public HBaseDataSet select(String hsql) {
-        return sqlAdapter.select(hsql);
+    public HBaseDataSet select(String hql) {
+        return sqlAdapter.select(hql);
     }
 
     @Override
-    public HBaseDataSet select(String hsql, Map<String, Object> params) {
-        return sqlAdapter.select(hsql, params);
+    public HBaseDataSet select(String hql, Map<String, Object> params) {
+        return sqlAdapter.select(hql, params);
     }
 
     @Override
@@ -48,6 +49,21 @@ public class HBaseSqlTemplate implements BaseHBaseSqlTemplate {
     @Override
     public HQLType parseHQLType(String hql) {
         return sqlAdapter.parseHQLType(hql);
+    }
+
+    @Override
+    public void registerTableSchema(HBaseTableSchema tableSchema) {
+        sqlAdapter.registerTableSchema(tableSchema);
+    }
+
+    @Override
+    public HBaseTableSchema getTableSchema(String tableName) {
+        return sqlAdapter.getTableSchema(tableName);
+    }
+
+    @Override
+    public void printTableSchema(String tableName) {
+        sqlAdapter.printTableSchema(tableName);
     }
 
     static class Builder extends BaseTemplateBuilder<HBaseSqlTemplate> {

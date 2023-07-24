@@ -1,14 +1,17 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
+import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -53,7 +56,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     protected HBaseColumn findColumnSchema(String tableName, String familyName, String columnName) {
-        return HBaseSqlContext.getTableSchema(tableName).findColumn(familyName, columnName);
+        return this.getTableSchema(tableName).findColumn(familyName, columnName);
     }
 
     protected int getScanCaching(String tableName) {
@@ -104,6 +107,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         }
         return get;
     }
+
     protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo);
 
     protected Delete constructDelete(RowKey<?> rowKey, List<HBaseColumn> columnSchemaList, long ts) {
@@ -223,7 +227,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     private TableQuerySetting getTableQuerySetting(String tableName) {
-        return HBaseSqlContext.getTableSchema(tableName).getTableQuerySetting();
+        return this.getTableSchema(tableName).getTableQuerySetting();
     }
 
     protected HBaseSQLParser.ProgContext parseProgContext(String hql) {
@@ -289,5 +293,40 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     private void checkTableName(String tableName) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name is not empty.");
+    }
+
+    @Override
+    public void registerTableSchema(HBaseTableSchema tableSchema) {
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        uniqueKey = uniqueKey + "#" + tableSchema.getTableName();
+        int caching = this.getConfiguration().getInt(HBaseConfigKeys.HBASE_CLIENT_SCANNER_CACHING,
+                HBaseConfigKeys.HBASE_CLIENT_DEFAULT_SCANNER_CACHING);
+        TableQuerySetting tableQuerySetting = tableSchema.getTableQuerySetting();
+        if (tableQuerySetting.getScanCaching() < 1) {
+            tableQuerySetting.setScanCaching(caching);
+        }
+        tableSchema.setTableQuerySetting(tableQuerySetting);
+        HBaseSqlContext.getInstance().registerTableSchema(uniqueKey, tableSchema);
+    }
+
+    @Override
+    public HBaseTableSchema getTableSchema(String tableName) {
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        uniqueKey = uniqueKey + "#" + tableName;
+        HBaseTableSchema tableSchema = HBaseSqlContext.getInstance().getTableSchema(uniqueKey);
+        if (tableSchema == null) {
+            throw new HBaseSqlTableSchemaMissingException(
+                    String.format("The table [%s] has no table schema, please register first.", tableName));
+        }
+        return tableSchema;
+    }
+
+    @Override
+    public void printTableSchema(String tableName) {
+        HBaseTableSchema tableSchema = getTableSchema(tableName);
+        if (tableSchema == null) {
+            return;
+        }
+        tableSchema.printSchema();
     }
 }

@@ -21,7 +21,7 @@ public class HBaseTableSchema {
      */
     private final Map<String, HBaseColumn> columnSchemaMap;
 
-    private final TableQuerySetting tableQuerySetting;
+    private TableQuerySetting tableQuerySetting;
 
     public HBaseTableSchema(Builder builder) {
         this.tableName = builder.tableName;
@@ -33,25 +33,21 @@ public class HBaseTableSchema {
     public static class Builder {
         private final String tableName;
 
-        private Builder(String tableName) {
-            this.tableName = tableName;
-        }
-
         private String defaultFamily;
         /**
          * family:qualifier -> HBaseColumnSchema
          */
         private Map<String, HBaseColumn> columnSchemaMap;
 
-        private TableQuerySetting runtimeSetting = new TableQuerySetting();
+        private TableQuerySetting runtimeSetting;
+
+        private Builder(String tableName) {
+            this.tableName = tableName;
+            this.runtimeSetting = new TableQuerySetting();
+        }
 
         public Builder defaultFamily(String defaultFamily) {
             this.defaultFamily = defaultFamily;
-            return this;
-        }
-
-        public Builder addColumnSchemas(Map<String, HBaseColumn> columnSchemaMap) {
-            this.columnSchemaMap = columnSchemaMap;
             return this;
         }
 
@@ -215,6 +211,10 @@ public class HBaseTableSchema {
         return columnSchemaMap;
     }
 
+    public void setTableQuerySetting(TableQuerySetting tableQuerySetting) {
+        this.tableQuerySetting = tableQuerySetting;
+    }
+
     public TableQuerySetting getTableQuerySetting() {
         return tableQuerySetting;
     }
@@ -255,6 +255,6 @@ public class HBaseTableSchema {
     }
 
     public void printSchema() {
-        System.out.println(this.toString());
+        System.out.println(this);
     }
 }
