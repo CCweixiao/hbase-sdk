@@ -20,8 +20,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLErrorStrategy;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLStatementsLexer;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
-import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
-import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQueryProperties;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.hadoop.conf.Configuration;
@@ -31,7 +30,7 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-import java.io.IOException;
+
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,38 +74,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return getTableQuerySetting(tableName).isScanCacheBlocks();
     }
 
-    protected Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnSchemaList) {
-        Util.checkRowKey(rowKey);
-        Get get = new Get(rowKey.toBytes());
-        if (queryExtInfo != null) {
-            if (queryExtInfo.isMaxVersionSet()) {
-                try {
-                    get.setMaxVersions(queryExtInfo.getMaxVersions());
-                } catch (IOException e) {
-                    throw new HBaseOperationsException("should never happen.", e);
-                }
-            }
-            if (queryExtInfo.isTimeRangeSet()) {
-                try {
-                    get.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
-                } catch (IOException e) {
-                    throw new HBaseOperationsException("should never happen.", e);
-                }
-            }
-        }
-        if (filter != null) {
-            get.setFilter(filter);
-        }
-        if (columnSchemaList != null && !columnSchemaList.isEmpty()) {
-            for (HBaseColumn column : columnSchemaList) {
-                if (column.columnIsRow()) {
-                    continue;
-                }
-                get.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
-            }
-        }
-        return get;
-    }
+    protected abstract Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList);
 
     protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo);
 
@@ -144,7 +112,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             maxVersion = queryExtInfo.getMaxVersions();
         }
         List<HBaseDataRow> dataRows = new ArrayList<>(maxVersion);
-        Object rowKey = tableSchema.findRow().toObject(result.getRow());
+        Object rowKey = tableSchema.findRow().convertBytesToVal(result.getRow());
         if (rowKey == null) {
             return new ArrayList<>(0);
         }
@@ -160,7 +128,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
                 Cell cell = cells.get(i);
                 Object value = columnSchema.getColumnType().getTypeHandler().
                         toObject(columnSchema.getColumnType().getTypeClass(), CellUtil.cloneValue(cell));
-                dataRows.get(i).appendColumn(columnSchema.getFamilyName(), columnSchema.getColumnName(), value);
+                dataRows.get(i).appendColumn(columnSchema.getFamily(), columnSchema.getColumnName(), value, cell.getTimestamp());
             }
         }
         return dataRows;
@@ -169,7 +137,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     @Deprecated
     protected List<HBaseCellResult> convertToHBaseCellResultList(String tableName, Result result, HBaseTableSchema tableSchema) {
         HBaseColumn rowColumn = tableSchema.findRow();
-        Object rowKey = rowColumn.toObject(result.getRow());
+        Object rowKey = rowColumn.convertBytesToVal(result.getRow());
         final Cell[] cells = result.rawCells();
         if (cells == null || cells.length == 0) {
             return new ArrayList<>();
@@ -226,7 +194,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return typeHandler.toBytes(column.getColumnType().getTypeClass(), value);
     }
 
-    private TableQuerySetting getTableQuerySetting(String tableName) {
+    private TableQueryProperties getTableQuerySetting(String tableName) {
         return this.getTableSchema(tableName).getTableQuerySetting();
     }
 
@@ -301,11 +269,11 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         uniqueKey = uniqueKey + "#" + tableSchema.getTableName();
         int caching = this.getConfiguration().getInt(HBaseConfigKeys.HBASE_CLIENT_SCANNER_CACHING,
                 HBaseConfigKeys.HBASE_CLIENT_DEFAULT_SCANNER_CACHING);
-        TableQuerySetting tableQuerySetting = tableSchema.getTableQuerySetting();
-        if (tableQuerySetting.getScanCaching() < 1) {
-            tableQuerySetting.setScanCaching(caching);
+        TableQueryProperties tableQueryProperties = tableSchema.getTableQuerySetting();
+        if (tableQueryProperties.getScanCaching() < 1) {
+            tableQueryProperties.setScanCaching(caching);
         }
-        tableSchema.setTableQuerySetting(tableQuerySetting);
+        tableSchema.setTableQuerySetting(tableQueryProperties);
         HBaseSqlContext.getInstance().registerTableSchema(uniqueKey, tableSchema);
     }
 

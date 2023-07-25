@@ -21,13 +21,13 @@ public class HBaseTableSchema {
      */
     private final Map<String, HBaseColumn> columnSchemaMap;
 
-    private TableQuerySetting tableQuerySetting;
+    private TableQueryProperties tableQueryProperties;
 
     public HBaseTableSchema(Builder builder) {
         this.tableName = builder.tableName;
         this.defaultFamily = builder.defaultFamily;
         this.columnSchemaMap = builder.columnSchemaMap;
-        this.tableQuerySetting = builder.runtimeSetting;
+        this.tableQueryProperties = builder.tableQueryProperties;
     }
 
     public static class Builder {
@@ -39,11 +39,11 @@ public class HBaseTableSchema {
          */
         private Map<String, HBaseColumn> columnSchemaMap;
 
-        private TableQuerySetting runtimeSetting;
+        private TableQueryProperties tableQueryProperties;
 
         private Builder(String tableName) {
             this.tableName = tableName;
-            this.runtimeSetting = new TableQuerySetting();
+            this.tableQueryProperties = new TableQueryProperties();
         }
 
         public Builder defaultFamily(String defaultFamily) {
@@ -59,17 +59,25 @@ public class HBaseTableSchema {
                 this.columnSchemaMap.put(column.getColumnName(), column);
                 return this;
             }
-            String familyName = column.getFamilyName();
+            String familyName = column.getFamily();
             this.columnSchemaMap.put(familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR
                     + column.getColumnName(), column);
             return this;
         }
 
-        public Builder addColumn(String familyName, String columnName, ColumnType columnType,
+        public Builder addColumn(String family, String columnName, ColumnType columnType,
                                  boolean isRow, boolean nullable) {
-            addColumn(new HBaseColumn.Builder(columnName)
-                    .defaultFamilyName(defaultFamily)
-                    .familyName(familyName)
+            if (StringUtil.isBlank(columnName)) {
+                throw new HBaseColumnNotFoundException("The name of column must not be empty.");
+            }
+            if (StringUtil.isBlank(family)) {
+                if (!isRow) {
+                    MyAssert.checkArgument(StringUtil.isBlank(this.getDefaultFamily()),
+                            String.format("The family and default family of column:[%s] are both empty.", columnName));
+                    family = this.getDefaultFamily();
+                }
+            }
+            addColumn(HBaseColumn.of(family, columnName)
                     .columnIsRow(isRow)
                     .columnType(columnType)
                     .nullable(nullable)
@@ -114,67 +122,73 @@ public class HBaseTableSchema {
         }
 
         public Builder scanCaching(int scanCaching) {
-            this.runtimeSetting.setScanCaching(scanCaching);
+            this.tableQueryProperties.setScanCaching(scanCaching);
             return this;
         }
 
         public Builder scanBatch(int scanBatch) {
-            this.runtimeSetting.setScanBatch(scanBatch);
+            this.tableQueryProperties.setScanBatch(scanBatch);
             return this;
         }
 
         public Builder deleteBatch(int deleteBatch) {
-            this.runtimeSetting.setDeleteBatch(deleteBatch);
+            this.tableQueryProperties.setDeleteBatch(deleteBatch);
             return this;
         }
 
         public Builder scanCacheBlocks(boolean scanCacheBlocks) {
-            this.runtimeSetting.setScanCacheBlocks(scanCacheBlocks);
+            this.tableQueryProperties.setScanCacheBlocks(scanCacheBlocks);
             return this;
         }
 
-        public Builder runtimeSetting(TableQuerySetting runtimeSetting) {
-            this.runtimeSetting = runtimeSetting;
+        public Builder tableQueryProperties(TableQueryProperties tableQueryProperties) {
+            this.tableQueryProperties = tableQueryProperties;
             return this;
         }
 
         public HBaseTableSchema build() {
             return new HBaseTableSchema(this);
         }
+
+        public String getDefaultFamily() {
+            return defaultFamily;
+        }
     }
 
-    public HBaseColumn findColumn(String familyName, String columnName) {
+    public HBaseColumn findColumn(String family, String columnName) {
         MyAssert.checkArgument(StringUtil.isNotBlank(columnName), "The column name must not be empty.");
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
             return null;
         }
-        if (StringUtil.isBlank(familyName) && this.columnSchemaMap.containsKey(columnName)) {
-            return this.columnSchemaMap.get(columnName);
+        HBaseColumn column;
+        if (StringUtil.isBlank(family)) {
+            column = this.columnSchemaMap.get(columnName);
+            if (column != null) {
+                return column;
+            }
+            family = this.getDefaultFamily();
         }
-        if (StringUtil.isBlank(familyName)) {
-            familyName = this.defaultFamily;
-        }
-        HBaseColumn column = this.columnSchemaMap.get(familyName + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + columnName);
+        column = this.columnSchemaMap.get(family + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + columnName);
         if (column == null) {
-            throw new HBaseColumnNotFoundException(String.format("The col of %s:%s is undefined.", familyName, columnName));
+            throw new HBaseColumnNotFoundException(String.format("The column of %s:%s is undefined.", family, columnName));
         }
         return column;
     }
 
     public HBaseColumn findColumn(String columnName) {
-        return findColumn(this.defaultFamily, columnName);
+        return findColumn(this.getDefaultFamily(), columnName);
     }
 
     public HBaseColumn findRow() {
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
-            throw new HBaseColumnNotFoundException("Please set column schema for table: " + this.getTableName());
+            throw new HBaseColumnNotFoundException("Please add column for the table schema: " + this.getTableName());
         }
         for (HBaseColumn column : this.columnSchemaMap.values()) {
             if (column.columnIsRow()) {
                 return column;
             }
         }
-        throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s.", this.getTableName()));
+        throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s", this.getTableName()));
     }
 
     /**
@@ -211,12 +225,12 @@ public class HBaseTableSchema {
         return columnSchemaMap;
     }
 
-    public void setTableQuerySetting(TableQuerySetting tableQuerySetting) {
-        this.tableQuerySetting = tableQuerySetting;
+    public void setTableQuerySetting(TableQueryProperties tableQueryProperties) {
+        this.tableQueryProperties = tableQueryProperties;
     }
 
-    public TableQuerySetting getTableQuerySetting() {
-        return tableQuerySetting;
+    public TableQueryProperties getTableQuerySetting() {
+        return tableQueryProperties;
     }
 
     public static Builder of(String tableName) {
@@ -240,14 +254,14 @@ public class HBaseTableSchema {
             }
         }
         if (row != null) {
-            sb.append(row.generateSchema(this.getDefaultFamily()));
+            sb.append(row.generateSchema());
             sb.append("\n");
         }
         for (HBaseColumn column : findAllColumns()) {
             if (column.columnIsRow()) {
                 continue;
             }
-            sb.append(column.generateSchema(this.getDefaultFamily()));
+            sb.append(column.generateSchema());
             sb.append("\n");
         }
         sb.append("---------------table--------------------------\n");

@@ -3,7 +3,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.model;
 /**
  * @author leojie 2022/12/3 11:13
  */
-public class TableQuerySetting {
+public class TableQueryProperties {
     private int scanCaching;
     private int scanBatch = 100;
     private boolean scanCacheBlocks = true;

@@ -2,7 +2,7 @@ package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
 
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLBaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.*;
-import com.github.CCwexiao.hbase.sdk.dsl.model.TableQuerySetting;
+import com.github.CCwexiao.hbase.sdk.dsl.model.TableQueryProperties;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -38,7 +38,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         this.tableSchema = tableSchema;
     }
 
-    public TableQuerySetting getSqlRuntimeSetting() {
+    public TableQueryProperties getSqlRuntimeSetting() {
         return this.tableSchema.getTableQuerySetting();
     }
 

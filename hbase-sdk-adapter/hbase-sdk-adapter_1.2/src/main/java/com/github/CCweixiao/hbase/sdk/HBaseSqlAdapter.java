@@ -44,6 +44,40 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
+    protected Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList) {
+        Util.checkRowKey(rowKey);
+        Get get = new Get(rowKey.toBytes());
+        if (queryExtInfo != null) {
+            if (queryExtInfo.isMaxVersionSet()) {
+                try {
+                    get.setMaxVersions(queryExtInfo.getMaxVersions());
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("should never happen.", e);
+                }
+            }
+            if (queryExtInfo.isTimeRangeSet()) {
+                try {
+                    get.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
+                } catch (IOException e) {
+                    throw new IllegalArgumentException("should never happen.", e);
+                }
+            }
+        }
+        if (filter != null) {
+            get.setFilter(filter);
+        }
+        if (columnList != null && !columnList.isEmpty()) {
+            for (HBaseColumn column : columnList) {
+                if (column.columnIsRow()) {
+                    continue;
+                }
+                get.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
+            }
+        }
+        return get;
+    }
+
+    @Override
     protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo) {
         Scan scan = new Scan();
         if (startRowKey != null && startRowKey.toBytes() != null) {

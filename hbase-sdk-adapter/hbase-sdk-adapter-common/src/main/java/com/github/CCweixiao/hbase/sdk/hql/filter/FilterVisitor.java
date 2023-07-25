@@ -228,7 +228,7 @@ public class FilterVisitor extends BaseVisitor<Filter> {
         MyAssert.checkNotNull(compareOp);
         MyAssert.checkNotNull(value);
 
-        byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamilyName());
+        byte[] familyBytes = Bytes.toBytes(hBaseColumnSchema.getFamily());
         byte[] qualifierBytes = Bytes.toBytes(hBaseColumnSchema.getColumnName());
 
 
@@ -302,7 +302,7 @@ public class FilterVisitor extends BaseVisitor<Filter> {
             throw new HBaseOperationsException("only string can use regex match. columnSchema = " + columnSchema);
         }
 
-        byte[] familyBytes = Bytes.toBytes(columnSchema.getFamilyName());
+        byte[] familyBytes = Bytes.toBytes(columnSchema.getFamily());
         byte[] qualifierBytes = Bytes.toBytes(columnSchema.getColumnName());
 
         RegexStringComparator regexStringComparator = new RegexStringComparator(

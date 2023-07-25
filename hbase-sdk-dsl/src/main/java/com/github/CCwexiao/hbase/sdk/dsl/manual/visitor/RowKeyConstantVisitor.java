@@ -44,7 +44,7 @@ public class RowKeyConstantVisitor extends BaseVisitor<RowKey<?>> {
         final RowKeyFunc<?> rowKeyFunc = rowKeyExpContext.accept(visitor);
         if (rowKeyFunc != null) {
             Object object = rowKeyFunc.evalFuncReturnRowValue(tableSchema.findRow(), rowKey.getOriValue());
-            rowKey.setValueBytes(tableSchema.findRow().convertBytesByValue(object));
+            rowKey.setValueBytes(tableSchema.findRow().convertValToBytes(object));
         }
         return rowKey;
     }

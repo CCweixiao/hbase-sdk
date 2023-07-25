@@ -1,8 +1,6 @@
 package com.github.CCwexiao.hbase.sdk.dsl.model;
 
-
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlFamilyMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.BytesUtil;
@@ -14,11 +12,10 @@ import java.util.Objects;
  * @author leojie 2020/11/27 10:45 下午
  */
 public class HBaseColumn {
-    private final String defaultFamilyName;
     /**
      * family name
      */
-    private final String familyName;
+    private final String family;
     /**
      * qualifier name
      */
@@ -37,35 +34,24 @@ public class HBaseColumn {
     private final boolean columnIsRow;
 
     public HBaseColumn(Builder builder) {
-        this.familyName = builder.familyName;
+        this.family = builder.family;
         this.columnName = builder.columnName;
         this.columnType = builder.columnType;
         this.nullable = builder.nullable;
         this.columnIsRow = builder.columnIsRow;
-        this.defaultFamilyName = builder.defaultFamilyName;
     }
 
     public static class Builder {
+        private final String family;
         private final String columnName;
-        private String defaultFamilyName;
-        private String familyName;
         private ColumnType columnType = ColumnType.StringType;
         private boolean nullable = true;
         private boolean columnIsRow = false;
 
-        public Builder(String columnName) {
-            MyAssert.checkArgument(StringUtil.isNotBlank(columnName), "The mame of col must not be empty.");
+        public Builder(String family, String columnName) {
+            MyAssert.checkArgument(StringUtil.isNotBlank(columnName), "The mame of column must not be empty.");
+            this.family = family;
             this.columnName = columnName;
-        }
-
-        public Builder defaultFamilyName(String defaultFamilyName) {
-            this.defaultFamilyName = defaultFamilyName;
-            return this;
-        }
-
-        public Builder familyName(String familyName) {
-            this.familyName = familyName;
-            return this;
         }
 
         public Builder columnType(ColumnType columnType) {
@@ -88,27 +74,24 @@ public class HBaseColumn {
         }
     }
 
-    public String getFamilyName() {
-        String f = familyName;
-        if (StringUtil.isBlank(f)) {
-            f = defaultFamilyName;
-        }
-        if (StringUtil.isBlank(f) && !this.columnIsRow()) {
-            throw new HBaseSqlFamilyMissingException(String.format("The family of col [%s] must not be empty.", columnName));
-        }
-        return familyName;
+    public static HBaseColumn.Builder of(String family, String columnName) {
+        return new HBaseColumn.Builder(family, columnName);
+    }
+
+    public String getFamily() {
+        return family;
     }
 
     public byte[] getFamilyNameBytes() {
-        return BytesUtil.toBytes(this.getFamilyName());
-    }
-
-    public byte[] getColumnNameBytes() {
-        return BytesUtil.toBytes(this.getColumnName());
+        return BytesUtil.toBytes(this.getFamily());
     }
 
     public String getColumnName() {
         return columnName;
+    }
+
+    public byte[] getColumnNameBytes() {
+        return BytesUtil.toBytes(this.getColumnName());
     }
 
     public ColumnType getColumnType() {
@@ -123,12 +106,12 @@ public class HBaseColumn {
         return columnIsRow;
     }
 
-    public byte[] convertBytesByValue(Object value) {
+    public byte[] convertValToBytes(Object value) {
         return this.getColumnType().getTypeHandler().toBytes(this.getColumnType().getTypeClass(), value);
     }
 
-    public Object toObject(byte[] row) {
-        return this.getColumnType().getTypeHandler().toObject(this.getColumnType().getTypeClass(), row);
+    public Object convertBytesToVal(byte[] bytes) {
+        return this.getColumnType().getTypeHandler().toObject(this.getColumnType().getTypeClass(), bytes);
     }
 
     @Override
@@ -140,25 +123,21 @@ public class HBaseColumn {
             return false;
         }
         HBaseColumn column = (HBaseColumn) o;
-        return this.getFamilyName().equals(column.getFamilyName())
+        return this.getFamily().equals(column.getFamily())
                 && columnName.equals(column.columnName) && columnIsRow == column.columnIsRow;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(familyName, columnName, columnIsRow);
+        return Objects.hash(family, columnName, columnIsRow);
     }
 
-    public String generateSchema(String defaultFamily) {
-        String familyName = defaultFamily;
-        if (StringUtil.isNotBlank(this.getFamilyName())) {
-            familyName = this.getFamilyName();
-        }
+    public String generateSchema() {
         StringBuilder sb = new StringBuilder();
         sb.append("|");
         sb.append("—— ");
         if (!this.columnIsRow()) {
-            sb.append(familyName);
+            sb.append(this.getFamily());
             sb.append(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
         }
         sb.append(this.getColumnName());
