@@ -11,7 +11,6 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
@@ -78,7 +77,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo) {
+    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList) {
         Scan scan = new Scan();
         if (startRowKey != null && startRowKey.toBytes() != null) {
             scan.withStartRow(startRowKey.toBytes());
@@ -86,12 +85,33 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         if (endRowKey != null && endRowKey.toBytes() != null) {
             scan.withStopRow(endRowKey.toBytes());
         }
+        if (queryExtInfo.isMaxVersionSet()) {
+            scan.setMaxVersions(queryExtInfo.getMaxVersions());
+        }
+        if (queryExtInfo.isTimeRangeSet()) {
+            try {
+                scan.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Shouldn't happen.", e);
+            }
+        }
+        if (queryExtInfo.isLimitSet()) {
+            scan.setLimit(queryExtInfo.getLimit());
+        }
         scan.setCaching(getScanCaching(tableName));
         scan.setCacheBlocks(scanCacheBlocks(tableName));
         if (filter != null) {
             scan.setFilter(filter);
         } else {
             scan.setBatch(getScanBatch(tableName));
+        }
+        if (columnList != null && !columnList.isEmpty()) {
+            for (HBaseColumn column : columnList) {
+                if (column.columnIsRow()) {
+                    continue;
+                }
+                scan.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
+            }
         }
         return scan;
     }
@@ -128,7 +148,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 if (result == null) {
                     return null;
                 }
-                List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                 return HBaseDataSet.of(tableName).appendRows(rowList);
             }).orElse(HBaseDataSet.of(tableName));
         }
@@ -153,7 +173,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 final Result[] results = table.get(Arrays.asList(getArr));
                 if (results != null && results.length > 0) {
                     for (Result result : results) {
-                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                         dataSet.appendRows(rowList);
                     }
                 }
@@ -162,22 +182,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         }
 
         // scan 查询
-        Scan scan = constructScan(tableName, startRowKey, endRowKey, filter, queryExtInfo);
-
-        if (queryExtInfo.isMaxVersionSet()) {
-            scan.setMaxVersions(queryExtInfo.getMaxVersions());
-        }
-
-        if (queryExtInfo.isTimeRangeSet()) {
-            try {
-                scan.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
-            } catch (IOException e) {
-                // should never happen.
-                throw new HBaseOperationsException("should never happen.", e);
-            }
-        }
-        // binding family and qualifier
-        applyRequestFamilyAndQualifier(queryColumnSchemaList, scan);
+        Scan scan = constructScan(tableName, startRowKey, endRowKey, queryExtInfo, filter, queryColumnSchemaList);
 
         try {
             return this.execute(tableName, table -> {
@@ -193,7 +198,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                     long resultCounter = 0L;
                     Result result;
                     while ((result = scanner.next()) != null) {
-                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                         dataSet.appendRows(rowList);
                         if (++resultCounter >= limit) {
                             break;
@@ -338,7 +343,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         final int deleteBatch = getDeleteBatch(tableName);
         // todo 优化这里的scan逻辑
         while (true) {
-            Scan tempScan = constructScan(tableName, startRowKey, endRowKey, filter, null);
+            Scan tempScan = constructScan(tableName, startRowKey, endRowKey, null, filter, deleteColumnSchemaList);
             // 只扫描row
             tempScan.addFamily(null);
             List<Delete> deletes = new ArrayList<>();

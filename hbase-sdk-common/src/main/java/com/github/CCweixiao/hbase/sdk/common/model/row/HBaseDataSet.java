@@ -48,14 +48,14 @@ public class HBaseDataSet {
         }
         List<String> colNams = new ArrayList<>();
         HBaseDataRow row = this.getRowSet().get(0);
-        colNams.add(row.getRowKeyName());
+        colNams.add(row.getRowKeyFieldName());
         for (HBaseDataColumn column : row.getColumns()) {
             colNams.add(column.getFamily() + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + column.getQualifier());
         }
         List<List<String>> valueList = new ArrayList<>();
         for (HBaseDataRow r : this.getRowSet()) {
             List<String> tmpValueList = new ArrayList<>(r.getColumns().size() + 1);
-            tmpValueList.add(r.getRowKey().toString());
+            tmpValueList.add(r.getRowKeyVal().toString());
             tmpValueList.addAll(r.getColumns().stream().map(c -> {
                 if (c.getValue() == null) {
                     return "NULL";

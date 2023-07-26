@@ -1,6 +1,7 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
@@ -11,7 +12,6 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
@@ -78,7 +78,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo) {
+    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList) {
         Scan scan = new Scan();
         if (startRowKey != null && startRowKey.toBytes() != null) {
             scan.setStartRow(startRowKey.toBytes());
@@ -86,12 +86,31 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         if (endRowKey != null && endRowKey.toBytes() != null) {
             scan.setStopRow(endRowKey.toBytes());
         }
+        if (queryExtInfo.isMaxVersionSet()) {
+            scan.setMaxVersions(queryExtInfo.getMaxVersions());
+        }
+        if (queryExtInfo.isTimeRangeSet()) {
+            try {
+                scan.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Shouldn't happen.", e);
+            }
+        }
+        // hbase1.2中，scan无法设置limit
         scan.setCaching(getScanCaching(tableName));
         scan.setCacheBlocks(scanCacheBlocks(tableName));
         if (filter != null) {
             scan.setFilter(filter);
         } else {
             scan.setBatch(getScanBatch(tableName));
+        }
+        if (columnList != null && !columnList.isEmpty()) {
+            for (HBaseColumn column : columnList) {
+                if (column.columnIsRow()) {
+                    continue;
+                }
+                scan.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
+            }
         }
         return scan;
     }
@@ -100,13 +119,14 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     public HBaseDataSet select(String hql, Map<String, Object> params) {
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
-        MyAssert.checkNotNull(selectHqlContext);
         String tableName = parseTableNameFromHql(progContext);
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
-        // col List
+        // parse col List
         HBaseSQLParser.SelectColListContext selectColListContext = selectHqlContext.selectColList();
         final List<HBaseColumn> queryColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
-        MyAssert.checkArgument(!queryColumnSchemaList.isEmpty(), "The column list of query is not empty.");
+        if (queryColumnSchemaList == null || queryColumnSchemaList.isEmpty()) {
+            throw new HBaseSqlAnalysisException(String.format("The field list cannot be parsed from input hql [%s].", hql));
+        }
         // filter
         Filter filter = HBaseSQLExtendContextUtil.parseFilter(selectHqlContext.wherec(), tableSchema, params);
         // row key range
@@ -128,7 +148,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 if (result == null) {
                     return null;
                 }
-                List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                 return HBaseDataSet.of(tableName).appendRows(rowList);
             }).orElse(HBaseDataSet.of(tableName));
         }
@@ -153,7 +173,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 final Result[] results = table.get(Arrays.asList(getArr));
                 if (results != null && results.length > 0) {
                     for (Result result : results) {
-                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                         dataSet.appendRows(rowList);
                     }
                 }
@@ -162,22 +182,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         }
 
         // scan 查询
-        Scan scan = constructScan(tableName, startRowKey, endRowKey, filter, queryExtInfo);
-
-        if (queryExtInfo.isMaxVersionSet()) {
-            scan.setMaxVersions(queryExtInfo.getMaxVersions());
-        }
-
-        if (queryExtInfo.isTimeRangeSet()) {
-            try {
-                scan.setTimeRange(queryExtInfo.getMinStamp(), queryExtInfo.getMaxStamp());
-            } catch (IOException e) {
-                // should never happen.
-                throw new HBaseOperationsException("should never happen.", e);
-            }
-        }
-        // binding family and qualifier
-        applyRequestFamilyAndQualifier(queryColumnSchemaList, scan);
+        Scan scan = constructScan(tableName, startRowKey, endRowKey, queryExtInfo, filter, queryColumnSchemaList);
 
         try {
             return this.execute(tableName, table -> {
@@ -193,7 +198,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                     long resultCounter = 0L;
                     Result result;
                     while ((result = scanner.next()) != null) {
-                        List<HBaseDataRow> rowList = convertToHBaseDataRow(result, tableSchema, queryExtInfo);
+                        List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                         dataSet.appendRows(rowList);
                         if (++resultCounter >= limit) {
                             break;
@@ -336,7 +341,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         final int deleteBatch = getDeleteBatch(tableName);
         // todo 优化这里的scan逻辑
         while (true) {
-            Scan tempScan = constructScan(tableName, startRowKey, endRowKey, filter, null);
+            Scan tempScan = constructScan(tableName, startRowKey, endRowKey, null, filter, deleteColumnSchemaList);
             // 只扫描row
             tempScan.addFamily(null);
             List<Delete> deletes = new ArrayList<>();

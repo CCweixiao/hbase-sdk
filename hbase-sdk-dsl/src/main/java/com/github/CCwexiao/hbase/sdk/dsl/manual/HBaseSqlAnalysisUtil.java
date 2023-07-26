@@ -199,12 +199,15 @@ public final class HBaseSqlAnalysisUtil {
         // 解析limit
         HBaseSQLParser.LimitExpContext limitExpContext = selectHqlContext.limitExp();
         if (limitExpContext != null) {
-            long limit;
+            int limit;
             final TerminalNode terminalNode = limitExpContext.STRING();
             try {
-                limit = Long.parseLong(terminalNode.getText());
+                limit = Integer.parseInt(terminalNode.getText());
             } catch (NumberFormatException e) {
-                throw new HBaseSqlAnalysisException("The value of limit must be one integer number.");
+                throw new HBaseSqlAnalysisException("The value of limit must be a number.");
+            }
+            if(limit <= 0) {
+                throw new HBaseSqlAnalysisException("The value of limit must be a positive number.");
             }
             queryExtInfo.setLimit(limit);
         }

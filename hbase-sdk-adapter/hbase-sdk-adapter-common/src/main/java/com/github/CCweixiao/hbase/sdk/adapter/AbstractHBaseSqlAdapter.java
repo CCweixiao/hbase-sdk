@@ -1,15 +1,14 @@
 package com.github.CCweixiao.hbase.sdk.adapter;
 
 import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
-import com.github.CCweixiao.hbase.sdk.common.model.HBaseCellResult;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
@@ -28,9 +27,7 @@ import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,24 +56,24 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     protected int getScanCaching(String tableName) {
-        return getTableQuerySetting(tableName).getScanCaching();
+        return getTableQueryProperties(tableName).getScanCaching();
     }
 
     protected int getScanBatch(String tableName) {
-        return getTableQuerySetting(tableName).getScanBatch();
+        return getTableQueryProperties(tableName).getScanBatch();
     }
 
     protected int getDeleteBatch(String tableName) {
-        return getTableQuerySetting(tableName).getDeleteBatch();
+        return getTableQueryProperties(tableName).getDeleteBatch();
     }
 
     protected boolean scanCacheBlocks(String tableName) {
-        return getTableQuerySetting(tableName).isScanCacheBlocks();
+        return getTableQueryProperties(tableName).isScanCacheBlocks();
     }
 
     protected abstract Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList);
 
-    protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, Filter filter, QueryExtInfo queryExtInfo);
+    protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList);
 
     protected Delete constructDelete(RowKey<?> rowKey, List<HBaseColumn> columnSchemaList, long ts) {
         return constructDelete(rowKey.toBytes(), columnSchemaList, ts);
@@ -97,7 +94,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             }
             byte[] familyBytes = hBaseColumnSchema.getFamilyNameBytes();
             byte[] qualifierBytes = hBaseColumnSchema.getColumnNameBytes();
-            if (ts == -1) {
+            if (ts < 1) {
                 delete.addColumn(familyBytes, qualifierBytes);
             } else {
                 delete.addColumn(familyBytes, qualifierBytes, ts);
@@ -106,7 +103,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return delete;
     }
 
-    protected List<HBaseDataRow> convertToHBaseDataRow(Result result, HBaseTableSchema tableSchema, QueryExtInfo queryExtInfo) {
+    protected List<HBaseDataRow> convertResultToDataRow(Result result, HBaseTableSchema tableSchema, QueryExtInfo queryExtInfo) {
         int maxVersion = 1;
         if (queryExtInfo.isMaxVersionSet()) {
             maxVersion = queryExtInfo.getMaxVersions();
@@ -128,65 +125,12 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
                 Cell cell = cells.get(i);
                 Object value = columnSchema.getColumnType().getTypeHandler().
                         toObject(columnSchema.getColumnType().getTypeClass(), CellUtil.cloneValue(cell));
-                dataRows.get(i).appendColumn(columnSchema.getFamily(), columnSchema.getColumnName(), value, cell.getTimestamp());
+
+                dataRows.get(i).appendColumn(columnSchema.getFamily(), columnSchema.getColumnName(), columnSchema.getColumnType(),
+                        value, cell.getTimestamp());
             }
         }
         return dataRows;
-    }
-
-    @Deprecated
-    protected List<HBaseCellResult> convertToHBaseCellResultList(String tableName, Result result, HBaseTableSchema tableSchema) {
-        HBaseColumn rowColumn = tableSchema.findRow();
-        Object rowKey = rowColumn.convertBytesToVal(result.getRow());
-        final Cell[] cells = result.rawCells();
-        if (cells == null || cells.length == 0) {
-            return new ArrayList<>();
-        }
-        String familyName = null;
-        String columnName = null;
-
-        try {
-            List<HBaseCellResult> resultList = new ArrayList<>();
-            for (Cell cell : cells) {
-                familyName = Bytes.toString(CellUtil.cloneFamily(cell));
-                columnName = Bytes.toString(CellUtil.cloneQualifier(cell));
-                byte[] valueByteArr = CellUtil.cloneValue(cell);
-                final HBaseColumn column = findColumnSchema(tableName, familyName, columnName);
-                final TypeHandler<?> typeHandler = column.getColumnType().getTypeHandler();
-                Object value = typeHandler.toObject(column.getColumnType().getTypeClass(), valueByteArr);
-                long timestamp = cell.getTimestamp();
-                HBaseCellResult cellResult = new HBaseCellResult();
-                cellResult.setFamilyName(familyName);
-                cellResult.setColumnName(columnName);
-                cellResult.setValue(value);
-                cellResult.setTimestamp(timestamp);
-                cellResult.setRowKey(rowKey);
-                resultList.add(cellResult);
-            }
-            return resultList;
-
-        } catch (Exception e) {
-            throw new HBaseSqlExecuteException(
-                    "Convert result exception. familyName=" + familyName
-                            + " columnName=" + columnName
-                            + " result="
-                            + result, e);
-        }
-    }
-
-    /**
-     * 筛选我们需要的字段列表
-     *
-     * @param hbaseColumnSchemaList 字段列表
-     * @param scan                  scan
-     */
-    protected void applyRequestFamilyAndQualifier(List<HBaseColumn> hbaseColumnSchemaList, Scan scan) {
-        for (HBaseColumn hbaseColumnSchema : hbaseColumnSchemaList) {
-            if (hbaseColumnSchema.columnIsRow()) {
-                continue;
-            }
-            scan.addColumn(hbaseColumnSchema.getFamilyNameBytes(), hbaseColumnSchema.getColumnNameBytes());
-        }
     }
 
     protected byte[] convertValueToBytes(Object value, HBaseColumn column) {
@@ -194,12 +138,12 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return typeHandler.toBytes(column.getColumnType().getTypeClass(), value);
     }
 
-    private TableQueryProperties getTableQuerySetting(String tableName) {
+    private TableQueryProperties getTableQueryProperties(String tableName) {
         return this.getTableSchema(tableName).getTableQuerySetting();
     }
 
     protected HBaseSQLParser.ProgContext parseProgContext(String hql) {
-        checkSql(hql);
+        checkHqlIsNotEmpty(hql);
         try {
             ANTLRInputStream input = new ANTLRInputStream(new StringReader(hql));
             HBaseSQLStatementsLexer lexer = new HBaseSQLStatementsLexer(input);
@@ -213,7 +157,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     public String parseTableNameFromHql(String hql) {
-        checkSql(hql);
+        checkHqlIsNotEmpty(hql);
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         return parseTableNameFromHql(progContext);
     }
@@ -228,14 +172,14 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         } else if (progContext instanceof HBaseSQLParser.DeleteHqlClContext) {
             tableName = ((HBaseSQLParser.DeleteHqlClContext) progContext).deletehqlc().tableName().STRING().getText();
         } else {
-            throw new HBaseSqlAnalysisException("Can not parse hbase table name from hql.");
+            throw new HBaseSqlAnalysisException("The table name cannot be parsed from the input hql.");
         }
-        checkTableName(tableName);
+        checkTableNameIsNotEmpty(tableName);
         return tableName;
     }
 
     public HQLType parseHQLType(String hql) {
-        checkSql(hql);
+        checkHqlIsNotEmpty(hql);
         HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
         return parseHQLType(progContext);
     }
@@ -255,11 +199,11 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         throw new HBaseOperationsException("can't parse hql type.");
     }
 
-    protected void checkSql(String sql) {
-        MyAssert.checkArgument(StringUtil.isNotBlank(sql), "The sql is not empty.");
+    protected void checkHqlIsNotEmpty(String hql) {
+        MyAssert.checkArgument(StringUtil.isNotBlank(hql), "The hql is not empty.");
     }
 
-    private void checkTableName(String tableName) {
+    private void checkTableNameIsNotEmpty(String tableName) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name is not empty.");
     }
 
@@ -280,7 +224,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     @Override
     public HBaseTableSchema getTableSchema(String tableName) {
         String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
-        uniqueKey = uniqueKey + "#" + tableName;
+        uniqueKey = uniqueKey + "#" + HMHBaseConstants.getFullTableName(tableName);
         HBaseTableSchema tableSchema = HBaseSqlContext.getInstance().getTableSchema(uniqueKey);
         if (tableSchema == null) {
             throw new HBaseSqlTableSchemaMissingException(

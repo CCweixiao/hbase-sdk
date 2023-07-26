@@ -234,7 +234,11 @@ public class HBaseTableSchema {
     }
 
     public static Builder of(String tableName) {
-        return new Builder(tableName);
+        if (StringUtil.isBlank(tableName)) {
+            throw new IllegalArgumentException("The table name is not allowed to be empty.");
+        }
+        String fullTableName = HMHBaseConstants.getFullTableName(tableName);
+        return new Builder(fullTableName);
     }
 
     @Override

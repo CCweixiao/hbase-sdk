@@ -27,8 +27,9 @@ public class HMHBaseConstants {
 
     public static String getFullTableName(String tableName) {
         if (StringUtil.isBlank(tableName)) {
-            throw new HBaseOperationsException("The table name is not empty.");
+            throw new IllegalArgumentException("The table name is not empty.");
         }
+
         if (tableName.contains(TABLE_NAME_SPLIT_CHAR)) {
             return tableName;
         } else {

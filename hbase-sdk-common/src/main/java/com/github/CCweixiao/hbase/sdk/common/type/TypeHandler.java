@@ -18,6 +18,7 @@ public interface TypeHandler<T> {
     ByteBuffer toByteBuffer(Object value);
 
     Object toObject(Class<?> type, byte[] bytes);
+    String toString(Class<?> type, byte[] bytes);
 
     Object toObject(Class<?> type, ByteBuffer buffer);
 

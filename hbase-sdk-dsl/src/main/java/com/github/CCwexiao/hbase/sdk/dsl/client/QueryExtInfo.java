@@ -16,7 +16,7 @@ public class QueryExtInfo {
     private long maxStamp;
 
     private boolean isLimitSet;
-    private long limit;
+    private int limit;
 
     public QueryExtInfo() {}
 
@@ -38,14 +38,16 @@ public class QueryExtInfo {
     }
 
     public void setTimeRange(long minStamp, long maxStamp) {
-        MyAssert.checkArgument(minStamp <= maxStamp, String.format("The max timestamp must be >= min timestamp," +
+        MyAssert.checkArgument(minStamp > 0, "Minimum timestamp must be a positive number.");
+        MyAssert.checkArgument(maxStamp > 0, "Maximum timestamp must be a positive number.");
+        MyAssert.checkArgument(minStamp <= maxStamp, String.format("Minimum timestamp must be <= maximum timestamp," +
                 " but current max timestamp is %s, min timestamp is %s.", maxStamp, minStamp));
         this.minStamp = minStamp;
         this.maxStamp = maxStamp;
         this.isTimeRangeSet = true;
     }
 
-    public void setLimit(long limit) {
+    public void setLimit(int limit) {
         MyAssert.checkArgument(limit > 0, "The value of limit must be > 0," +
                 " but the current limit is "+ limit);
         this.limit = limit;
@@ -56,7 +58,7 @@ public class QueryExtInfo {
         return isLimitSet;
     }
 
-    public long getLimit() {
+    public int getLimit() {
         return limit;
     }
 

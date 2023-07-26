@@ -69,6 +69,15 @@ public abstract class AbstractTypeHandler<T> implements TypeHandler<T> {
     }
 
     @Override
+    public String toString(Class<?> type, byte[] bytes) {
+        Object o = this.toObject(type, bytes);
+        if (o == null) {
+            return null;
+        }
+        return this.toString(o);
+    }
+
+    @Override
     public Object toObject(Class<?> type, ByteBuffer buffer) {
         if (buffer == null) {
             return null;
