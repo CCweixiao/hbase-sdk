@@ -147,6 +147,10 @@ public class HBaseColumn {
         sb.append(" = ");
         sb.append(this.columnIsRow());
         sb.append(", ");
+        sb.append("type");
+        sb.append(" = ");
+        sb.append(this.getColumnType().getTypeName());
+        sb.append(", ");
         sb.append("nullable");
         sb.append(" = ");
         sb.append(this.isNullable());
