@@ -198,32 +198,6 @@ public interface IHBaseBaseAdapter {
         });
     }
 
-    default void executeSaveBatch(String tableName, List<Mutation> mutations) {
-        if (mutations == null || mutations.isEmpty()) {
-            return;
-        }
-        Mutation firstPut = mutations.get(0);
-        long putSize = firstPut.heapSize();
-
-        this.execute(tableName, mutator -> {
-            long writeBufferSize = mutator.getWriteBufferSize();
-            long batchSize = writeBufferSize / putSize;
-            if (batchSize <= 0) {
-                batchSize = 1;
-            }
-            int index = 0;
-            for (Mutation put : mutations) {
-                index += 1;
-                mutator.mutate(put);
-                if (index == batchSize) {
-                    mutator.flush();
-                    index = 0;
-                }
-            }
-            mutator.flush();
-        });
-    }
-
     default void executeDelete(String tableName, Delete delete) {
         this.execute(tableName, table -> {
             table.delete(delete);
@@ -231,7 +205,15 @@ public interface IHBaseBaseAdapter {
         });
     }
 
-    default void executeDeleteBatch(String tableName, List<Mutation> mutations) {
+    default void executeSaveBatch(String tableName, List<Mutation> puts) {
+        this.executeMutationBatch(tableName, puts);
+    }
+
+    default void executeDeleteBatch(String tableName, List<Mutation> deletes) {
+        this.executeMutationBatch(tableName, deletes);
+    }
+
+    default void executeMutationBatch(String tableName, List<Mutation> mutations) {
         if (mutations == null || mutations.isEmpty()) {
             return;
         }
@@ -245,9 +227,9 @@ public interface IHBaseBaseAdapter {
                 batchSize = 1;
             }
             int index = 0;
-            for (Mutation delete : mutations) {
+            for (Mutation mutation : mutations) {
                 index += 1;
-                mutator.mutate(delete);
+                mutator.mutate(mutation);
                 if (index == batchSize) {
                     mutator.flush();
                     index = 0;

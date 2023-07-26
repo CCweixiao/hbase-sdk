@@ -6,8 +6,8 @@ import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
-import com.github.CCweixiao.hbase.sdk.hql.HBaseSQLExtendContextUtil;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.hql.filter.QueryFilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -40,6 +40,30 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
     public HBaseSqlAdapter(Configuration configuration) {
         super(configuration);
+    }
+
+    @Override
+    protected Filter parseFilter(HBaseSQLParser.WherecContext whereContext, HBaseTableSchema tableSchema) {
+        if (whereContext == null) {
+            return null;
+        }
+        if (whereContext.conditionc() == null) {
+            return null;
+        }
+        QueryFilterVisitor filterVisitor = new QueryFilterVisitor(tableSchema, new HashMap<>(0));
+        return whereContext.conditionc().accept(filterVisitor);
+    }
+
+    @Override
+    protected Filter parseFilter(HBaseSQLParser.WherecContext whereContext, Map<String, Object> queryParams, HBaseTableSchema tableSchema) {
+        if (whereContext == null) {
+            return null;
+        }
+        if (whereContext.conditionc() == null) {
+            return null;
+        }
+        QueryFilterVisitor filterVisitor = new QueryFilterVisitor(tableSchema, queryParams);
+        return whereContext.conditionc().accept(filterVisitor);
     }
 
     @Override
@@ -128,7 +152,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         final List<HBaseColumn> queryColumnSchemaList = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
         MyAssert.checkArgument(!queryColumnSchemaList.isEmpty(), "The column list of query is not empty.");
         // filter
-        Filter filter = HBaseSQLExtendContextUtil.parseFilter(selectHqlContext.wherec(), tableSchema, params);
+        Filter filter = this.parseFilter(selectHqlContext.wherec(), params, tableSchema);
         // row key range
         RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, selectHqlContext.rowKeyRangeExp());
         // start or end row
@@ -277,7 +301,7 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
         // delete in row key list
         List<RowKey<?>> inRowKeyList = rowKeyRange.getInSomeKeys();
         //filter
-        Filter filter = HBaseSQLExtendContextUtil.parseFilter(deleteHqlContext.wherec(), tableSchema);
+        Filter filter = this.parseFilter(deleteHqlContext.wherec(), tableSchema);
 
         long ts = -1;
         HBaseSQLParser.TsExpContext tsExpContext = deleteHqlContext.tsExp();

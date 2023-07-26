@@ -31,6 +31,7 @@ import org.apache.yetus.audience.InterfaceAudience;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -70,6 +71,10 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     protected boolean scanCacheBlocks(String tableName) {
         return getTableQueryProperties(tableName).isScanCacheBlocks();
     }
+
+    protected abstract Filter parseFilter(HBaseSQLParser.WherecContext whereContext, HBaseTableSchema tableSchema);
+    protected abstract Filter parseFilter(HBaseSQLParser.WherecContext whereContext, Map<String, Object> queryParams,
+                                          HBaseTableSchema tableSchema);
 
     protected abstract Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList);
 
