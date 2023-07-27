@@ -83,8 +83,7 @@ public class QueryFilterVisitor extends BaseVisitor<Filter> {
     public Filter visitIsnullc(HBaseSQLParser.IsnullcContext ctx) {
         HBaseSQLParser.ColContext colContext = ctx.col();
         HBaseColumn columnSchema = HBaseSqlAnalysisUtil.extractColumnSchema(this.getTableSchema(), colContext);
-        return constructFilter(columnSchema, CompareFilter.CompareOp.EQUAL,
-                new byte[0], true);
+        return constructFilter(columnSchema, CompareFilter.CompareOp.EQUAL, new byte[0], true);
     }
 
     @Override
@@ -283,9 +282,7 @@ public class QueryFilterVisitor extends BaseVisitor<Filter> {
         return constructFilterWithRegex(columnSchema, CompareFilter.CompareOp.EQUAL, object);
     }
 
-    private static Filter constructFilterWithRegex(
-            HBaseColumn columnSchema, CompareFilter.CompareOp compareOp,
-            Object object) {
+    private Filter constructFilterWithRegex(HBaseColumn columnSchema, CompareFilter.CompareOp compareOp, Object object) {
         MyAssert.checkNotNull(columnSchema);
         MyAssert.checkNotNull(compareOp);
         MyAssert.checkNotNull(object);
@@ -303,8 +300,7 @@ public class QueryFilterVisitor extends BaseVisitor<Filter> {
         byte[] familyBytes = Bytes.toBytes(columnSchema.getFamily());
         byte[] qualifierBytes = Bytes.toBytes(columnSchema.getColumnName());
 
-        RegexStringComparator regexStringComparator = new RegexStringComparator(
-                (String) object);
+        RegexStringComparator regexStringComparator = new RegexStringComparator((String) object);
 
         SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(
                 familyBytes, qualifierBytes, compareOp, regexStringComparator);

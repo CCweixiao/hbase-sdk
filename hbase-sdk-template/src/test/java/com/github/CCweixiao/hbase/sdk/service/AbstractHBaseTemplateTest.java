@@ -9,10 +9,7 @@ import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -36,7 +33,10 @@ public abstract class AbstractHBaseTemplateTest {
                 .addColumn("f1", "id")
                 .addColumn("f1", "name")
                 .addColumn("f1", "age", ColumnType.IntegerType)
+                .addColumn("f1", "job")
+                .addColumn("f1", "pay", ColumnType.DoubleType)
                 .addColumn("f2", "address")
+                .addColumn("f2", "commuter")
                 .addRow("row_key")
                 .scanBatch(100)
                 .scanCaching(1000)
@@ -103,5 +103,54 @@ public abstract class AbstractHBaseTemplateTest {
         cityModel.setTotalPopulation(totalPopulation);
         cityModel.setCityTagList(tagNameList.stream().map(CityTag::new).collect(Collectors.toList()));
         return cityModel;
+    }
+
+    protected List<String> mockHql() {
+        String[] prefix = new String[]{"a100", "b100", "c100", "d100", "e100", "f100", "g100", "h100", "i100", "j100"};
+        Map<Integer, String> addressMap = new HashMap<>();
+        addressMap.put(0, "BeiJing");
+        addressMap.put(1, "ShangHai");
+        addressMap.put(2, "TianJin");
+        addressMap.put(3, "NanJing");
+        addressMap.put(4, "BeiJing");
+        addressMap.put(6, "ZhengZhou");
+        addressMap.put(7, "WuHan");
+        addressMap.put(8, "GuangZhou");
+        addressMap.put(9, "GuangZhou");
+
+        Map<Integer, String> commuterMap = new HashMap<>();
+        commuterMap.put(0, "Car");
+        commuterMap.put(1, "Car");
+        commuterMap.put(2, "Bus");
+        commuterMap.put(3, "Bus");
+        commuterMap.put(4, "bike");
+        commuterMap.put(6, "subway");
+        commuterMap.put(7, "subway");
+        commuterMap.put(8, "subway");
+        commuterMap.put(9, "subway");
+
+
+        Map<Integer, String> jobMap = new HashMap<>();
+        jobMap.put(0, "Coding");
+        jobMap.put(1, "Worker");
+        jobMap.put(2, "清洁工");
+        jobMap.put(3, "boss");
+        jobMap.put(4, "教师");
+        jobMap.put(5, "司机");
+        jobMap.put(6, "CEO");
+        jobMap.put(7, "运维");
+        jobMap.put(9, "测试");
+        List<String> hqls = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            for (String p : prefix) {
+                String rowKey = p  + i;
+                String hql = String.format("insert into test:test_sql ( f1:id , f1:name , f1:age , f1:job , f1:pay , f2:address , f2:commuter ) " +
+                                "values ( '%s' , '%s' , %s , '%s' , %.2f , '%s' , '%s' ) where rowKey = '%s'", rowKey,
+                        "leo_" + p + "_" + i, 18 + i, jobMap.get(i), 20000 * new Random().nextInt(10) * 0.1 / 3,
+                        addressMap.get(i), commuterMap.get(i), rowKey);
+                hqls.add(hql);
+            }
+        }
+        return hqls;
     }
 }
