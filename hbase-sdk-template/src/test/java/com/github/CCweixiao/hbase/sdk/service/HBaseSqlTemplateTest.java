@@ -3,11 +3,7 @@ package com.github.CCweixiao.hbase.sdk.service;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 /**
  * @author leojie 2022/11/27 17:44
@@ -47,20 +43,42 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testSelect() {
-        String sql1 = "select * from test:test_sql where rowKey = 'a10001'";
+        String sql1 = "select * from test:test_sql where rowKey = 'c1005'";
         HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
         dataSet1.show();
 
         System.out.println("============================================================");
 
-        String sql = "select * from test:test_sql where ( startKey = 'a10001' , endKey = 'b20006' )";
-        HBaseDataSet dataSet = sqlTemplate.select(sql);
-        dataSet.show();
+        String sql2 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'a1002' )";
+        HBaseDataSet dataSet2 = sqlTemplate.select(sql2);
+        dataSet2.show();
 
         System.out.println("============================================================");
-        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
-        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
-        dataSet32.show();
+
+
+        String sql3 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'j1009' ) and ( f1:age >= 25 and f1:age >= 25 ) ";
+        HBaseDataSet dataSet3 = sqlTemplate.select(sql3);
+        dataSet3.show();
+        System.out.println("============================================================");
+
+
+        String sql4 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'j1009' ) and ( f1:age >= 25 and ( f1:job IS NOT NULL ) ) ";
+        HBaseDataSet dataSet4 = sqlTemplate.select(sql4);
+        dataSet4.show();
+        System.out.println("============================================================");
+
+
+        String sql5 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'j1009' ) and ( f1:age >= 25 and ( f1:job IS NULL or f1:pay > 15000 ) )";
+        HBaseDataSet dataSet5 = sqlTemplate.select(sql5);
+        dataSet5.show();
+        System.out.println("============================================================");
+
+
+//
+//        System.out.println("============================================================");
+//        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
+//        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
+//        dataSet32.show();
     }
 
     @Test

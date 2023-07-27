@@ -1,4 +1,4 @@
-// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 

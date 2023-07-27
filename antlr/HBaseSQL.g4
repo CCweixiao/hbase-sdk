@@ -100,7 +100,7 @@ limitExp : LIMIT STRING
 
 tableName : STRING ;
 maxversion : STRING ;
-constant: '\'' STRING '\'' | STRING;
+constant: '\'' STRING '\'' | STRING | '\'' NULL '\'' | '\'' '\'';
 timestamp: STRING;
 var : '#' STRING '#' ;
 
@@ -183,7 +183,7 @@ fragment X      : [xX];
 fragment Y      : [yY];
 fragment Z      : [zZ];
 
-STRING :  [a-zA-Z0-9_:*-+.,\\|=&^%$#@!~`()<>\r\t\n"]+ ;
+STRING :  [a-zA-Z0-9\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}!~`()<>\r\t\n"]+ ;
 
 
 SPACE:                               ( '\t' | ' ' | '\r' | '\n' )+ -> channel(HIDDEN);

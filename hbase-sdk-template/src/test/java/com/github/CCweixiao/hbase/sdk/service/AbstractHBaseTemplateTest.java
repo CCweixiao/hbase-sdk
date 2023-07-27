@@ -146,8 +146,8 @@ public abstract class AbstractHBaseTemplateTest {
                 String rowKey = p  + i;
                 String hql = String.format("insert into test:test_sql ( f1:id , f1:name , f1:age , f1:job , f1:pay , f2:address , f2:commuter ) " +
                                 "values ( '%s' , '%s' , %s , '%s' , %.2f , '%s' , '%s' ) where rowKey = '%s'", rowKey,
-                        "leo_" + p + "_" + i, 18 + i, jobMap.get(i), 20000 * new Random().nextInt(10) * 0.1 / 3,
-                        addressMap.get(i), commuterMap.get(i), rowKey);
+                        "leo_" + p + "_" + i, 18 + i, jobMap.getOrDefault(i, ""), 20000 * new Random().nextInt(10) * 0.1 / 3 + 10000,
+                        addressMap.get(i), commuterMap.getOrDefault(i, ""), rowKey);
                 hqls.add(hql);
             }
         }

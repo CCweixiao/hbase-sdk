@@ -1,4 +1,4 @@
-// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 
@@ -142,7 +142,7 @@ public class HBaseSQLLexer extends Lexer {
 		"\37\4\2CCcc\4\2DDdd\4\2EEee\4\2FFff\4\2GGgg\4\2HHhh\4\2IIii\4\2JJjj\4"+
 		"\2KKkk\4\2LLll\4\2MMmm\4\2NNnn\4\2OOoo\4\2PPpp\4\2QQqq\4\2RRrr\4\2SSs"+
 		"s\4\2TTtt\4\2UUuu\4\2VVvv\4\2WWww\4\2XXxx\4\2YYyy\4\2ZZzz\4\2[[{{\4\2"+
-		"\\\\||\16\2\13\f\17\17#(*.\60\60\62<>@B\\^^`|~~\u0080\u0080\5\2\13\f\17"+
+		"\\\\||\r\2\13\f\17\17#(*.\60\60\62<>@B\\^^`\u0080\u0082\1\5\2\13\f\17"+
 		"\17\"\"\4\2\f\f\17\17\u01a3\2\3\3\2\2\2\2\5\3\2\2\2\2\7\3\2\2\2\2\t\3"+
 		"\2\2\2\2\13\3\2\2\2\2\r\3\2\2\2\2\17\3\2\2\2\2\21\3\2\2\2\2\23\3\2\2\2"+
 		"\2\25\3\2\2\2\2\27\3\2\2\2\2\31\3\2\2\2\2\33\3\2\2\2\2\35\3\2\2\2\2\37"+

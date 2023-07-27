@@ -55,8 +55,15 @@ public class HBaseTableSchema {
             if (this.columnSchemaMap == null) {
                 this.columnSchemaMap = new LinkedHashMap<>(4);
             }
+            String columnName = column.getColumnName();
+            if (this.columnSchemaMap.containsKey(columnName)) {
+                throw new IllegalArgumentException("Added duplicate field " + columnName);
+            }
             if (column.columnIsRow()) {
-                this.columnSchemaMap.put(column.getColumnName(), column);
+                Map<String, HBaseColumn> newColumnMap = new LinkedHashMap<>();
+                newColumnMap.put(column.getColumnName(), column);
+                newColumnMap.putAll(this.columnSchemaMap);
+                this.columnSchemaMap = newColumnMap;
                 return this;
             }
             String familyName = column.getFamily();
@@ -196,11 +203,13 @@ public class HBaseTableSchema {
      *
      * @return All HBaseColumnSchema List
      */
-    public Set<HBaseColumn> findAllColumns() {
+    public List<HBaseColumn> findAllColumns() {
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
-            return new HashSet<>();
+            return new ArrayList<>(0);
         }
-        return columnSchemaMap.values().stream().filter(c->!c.columnIsRow()).collect(Collectors.toSet());
+        List<HBaseColumn> columns = new ArrayList<>(this.columnSchemaMap.size());
+        this.columnSchemaMap.forEach((columnName, column) -> columns.add(column));
+        return columns;
     }
 
     public Map<KeyValue, HBaseColumn> createColumnsMap() {
