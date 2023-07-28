@@ -13,6 +13,8 @@ import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.InsertValueVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -40,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * @author leojie 2020/11/28 8:34 下午
@@ -61,7 +64,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     @Override
     public HBaseDataSet select(String hql, Map<String, Object> params) {
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
+        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
         HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
         String tableName = parseTableNameFromHql(progContext);
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
@@ -163,10 +166,21 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     @Override
     public void insert(String hql) {
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
-        HBaseSQLParser.InserthqlcContext insertHqlContext = HBaseSqlAnalysisUtil.parseInsertHqlContext(progContext);
-        String tableName = parseTableNameFromHql(progContext);
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        HBaseSQLParser.InsertStatementContext insertStatementContext = queryContext.insertStatement();
+        String tableName = insertStatementContext.tableName().ID().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
+
+
+        List<String> insertCols = insertStatementContext.columnList()
+                .column().stream().map(c -> c.ID().getText())
+                .collect(Collectors.toList());
+
+
+        List<InsertRowData> rowDataList = new InsertValueVisitor(tableSchema, insertCols)
+                .parseInsertConstantValue(insertStatementContext);
+
+
         List<HBaseColumn> insertColumns = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, insertHqlContext.colList());
         if (insertColumns.isEmpty()) {
             throw new HBaseSqlAnalysisException(String.format("The list of field names to be inserted cannot be parsed from hql [%s]", hql));
@@ -205,7 +219,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     @Override
     public void delete(String hql) {
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
+        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
         HBaseSQLParser.DeletehqlcContext deleteHqlContext = HBaseSqlAnalysisUtil.parseDeleteHqlContext(progContext);
         String tableName = parseTableNameFromHql(progContext);
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
@@ -384,7 +398,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return this.getTableSchema(tableName).getTableQuerySetting();
     }
 
-    protected HBaseSQLParser.ProgContext parseProgContext(String hql) {
+    protected HBaseSQLParser.QueryContext parseQueryContext(String hql) {
         checkHqlIsNotEmpty(hql);
         try {
             ANTLRInputStream input = new ANTLRInputStream(new StringReader(hql));
@@ -392,7 +406,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             HBaseSQLParser parser = new HBaseSQLParser(tokens);
             parser.setErrorHandler(HBaseSQLErrorStrategy.INSTANCE);
-            return parser.prog();
+            return parser.query();
         } catch (Exception e) {
             throw new HBaseSqlAnalysisException(String.format("The hql %s was parsed failed.", hql), e);
         }
@@ -400,7 +414,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     public String parseTableNameFromHql(String hql) {
         checkHqlIsNotEmpty(hql);
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
+        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
         return parseTableNameFromHql(progContext);
     }
 
@@ -422,7 +436,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     public HQLType parseHQLType(String hql) {
         checkHqlIsNotEmpty(hql);
-        HBaseSQLParser.ProgContext progContext = parseProgContext(hql);
+        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
         return parseHQLType(progContext);
     }
 

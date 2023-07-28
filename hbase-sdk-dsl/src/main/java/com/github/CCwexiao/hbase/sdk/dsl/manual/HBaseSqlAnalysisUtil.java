@@ -112,14 +112,6 @@ public final class HBaseSqlAnalysisUtil {
         return result;
     }
 
-    public static HBaseSQLParser.InserthqlcContext parseInsertHqlContext(HBaseSQLParser.ProgContext progContext) {
-        MyAssert.checkNotNull(progContext);
-        HBaseSQLParser.InsertHqlClContext insertHqlClContext = (HBaseSQLParser.InsertHqlClContext) progContext;
-        HBaseSQLParser.InserthqlcContext result = insertHqlClContext.inserthqlc();
-        MyAssert.checkNotNull(result);
-        return result;
-    }
-
     public static HBaseSQLParser.DeletehqlcContext parseDeleteHqlContext(HBaseSQLParser.ProgContext progContext) {
         MyAssert.checkNotNull(progContext);
         HBaseSQLParser.DeleteHqlClContext deleteHqlClContext = (HBaseSQLParser.DeleteHqlClContext) progContext;

@@ -4,15 +4,32 @@ import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
+import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * @author leojie 2020/11/28 9:49 下午
  */
 public class InsertValueVisitor extends BaseVisitor<Object> {
-    public InsertValueVisitor(HBaseColumn column) {
-        super(column);
+    public InsertValueVisitor(HBaseTableSchema tableSchema) {
+        super(tableSchema);
     }
+
+    @Override
+    public Object visitMultiValueList(HBaseSQLParser.MultiValueListContext ctx) {
+
+        for (HBaseSQLParser.ValueListContext valueListContext : ctx.valueList()) {
+            for (HBaseSQLParser.ValueContext valueContext : valueListContext.value()) {
+                TerminalNode aNull = valueContext.NULL();
+
+            }
+        }
+        return super.visitMultiValueList(ctx);
+    }
+
+
+
+
 
     @Override
     public Object visitInsertValue_Null(HBaseSQLParser.InsertValue_NullContext ctx) {

@@ -4,157 +4,62 @@ grammar HBaseSQL;
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 }
 
-prog   : inserthqlc         # insertHqlCl
-	   | selecthqlc         # selectHqlCl
-	   | deletehqlc         # deleteHqlCl
-       ;
+// Keywords
 
+// Constructors symbols
+LR_BRACKET:                          '(';
+RR_BRACKET:                          ')';
+COMMA:                               ',';
+SEMICOLON:                           ';';
 
-inserthqlc : INSERT INTO tableName LB colList RB VALUES insertValueList WHERE ROWKEY EQ rowKeyExp (AND TS EQ tsExp )  ?
-		   ;
+// Operators
+EQ : '=';
+NOTEQ : '!=';
+NOT_EQ : '<>';
+GREATER : '>';
+GREATEREQUAL : '>=';
+LESS : '<';
+LESSEQUAL : '<=';
+PLUS : '+';
+MINUS : '-';
+ASTERISK : '*';
+SLASH : '/';
+MOD : '%';
 
-selecthqlc : SELECT selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND maxVersionExp)? (AND tsRange)? limitExp?
-	       ;
+// KeyWords
 
-deletehqlc : DELETE selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND TS EQ tsExp ) ?
-	       ;
-
-wherec: conditionc;
-
-conditionc : LB conditionc RB              # conditionwrapper
-	| conditionc AND conditionc            # andcondition
-	| conditionc OR conditionc             # orcondition
-	| col EQ constant                      # equalconstant
-	| col EQ var                           # equalvar
-	| col LESS constant                    # lessconstant
-	| col LESS var                         # lessvar
-	| col GREATER constant                 # greaterconstant
-	| col GREATER var                      # greatervar
-	| col LESSEQUAL constant               # lessequalconstant
-	| col LESSEQUAL var                    # lessequalvar
-	| col GREATEREQUAL constant            # greaterequalconstant
-	| col GREATEREQUAL var                 # greaterequalvar
-	| col NOTEQ constant                   # notequalconstant
-	| col NOTEQ var                        # notequalvar
-	| col NOTMATCH constant                # notmatchconstant
-	| col NOTMATCH var                     # notmatchvar
-	| col MATCH constant                   # matchconstant
-	| col MATCH var                        # matchvar
-	| col IN constantList                  # inconstantlist
-	| col IN var                           # invarlist
-	| col NOT IN constantList               # notinconstantlist
-	| col NOT IN var                        # notinvarlist
-	| col BETWEEN constant AND constant    # betweenconstant
-	| col BETWEEN var AND var              # betweenvar
-	| col NOT BETWEEN constant AND constant # notbetweenconstant
-	| col NOT BETWEEN var AND var           # notbetweenvar
-	| col IS NULL                           # isnullc
-	| col IS NOT NULL                        # isnotnullc
-	| col IS MISSING                        # ismissingc
-	| col IS NOT MISSING                     # isnotmissingc
-	;
-
-rowKeyRangeExp : LB STARTKEY EQ rowKeyExp COMMA_CHAR ENDKEY EQ rowKeyExp RB   # rowkeyrange_startAndEnd
-                | STARTKEY EQ rowKeyExp                                       # rowkeyrange_start
-                | ENDKEY EQ rowKeyExp		                                  # rowkeyrange_end
-                | ROWKEY EQ rowKeyExp 			                              # rowkeyrange_onerowkey
-                | ROWKEY IN LB rowKeyExp ( ',' rowKeyExp )* RB                # rowkeyrange_insomekeys
-                | ROWKEY LIKE rowKeyExp                                       # rowkeyrange_prefix
-                ;
-
-rowKeyExp :  LB rowKeyExp RB                              # rowkey_Wrapper
-	| constant                                            # rowkey_Constant
-	| funcname LB constant RB                             # rowkey_FuncConstant
-    ;
-
-tsRange : LB STARTTS EQ tsExp COMMA_CHAR ENDTS EQ tsExp RB      # tsrange_startAndEnd
-		| STARTTS EQ tsExp                                      # tsrange_start
-		| ENDTS EQ tsExp                                        # tsrange_end
-		| TS EQ tsExp                                           # tsequal
-	    ;
-
-tsExp: timestamp ;
-
-
-selectColList : '*'       # colList_Star
-			  | colList   # colList_ColList
-	     	  ;
-
-colList :  col ( ',' col )* ;
-col : STRING ;
-
-funcname: STRING ;
-
-constantList  : LB constant ( ',' constant )* RB ;
-insertValueList : LB insertValue ( ',' insertValue )* RB ;
-
-insertValue: constant                # insertValue_NotNull
-            | NULL                   # insertValue_Null
-		    ;
-
-maxVersionExp : MAXVERSION EQ maxversion
-			  ;
-
-limitExp : LIMIT STRING
-		 ;
-
-tableName : STRING ;
-maxversion : STRING ;
-constant: '\'' STRING '\'' | STRING | '\'' NULL '\'' | '\'' '\'';
-timestamp: STRING;
-var : '#' STRING '#' ;
-
-LB : '(' ;
-RB : ')' ;
-COMMA_CHAR: ',';
-
-SELECT : S E L E C T ;
+IS : I S;
+NOTMATCH : N O T M A T C H ;
+MATCH : M A T C H ;
+BETWEEN : B E T W E E N ;
+MISSING : M I S S I N G ;
+LIMIT : L I M I T ;
+TS : T S ;
+STARTTS : S T A R T T S ;
+ENDTS : E N D T S;
+CREATE : C R E A T E;
 INSERT : I N S E R T ;
-DELETE : D E L E T E ;
 INTO   : I N T O ;
 VALUES : V A L U E S ;
-WHERE : W H E R E ;
+SELECT : S E L E C T ;
+UPDATE : U P D A T E ;
+SET : S E T ;
+DELETE : D E L E T E ;
 FROM   : F R O M;
-
+TABLE : T A B L E;
+COLUMNFAMILY : C O L U M N F A M I L Y;
+WHERE : W H E R E ;
+AND : A N D ;
+OR : O R ;
+IN : I N ;
+LIKE : L I K E ;
+NULL : N U L L;
+NOT : N O T ;
+INTEGER : I N T E G E R;
 ROWKEY   : R O W K E Y ;
 STARTKEY : S T A R T K E Y ;
 ENDKEY   : E N D K E Y ;
 MAXVERSION    : M A X V E R S I O N ;
-
-LIMIT : L I M I T ;
-
-// 过滤时间戳
-TS : T S ;
-STARTTS : S T A R T T S ;
-ENDTS : E N D T S;
-
-IS : I S;
-EQ : '=';
-NOTEQ : '!=';
-NULL : N U L L;
-NOT : N O T ;
-
-AND : A N D ;
-OR : O R ;
-
-
-LESSEQUAL : '<=' ;
-LESS : '<' ;
-
-GREATEREQUAL : '>=';
-GREATER: '>' ;
-
-NOTMATCH : N O T M A T C H ;
-MATCH : M A T C H ;
-
-IN : I N ;
-
-LIKE : L I K E ;
-
-BETWEEN : B E T W E E N ;
-
-MISSING : M I S S I N G ;
-
 
 fragment A      : [aA];
 fragment B      : [bB];
@@ -183,12 +88,131 @@ fragment X      : [xX];
 fragment Y      : [yY];
 fragment Z      : [zZ];
 
-STRING :  [a-zA-Z0-9\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}!~`()<>\r\t\n"]+ ;
+
+ID : [a-zA-Z0-9_.:]+;
+STRING : '\'' ([a-zA-Z0-9\u0020\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}[\]!~`()<>\r\t\n"])* '\'';
+//  STRING : '"' ('\\' . | ~[\\\r\n])* '"';
 
 
-SPACE:                               ( '\t' | ' ' | '\r' | '\n' )+ -> channel(HIDDEN);
+//STRING : '\'' ( ESC | ~["\\\r\n] )* '\'';
+//fragment ESC : '\\' (["\\/bfnrt] | UNICODE);
+//fragment UNICODE : 'u' HEX HEX HEX HEX;
+//fragment HEX : [0-9a-fA-F];
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+
+/* parser rules */
+query : createTableStatement
+      | insertStatement
+      | selectStatement
+      | deleteStatement
+      ;
+
+createTableStatement : CREATE TABLE tableName LR_BRACKET columnFamilyList RR_BRACKET;
+
+tableName : ID;
+columnFamily : ID;
+column : ID;
+funcname : ID;
+
+selectColList : '*'          # colList_Star
+			  | columnList   # colList_ColList
+	     	  ;
+columnList : column (COMMA column)*;
+columnFamilyList : columnFamily (COMMA columnFamily)*;
+
+insertStatement : INSERT INTO tableName LR_BRACKET columnList RR_BRACKET VALUES multiValueList (WHERE TS EQ tsExp)?;
+
+
+
+multiValueList : LR_BRACKET valueList RR_BRACKET (COMMA LR_BRACKET valueList RR_BRACKET)*;
+valueList: value ( COMMA value ) *;
+value : STRING | ID | NULL;
+
+
+selectStatement : SELECT selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND multiVersionExp)? limitExp?;
+
+deleteStatement : DELETE FROM tableName (WHERE rowKeyRangeExp)? (AND wherec)? (AND multiVersionExp)?;
+
+rowKeyRangeExp : STARTKEY EQ rowKeyExp AND ENDKEY EQ rowKeyExp                   # rowkeyrange_startAndEnd
+                | STARTKEY EQ rowKeyExp                                          # rowkeyrange_start
+                | ENDKEY EQ rowKeyExp		                                     # rowkeyrange_end
+                | ROWKEY EQ rowKeyExp 			                                 # rowkeyrange_onerowkey
+                | ROWKEY IN LR_BRACKET rowKeyExp (COMMA rowKeyExp)* RR_BRACKET   # rowkeyrange_insomekeys
+                | ROWKEY LIKE rowKeyExp                                          # rowkeyrange_prefix
+                ;
+
+rowKeyExp :  LR_BRACKET rowKeyExp RR_BRACKET                              # rowkey_Wrapper
+	| value                                                               # rowkey_Constant
+	| funcname funcParamsList                                             # rowkey_FuncConstant
+    ;
+
+funcParamsList  : LR_BRACKET value ( COMMA constant )* RR_BRACKET ;
+
+tsRange : LR_BRACKET STARTTS EQ tsExp COMMA ENDTS EQ tsExp RR_BRACKET      # tsrange_startAndEnd
+		| STARTTS EQ tsExp                                                 # tsrange_start
+		| ENDTS EQ tsExp                                                   # tsrange_end
+		| TS EQ tsExp                                                      # tsequal
+	    ;
+
+
+constant: '\'' value '\'' | value | '\'' NULL '\'' | '\'' '\'';
+constantList  : LR_BRACKET constant ( ',' constant )* RR_BRACKET ;
+var : '#' STRING '#' ;
+
+multiVersionExp: maxVersionExp
+                 | tsRange;
+
+maxVersionExp : MAXVERSION EQ integer
+			  ;
+integer : ID ;
+
+tsExp: timestamp ;
+timestamp: ID;
+
+wherec: conditionc;
+conditionc : LR_BRACKET conditionc RR_BRACKET              # conditionwrapper
+	| conditionc AND conditionc            # andcondition
+	| conditionc OR conditionc             # orcondition
+	| column EQ constant                      # equalconstant
+	| column EQ var                           # equalvar
+	| column LESS constant                    # lessconstant
+	| column LESS var                         # lessvar
+	| column GREATER constant                 # greaterconstant
+	| column GREATER var                      # greatervar
+	| column LESSEQUAL constant               # lessequalconstant
+	| column LESSEQUAL var                    # lessequalvar
+	| column GREATEREQUAL constant            # greaterequalconstant
+	| column GREATEREQUAL var                 # greaterequalvar
+	| column NOTEQ constant                   # notequalconstant
+	| column NOTEQ var                        # notequalvar
+	| column NOTMATCH constant                # notmatchconstant
+	| column NOTMATCH var                     # notmatchvar
+	| column MATCH constant                   # matchconstant
+	| column MATCH var                        # matchvar
+	| column IN constantList                  # inconstantlist
+	| column IN var                           # invarlist
+	| column NOT IN constantList               # notinconstantlist
+	| column NOT IN var                        # notinvarlist
+	| column BETWEEN constant AND constant    # betweenconstant
+	| column BETWEEN var AND var              # betweenvar
+	| column NOT BETWEEN constant AND constant # notbetweenconstant
+	| column NOT BETWEEN var AND var           # notbetweenvar
+	| column IS NULL                           # isnullc
+	| column IS NOT NULL                        # isnotnullc
+	| column IS MISSING                        # ismissingc
+	| column IS NOT MISSING                     # isnotmissingc
+	;
+
+limitExp : LIMIT integer
+		 ;
+
+/* skipped rules */
+SPACE:                               [ \t\r\n]+    -> channel(HIDDEN);
+// WS : [ \t\r\n]+ -> skip;
 COMMENT_INPUT:                       '/*' .*? '*/' -> channel(HIDDEN);
 LINE_COMMENT:                        (
-                                       ('-- ' | '#') ~[\r\n]* ('\r'? '\n' | EOF)
+                                       ('--' [ \t]* | '#') ~[\r\n]* ('\r'? '\n' | EOF)
                                        | '--' ('\r'? '\n' | EOF)
                                      ) -> channel(HIDDEN);

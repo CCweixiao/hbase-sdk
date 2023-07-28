@@ -190,12 +190,21 @@ public class HBaseTableSchema {
         if (this.columnSchemaMap == null || this.columnSchemaMap.isEmpty()) {
             throw new HBaseColumnNotFoundException("Please add column for the table schema: " + this.getTableName());
         }
+        int num = 0;
+        HBaseColumn row = null;
         for (HBaseColumn column : this.columnSchemaMap.values()) {
             if (column.columnIsRow()) {
-                return column;
+                row = column;
+                num += 1;
             }
         }
-        throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s", this.getTableName()));
+        if (num == 0) {
+            throw new HBaseColumnNotFoundException(String.format("Row key is undefined in the column schema of table: %s", this.getTableName()));
+        }
+        if (num > 1) {
+            throw new HBaseColumnNotFoundException(String.format("Row key is defined multiple times in the column schema of table: %s", this.getTableName()));
+        }
+        return row;
     }
 
     /**

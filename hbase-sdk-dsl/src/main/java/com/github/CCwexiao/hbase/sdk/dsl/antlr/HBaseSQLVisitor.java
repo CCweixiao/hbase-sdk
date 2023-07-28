@@ -1,4 +1,4 @@
-// Generated from HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 
@@ -13,44 +13,248 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	/**
-	 * Visit a parse tree produced by the {@code insertHqlCl}
-	 * labeled alternative in {@link HBaseSQLParser#prog}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#query}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitInsertHqlCl(HBaseSQLParser.InsertHqlClContext ctx);
+	T visitQuery(HBaseSQLParser.QueryContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code selectHqlCl}
-	 * labeled alternative in {@link HBaseSQLParser#prog}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#createTableStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelectHqlCl(HBaseSQLParser.SelectHqlClContext ctx);
+	T visitCreateTableStatement(HBaseSQLParser.CreateTableStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code deleteHqlCl}
-	 * labeled alternative in {@link HBaseSQLParser#prog}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#tableName}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDeleteHqlCl(HBaseSQLParser.DeleteHqlClContext ctx);
+	T visitTableName(HBaseSQLParser.TableNameContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#inserthqlc}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#columnFamily}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitInserthqlc(HBaseSQLParser.InserthqlcContext ctx);
+	T visitColumnFamily(HBaseSQLParser.ColumnFamilyContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#selecthqlc}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#column}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitSelecthqlc(HBaseSQLParser.SelecthqlcContext ctx);
+	T visitColumn(HBaseSQLParser.ColumnContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#deletehqlc}.
+	 * Visit a parse tree produced by {@link HBaseSQLParser#funcname}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitDeletehqlc(HBaseSQLParser.DeletehqlcContext ctx);
+	T visitFuncname(HBaseSQLParser.FuncnameContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code colList_Star}
+	 * labeled alternative in {@link HBaseSQLParser#selectColList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitColList_Star(HBaseSQLParser.ColList_StarContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code colList_ColList}
+	 * labeled alternative in {@link HBaseSQLParser#selectColList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitColList_ColList(HBaseSQLParser.ColList_ColListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#columnList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitColumnList(HBaseSQLParser.ColumnListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#columnFamilyList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitColumnFamilyList(HBaseSQLParser.ColumnFamilyListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#insertStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInsertStatement(HBaseSQLParser.InsertStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#multiValueList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiValueList(HBaseSQLParser.MultiValueListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#valueList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitValueList(HBaseSQLParser.ValueListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#value}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitValue(HBaseSQLParser.ValueContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#selectStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSelectStatement(HBaseSQLParser.SelectStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#deleteStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDeleteStatement(HBaseSQLParser.DeleteStatementContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_startAndEnd}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_startAndEnd(HBaseSQLParser.Rowkeyrange_startAndEndContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_start}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_start(HBaseSQLParser.Rowkeyrange_startContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_end}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_end(HBaseSQLParser.Rowkeyrange_endContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_onerowkey}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_onerowkey(HBaseSQLParser.Rowkeyrange_onerowkeyContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_insomekeys}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_insomekeys(HBaseSQLParser.Rowkeyrange_insomekeysContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkeyrange_prefix}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkeyrange_prefix(HBaseSQLParser.Rowkeyrange_prefixContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkey_Wrapper}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkey_Wrapper(HBaseSQLParser.Rowkey_WrapperContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkey_Constant}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkey_Constant(HBaseSQLParser.Rowkey_ConstantContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code rowkey_FuncConstant}
+	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#funcParamsList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncParamsList(HBaseSQLParser.FuncParamsListContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code tsrange_startAndEnd}
+	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTsrange_startAndEnd(HBaseSQLParser.Tsrange_startAndEndContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code tsrange_start}
+	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTsrange_start(HBaseSQLParser.Tsrange_startContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code tsrange_end}
+	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTsrange_end(HBaseSQLParser.Tsrange_endContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code tsequal}
+	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTsequal(HBaseSQLParser.TsequalContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#constant}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstant(HBaseSQLParser.ConstantContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#constantList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstantList(HBaseSQLParser.ConstantListContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#var}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVar(HBaseSQLParser.VarContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#multiVersionExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMultiVersionExp(HBaseSQLParser.MultiVersionExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#maxVersionExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMaxVersionExp(HBaseSQLParser.MaxVersionExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#integer}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitInteger(HBaseSQLParser.IntegerContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#tsExp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTsExp(HBaseSQLParser.TsExpContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#timestamp}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTimestamp(HBaseSQLParser.TimestampContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#wherec}.
 	 * @param ctx the parse tree
@@ -275,200 +479,9 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitMatchconstant(HBaseSQLParser.MatchconstantContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_startAndEnd}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_startAndEnd(HBaseSQLParser.Rowkeyrange_startAndEndContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_start}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_start(HBaseSQLParser.Rowkeyrange_startContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_end}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_end(HBaseSQLParser.Rowkeyrange_endContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_onerowkey}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_onerowkey(HBaseSQLParser.Rowkeyrange_onerowkeyContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_insomekeys}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_insomekeys(HBaseSQLParser.Rowkeyrange_insomekeysContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkeyrange_prefix}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyRangeExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkeyrange_prefix(HBaseSQLParser.Rowkeyrange_prefixContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkey_Wrapper}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkey_Wrapper(HBaseSQLParser.Rowkey_WrapperContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkey_Constant}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkey_Constant(HBaseSQLParser.Rowkey_ConstantContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code rowkey_FuncConstant}
-	 * labeled alternative in {@link HBaseSQLParser#rowKeyExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code tsrange_startAndEnd}
-	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTsrange_startAndEnd(HBaseSQLParser.Tsrange_startAndEndContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code tsrange_start}
-	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTsrange_start(HBaseSQLParser.Tsrange_startContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code tsrange_end}
-	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTsrange_end(HBaseSQLParser.Tsrange_endContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code tsequal}
-	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTsequal(HBaseSQLParser.TsequalContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#tsExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTsExp(HBaseSQLParser.TsExpContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code colList_Star}
-	 * labeled alternative in {@link HBaseSQLParser#selectColList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColList_Star(HBaseSQLParser.ColList_StarContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code colList_ColList}
-	 * labeled alternative in {@link HBaseSQLParser#selectColList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColList_ColList(HBaseSQLParser.ColList_ColListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#colList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColList(HBaseSQLParser.ColListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#col}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCol(HBaseSQLParser.ColContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#funcname}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFuncname(HBaseSQLParser.FuncnameContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#constantList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstantList(HBaseSQLParser.ConstantListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#insertValueList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInsertValueList(HBaseSQLParser.InsertValueListContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code insertValue_NotNull}
-	 * labeled alternative in {@link HBaseSQLParser#insertValue}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInsertValue_NotNull(HBaseSQLParser.InsertValue_NotNullContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code insertValue_Null}
-	 * labeled alternative in {@link HBaseSQLParser#insertValue}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitInsertValue_Null(HBaseSQLParser.InsertValue_NullContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#maxVersionExp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMaxVersionExp(HBaseSQLParser.MaxVersionExpContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#limitExp}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLimitExp(HBaseSQLParser.LimitExpContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#tableName}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTableName(HBaseSQLParser.TableNameContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#maxversion}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMaxversion(HBaseSQLParser.MaxversionContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#constant}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstant(HBaseSQLParser.ConstantContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#timestamp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitTimestamp(HBaseSQLParser.TimestampContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#var}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitVar(HBaseSQLParser.VarContext ctx);
 }
