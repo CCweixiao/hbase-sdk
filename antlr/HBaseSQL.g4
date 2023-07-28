@@ -15,7 +15,6 @@ SEMICOLON:                           ';';
 // Operators
 EQ : '=';
 NOTEQ : '!=';
-NOT_EQ : '<>';
 GREATER : '>';
 GREATEREQUAL : '>=';
 LESS : '<';
@@ -90,7 +89,11 @@ fragment Z      : [zZ];
 
 
 ID : [a-zA-Z0-9_.:]+;
-STRING : '\'' ([a-zA-Z0-9\u0020\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}[\]!~`()<>\r\t\n"])* '\'';
+STRING : DOT_L STR DOT_R;
+
+fragment STR : ([a-zA-Z0-9\u0020\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}[\]!~`()<>\r\t\n"])*;
+fragment DOT_L : '\'';
+fragment DOT_R : '\'';
 //  STRING : '"' ('\\' . | ~[\\\r\n])* '"';
 
 
@@ -133,7 +136,7 @@ value : STRING | ID | NULL;
 
 selectStatement : SELECT selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND multiVersionExp)? limitExp?;
 
-deleteStatement : DELETE FROM tableName (WHERE rowKeyRangeExp)? (AND wherec)? (AND multiVersionExp)?;
+deleteStatement : DELETE selectColList FROM tableName (WHERE rowKeyRangeExp)? (AND wherec)? (AND multiVersionExp)?;
 
 rowKeyRangeExp : STARTKEY EQ rowKeyExp AND ENDKEY EQ rowKeyExp                   # rowkeyrange_startAndEnd
                 | STARTKEY EQ rowKeyExp                                          # rowkeyrange_start
@@ -148,7 +151,8 @@ rowKeyExp :  LR_BRACKET rowKeyExp RR_BRACKET                              # rowk
 	| funcname funcParamsList                                             # rowkey_FuncConstant
     ;
 
-funcParamsList  : LR_BRACKET value ( COMMA constant )* RR_BRACKET ;
+funcParamsList  : LR_BRACKET funcCol ( COMMA funcCol )* RR_BRACKET;
+funcCol: '`' value '`' | '\'' value '\'' | value | '\'' NULL '\'' | '\'' '\'' | ;
 
 tsRange : LR_BRACKET STARTTS EQ tsExp COMMA ENDTS EQ tsExp RR_BRACKET      # tsrange_startAndEnd
 		| STARTTS EQ tsExp                                                 # tsrange_start
@@ -159,7 +163,8 @@ tsRange : LR_BRACKET STARTTS EQ tsExp COMMA ENDTS EQ tsExp RR_BRACKET      # tsr
 
 constant: '\'' value '\'' | value | '\'' NULL '\'' | '\'' '\'';
 constantList  : LR_BRACKET constant ( ',' constant )* RR_BRACKET ;
-var : '#' STRING '#' ;
+var : '${' ID '}' ;
+varList  : LR_BRACKET var ( ',' var )* RR_BRACKET ;
 
 multiVersionExp: maxVersionExp
                  | tsRange;
@@ -177,6 +182,8 @@ conditionc : LR_BRACKET conditionc RR_BRACKET              # conditionwrapper
 	| conditionc OR conditionc             # orcondition
 	| column EQ constant                      # equalconstant
 	| column EQ var                           # equalvar
+	| column NOTEQ constant                   # notequalconstant
+    | column NOTEQ var                        # notequalvar
 	| column LESS constant                    # lessconstant
 	| column LESS var                         # lessvar
 	| column GREATER constant                 # greaterconstant
@@ -185,24 +192,16 @@ conditionc : LR_BRACKET conditionc RR_BRACKET              # conditionwrapper
 	| column LESSEQUAL var                    # lessequalvar
 	| column GREATEREQUAL constant            # greaterequalconstant
 	| column GREATEREQUAL var                 # greaterequalvar
-	| column NOTEQ constant                   # notequalconstant
-	| column NOTEQ var                        # notequalvar
-	| column NOTMATCH constant                # notmatchconstant
-	| column NOTMATCH var                     # notmatchvar
-	| column MATCH constant                   # matchconstant
-	| column MATCH var                        # matchvar
 	| column IN constantList                  # inconstantlist
-	| column IN var                           # invarlist
-	| column NOT IN constantList               # notinconstantlist
-	| column NOT IN var                        # notinvarlist
+	| column IN varList                       # invarlist
+	| column NOT IN constantList              # notinconstantlist
+	| column NOT IN varList                   # notinvarlist
 	| column BETWEEN constant AND constant    # betweenconstant
 	| column BETWEEN var AND var              # betweenvar
 	| column NOT BETWEEN constant AND constant # notbetweenconstant
 	| column NOT BETWEEN var AND var           # notbetweenvar
 	| column IS NULL                           # isnullc
 	| column IS NOT NULL                        # isnotnullc
-	| column IS MISSING                        # ismissingc
-	| column IS NOT MISSING                     # isnotmissingc
 	;
 
 limitExp : LIMIT integer

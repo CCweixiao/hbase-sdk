@@ -7,7 +7,6 @@ import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author leojie 2020/11/27 10:53 下午

@@ -15,14 +15,15 @@ import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.InsertValueVisitor;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.RowKeyRangeVisitor;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.SelectColListVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLErrorStrategy;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSQLStatementsLexer;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLErrorStrategy;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLStatementsLexer;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.model.TableQueryProperties;
@@ -64,20 +65,23 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     @Override
     public HBaseDataSet select(String hql, Map<String, Object> params) {
-        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
-        HBaseSQLParser.SelecthqlcContext selectHqlContext = HBaseSqlAnalysisUtil.parseSelectHqlContext(progContext);
-        String tableName = parseTableNameFromHql(progContext);
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        HBaseSQLParser.SelectStatementContext selectStatementContext = queryContext.selectStatement();
+        String tableName = selectStatementContext.tableName().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
+        // 解析查询字段 * 或指定字段
+        HBaseSQLParser.SelectColListContext selectColListContext = selectStatementContext.selectColList();
+
         // 解析查询字段
-        HBaseSQLParser.SelectColListContext selectColListContext = selectHqlContext.selectColList();
-        final List<HBaseColumn> queryColumns = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, selectColListContext);
+        final List<HBaseColumn> queryColumns = new SelectColListVisitor(tableSchema).extractColumns(selectColListContext);
         if (queryColumns == null || queryColumns.isEmpty()) {
             throw new HBaseSqlAnalysisException(String.format("The list of field names to be selected cannot be parsed from hql [%s]", hql));
         }
         // 解析字段或row key的filter条件
-        Filter filter = this.parseFilter(selectHqlContext.wherec(), params, tableSchema);
+        Filter filter = this.parseFilter(selectStatementContext.wherec(), params, tableSchema);
+        RowKeyRangeVisitor rowKeyRangeVisitor = new RowKeyRangeVisitor(tableSchema);
         // row key range
-        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, selectHqlContext.rowKeyRangeExp());
+        RowKeyRange rowKeyRange = rowKeyRangeVisitor.extractRowKeyRange(selectStatementContext.rowKeyRangeExp());
         // start or end row
         RowKey<?> startRowKey = rowKeyRange.getStart();
         RowKey<?> endRowKey = rowKeyRange.getEnd();
@@ -85,7 +89,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         List<RowKey<?>> queryInRows = rowKeyRange.getInSomeKeys();
         // eq row
         RowKey<?> eqRowKey = rowKeyRange.getEqRow();
-        QueryExtInfo queryExtInfo = HBaseSqlAnalysisUtil.parseQueryExtInfo(tableSchema, selectHqlContext);
+        QueryExtInfo queryExtInfo = rowKeyRangeVisitor.parseQueryExtInfo(selectStatementContext);
 
         // = rowKey 即：get row
         if (eqRowKey != null) {
@@ -176,61 +180,35 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
                 .column().stream().map(c -> c.ID().getText())
                 .collect(Collectors.toList());
 
-
+        InsertValueVisitor insertValueVisitor = new InsertValueVisitor(tableSchema, insertCols);
+        long timestamp = insertValueVisitor.parseTimestamp(insertStatementContext);
         List<InsertRowData> rowDataList = new InsertValueVisitor(tableSchema, insertCols)
                 .parseInsertConstantValue(insertStatementContext);
-
-
-        List<HBaseColumn> insertColumns = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, insertHqlContext.colList());
-        if (insertColumns.isEmpty()) {
-            throw new HBaseSqlAnalysisException(String.format("The list of field names to be inserted cannot be parsed from hql [%s]", hql));
-        }
-        final List<HBaseSQLParser.InsertValueContext> insertValueContextList = insertHqlContext.insertValueList().insertValue();
-        MyAssert.checkArgument(insertColumns.size() == insertValueContextList.size(),
-                "The inserted fields length should be same as the values length.");
-
-        final HBaseSQLParser.RowKeyExpContext rowKeyExpContext = insertHqlContext.rowKeyExp();
-        RowKey<?> rowKey = HBaseSqlAnalysisUtil.extractRowKey(tableSchema, rowKeyExpContext);
-
-        long ts = -1;
-        HBaseSQLParser.TsExpContext tsExpContext = insertHqlContext.tsExp();
-        if (tsExpContext != null) {
-            ts = HBaseSqlAnalysisUtil.extractTimeStamp(tsExpContext);
+        if (rowDataList.size() == 1) {
+            Put put = this.constructPut(rowDataList.get(0), timestamp);
+            this.executeSave(tableName, put);
         }
 
-        Put put = new Put(rowKey.toBytes());
-        for (int i = 0; i < insertColumns.size(); i++) {
-            HBaseColumn hbaseColumnSchema = insertColumns.get(i);
-            HBaseSQLParser.InsertValueContext insertValueContext = insertValueContextList.get(i);
-            Object value = HBaseSqlAnalysisUtil.extractInsertConstantValue(hbaseColumnSchema, insertValueContext);
-            byte[] data = convertValueToBytes(value, hbaseColumnSchema);
-            if (ts < 0) {
-                put.addColumn(hbaseColumnSchema.getFamilyNameBytes(), hbaseColumnSchema.getColumnNameBytes(), data);
-            } else {
-                put.addColumn(hbaseColumnSchema.getFamilyNameBytes(), hbaseColumnSchema.getColumnNameBytes(), ts, data);
-            }
-        }
-
-        this.execute(tableName, table -> {
-            table.put(put);
-            return true;
-        });
+        List<Mutation> puts = rowDataList.stream().map(rowData -> this.constructPut(rowData, timestamp))
+                .collect(Collectors.toList());
+        this.executeSaveBatch(tableName, puts);
     }
 
     @Override
     public void delete(String hql) {
-        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
-        HBaseSQLParser.DeletehqlcContext deleteHqlContext = HBaseSqlAnalysisUtil.parseDeleteHqlContext(progContext);
-        String tableName = parseTableNameFromHql(progContext);
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        HBaseSQLParser.DeleteStatementContext deleteStatementContext = queryContext.deleteStatement();
+        String tableName = deleteStatementContext.tableName().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
-        //delete col list
-        HBaseSQLParser.SelectColListContext deleteColListContext = deleteHqlContext.selectColList();
-        List<HBaseColumn> deleteColumns = HBaseSqlAnalysisUtil.extractColumnSchemaList(tableSchema, deleteColListContext);
+        // 解析删除字段 * 或指定字段
+        HBaseSQLParser.SelectColListContext deleteColListContext = deleteStatementContext.selectColList();
+        List<HBaseColumn> deleteColumns = new SelectColListVisitor(tableSchema).extractColumns(deleteColListContext);
         if (deleteColumns == null || deleteColumns.isEmpty()) {
             throw new HBaseSqlAnalysisException(String.format("The list of field names to be deleted cannot be parsed from hql [%s]", hql));
         }
         //Row in start row and end row
-        RowKeyRange rowKeyRange = HBaseSqlAnalysisUtil.extractRowKeyRange(tableSchema, deleteHqlContext.rowKeyRangeExp());
+        RowKeyRangeVisitor rowKeyRangeVisitor = new RowKeyRangeVisitor(tableSchema);
+        RowKeyRange rowKeyRange = rowKeyRangeVisitor.extractRowKeyRange(deleteStatementContext.rowKeyRangeExp());
         RowKey<?> startRowKey = rowKeyRange.getStart();
         RowKey<?> endRowKey = rowKeyRange.getEnd();
         // delete one row key
@@ -238,27 +216,23 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         // delete in row key list
         List<RowKey<?>> inRowKeyList = rowKeyRange.getInSomeKeys();
         // filter
-        Filter filter = this.parseFilter(deleteHqlContext.wherec(), tableSchema);
+        Filter filter = this.parseFilter(deleteStatementContext.wherec(), tableSchema);
+        QueryExtInfo deleteExtInfo = rowKeyRangeVisitor.parseDeleteExtInfo(deleteStatementContext);
 
-        long ts = -1;
-        HBaseSQLParser.TsExpContext tsExpContext = deleteHqlContext.tsExp();
-        if (tsExpContext != null) {
-            ts = HBaseSqlAnalysisUtil.extractTimeStamp(tsExpContext);
-        }
         // delete eq row key
         if (eqRowKey != null) {
-            deleteEqRowKey(tableName, eqRowKey, deleteColumns, ts);
+            deleteEqRowKey(tableName, eqRowKey, deleteColumns, 0);
             return;
         }
         // delete in row keys
         if (inRowKeyList != null && !inRowKeyList.isEmpty()) {
-            deleteInRowKeys(tableName, inRowKeyList, deleteColumns, ts);
+            deleteInRowKeys(tableName, inRowKeyList, deleteColumns, 0);
             return;
         }
         if (startRowKey != null && endRowKey != null) {
             Util.checkRowKey(startRowKey);
             Util.checkRowKey(endRowKey);
-            deleteWithScanFirst(hql, tableName, startRowKey, endRowKey, filter, deleteColumns, ts);
+            deleteWithScanFirst(hql, tableName, startRowKey, endRowKey, filter, deleteColumns, 0);
         }
     }
 
@@ -355,6 +329,8 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo,
                                           Filter filter, List<HBaseColumn> columnList);
 
+    protected abstract Put constructPut(InsertRowData rowData, long ts);
+
     protected abstract Delete constructDelete(RowKey<?> rowKey, List<HBaseColumn> columnSchemaList, long ts);
 
     protected abstract Delete constructDelete(Result result, List<HBaseColumn> columnSchemaList, long ts);
@@ -399,7 +375,9 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     protected HBaseSQLParser.QueryContext parseQueryContext(String hql) {
-        checkHqlIsNotEmpty(hql);
+        if (StringUtil.isBlank(hql)) {
+            throw new HBaseSqlAnalysisException("Please enter hql.");
+        }
         try {
             ANTLRInputStream input = new ANTLRInputStream(new StringReader(hql));
             HBaseSQLStatementsLexer lexer = new HBaseSQLStatementsLexer(input);
@@ -413,20 +391,18 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     public String parseTableNameFromHql(String hql) {
-        checkHqlIsNotEmpty(hql);
-        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
-        return parseTableNameFromHql(progContext);
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        return parseTableNameFromHql(queryContext);
     }
 
-    protected String parseTableNameFromHql(HBaseSQLParser.ProgContext progContext) {
-        MyAssert.checkNotNull(progContext);
+    protected String parseTableNameFromHql(HBaseSQLParser.QueryContext queryContext) {
         String tableName;
-        if (progContext instanceof HBaseSQLParser.InsertHqlClContext) {
-            tableName = ((HBaseSQLParser.InsertHqlClContext) progContext).inserthqlc().tableName().STRING().getText();
-        } else if (progContext instanceof HBaseSQLParser.SelectHqlClContext) {
-            tableName = ((HBaseSQLParser.SelectHqlClContext) progContext).selecthqlc().tableName().STRING().getText();
-        } else if (progContext instanceof HBaseSQLParser.DeleteHqlClContext) {
-            tableName = ((HBaseSQLParser.DeleteHqlClContext) progContext).deletehqlc().tableName().STRING().getText();
+        if (queryContext.selectStatement() != null) {
+            tableName = queryContext.selectStatement().tableName().getText();
+        } else if (queryContext.insertStatement() != null) {
+            tableName = queryContext.insertStatement().tableName().getText();
+        } else if (queryContext.deleteStatement() != null) {
+            tableName = queryContext.deleteStatement().tableName().getText();
         } else {
             throw new HBaseSqlAnalysisException("The table name cannot be parsed from the input hql.");
         }
@@ -435,21 +411,19 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     public HQLType parseHQLType(String hql) {
-        checkHqlIsNotEmpty(hql);
-        HBaseSQLParser.ProgContext progContext = parseQueryContext(hql);
-        return parseHQLType(progContext);
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        return parseHQLType(queryContext);
     }
 
-    protected HQLType parseHQLType(HBaseSQLParser.ProgContext progContext) {
-        MyAssert.checkNotNull(progContext);
+    protected HQLType parseHQLType(HBaseSQLParser.QueryContext queryContext) {
 
-        if (progContext instanceof HBaseSQLParser.InsertHqlClContext) {
+        if (queryContext.insertStatement() != null) {
             return HQLType.PUT;
         }
-        if (progContext instanceof HBaseSQLParser.SelectHqlClContext) {
+        if (queryContext.selectStatement() != null) {
             return HQLType.SELECT;
         }
-        if (progContext instanceof HBaseSQLParser.DeleteHqlClContext) {
+        if (queryContext.deleteStatement() != null) {
             return HQLType.DELETE;
         }
         throw new HBaseOperationsException("can't parse hql type.");

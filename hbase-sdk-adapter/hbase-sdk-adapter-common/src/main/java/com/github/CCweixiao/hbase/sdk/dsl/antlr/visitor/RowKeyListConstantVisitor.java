@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;

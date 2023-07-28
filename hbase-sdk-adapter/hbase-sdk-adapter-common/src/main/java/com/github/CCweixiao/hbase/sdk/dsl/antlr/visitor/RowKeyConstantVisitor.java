@@ -1,11 +1,15 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKeyFactory;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.func.RowKeyFunc;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
+
+import java.util.List;
 
 /**
  * @author leojie 2020/12/6 8:27 下午
@@ -17,17 +21,27 @@ public class RowKeyConstantVisitor extends BaseVisitor<RowKey<?>> {
 
     @Override
     public RowKey<?> visitRowkey_FuncConstant(HBaseSQLParser.Rowkey_FuncConstantContext ctx) {
-        MyAssert.checkNotNull(ctx);
-        String text = ctx.constant().STRING().getText();
+        HBaseSQLParser.FuncParamsListContext funcParamsListContext = ctx.funcParamsList();
+        List<HBaseSQLParser.FuncColContext> funcColContexts = funcParamsListContext.funcCol();
         String funcName = ctx.funcname().getText();
-        return RowKeyFactory.getRowKeyByFuncName(text, funcName);
+        if (funcColContexts.isEmpty()) {
+            return RowKeyFactory.getRowKeyByFuncName(funcName);
+        }
+        String[] prams = new String[funcColContexts.size()];
+        for (int i = 0; i < funcColContexts.size(); i++) {
+            String val = this.extractValueFromValueContext(funcColContexts.get(i).value());
+            prams[i] = val;
+        }
+        return RowKeyFactory.getRowKeyByFuncName(funcName, prams);
     }
 
     @Override
     public RowKey<?> visitRowkey_Constant(HBaseSQLParser.Rowkey_ConstantContext ctx) {
-        MyAssert.checkNotNull(ctx);
-        String text = ctx.constant().STRING().getText();
-        return RowKeyFactory.getRowKeyByTableSchema(text, tableSchema);
+        String rowKeyOriText = this.extractValueFromValueContext(ctx.value());
+        if (StringUtil.isBlank(rowKeyOriText)) {
+            throw new HBaseSqlAnalysisException("The value of rowKey could not be resolved.");
+        }
+        return RowKeyFactory.getRowKeyByTableSchema(rowKeyOriText, this.getTableSchema());
     }
 
     @Override
@@ -36,10 +50,8 @@ public class RowKeyConstantVisitor extends BaseVisitor<RowKey<?>> {
     }
 
     public RowKey<?> parseRowKey(HBaseSQLParser.RowKeyExpContext rowKeyExpContext) {
-        MyAssert.checkNotNull(rowKeyExpContext);
-        RowKeyFunctionVisitor visitor = new RowKeyFunctionVisitor();
+        RowKeyFunctionVisitor visitor = new RowKeyFunctionVisitor(this.getTableSchema());
         RowKey<?> rowKey = rowKeyExpContext.accept(this);
-        MyAssert.checkNotNull(rowKey);
 
         final RowKeyFunc<?> rowKeyFunc = rowKeyExpContext.accept(visitor);
         if (rowKeyFunc != null) {

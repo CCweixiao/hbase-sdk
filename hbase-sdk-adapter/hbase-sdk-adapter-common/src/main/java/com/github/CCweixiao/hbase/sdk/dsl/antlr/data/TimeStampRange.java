@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.data;
 
 /**
  * @author leojie 2020/11/28 10:22 上午

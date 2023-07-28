@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLLexer;

@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.data;
 
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import java.util.List;

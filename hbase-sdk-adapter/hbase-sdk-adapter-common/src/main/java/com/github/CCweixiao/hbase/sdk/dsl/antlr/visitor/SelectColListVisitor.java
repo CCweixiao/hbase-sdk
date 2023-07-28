@@ -1,8 +1,6 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.HBaseSqlAnalysisUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
@@ -20,7 +18,7 @@ public class SelectColListVisitor extends BaseVisitor<List<HBaseColumn>> {
 
     @Override
     public List<HBaseColumn> visitColList_ColList(HBaseSQLParser.ColList_ColListContext ctx) {
-        return HBaseSqlAnalysisUtil.extractColumnSchemaList(this.getTableSchema(), ctx.colList());
+        return this.extractColumns(ctx.columnList());
     }
 
     @Override
@@ -28,8 +26,7 @@ public class SelectColListVisitor extends BaseVisitor<List<HBaseColumn>> {
         return new ArrayList<>(this.tableSchema.findAllColumns());
     }
 
-    public List<HBaseColumn> extractColumnSchemaList(HBaseSQLParser.SelectColListContext selectColListContext) {
-        MyAssert.checkNotNull(selectColListContext);
+    public List<HBaseColumn> extractColumns(HBaseSQLParser.SelectColListContext selectColListContext) {
         return selectColListContext.accept(this);
     }
 }

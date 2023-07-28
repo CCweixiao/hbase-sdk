@@ -1,8 +1,9 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual.visitor;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
+import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.RowKeyRange;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 
 import java.util.List;
@@ -67,6 +68,12 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         rowKeyRange.setInSomeKeys(rowKeyList);
         rowKeyRange.setStart(null);
         rowKeyRange.setEnd(null);
+        return rowKeyRange;
+    }
+
+    public RowKeyRange extractRowKeyRange(HBaseSQLParser.RowKeyRangeExpContext rowKeyRangeContext) {
+        RowKeyRange rowKeyRange = rowKeyRangeContext.accept(this);
+        MyAssert.checkNotNull(rowKeyRange);
         return rowKeyRange;
     }
 }

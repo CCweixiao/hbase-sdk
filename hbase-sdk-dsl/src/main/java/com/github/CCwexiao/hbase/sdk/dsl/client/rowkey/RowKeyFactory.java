@@ -30,27 +30,27 @@ public class RowKeyFactory {
         return rowKey;
     }
 
-    public static RowKey<?> getRowKeyByFuncName(String rowValue, String functionName) {
+    public static RowKey<?> getRowKeyByFuncName(String functionName, String... params) {
         RowKeyFunction rowKeyFunc = RowKeyFunction.findRowKeyFunc(functionName);
         RowKey<?> rowKey;
         switch (rowKeyFunc) {
             case convert_to_int:
-                rowKey = new IntRowKey(rowValue);
+                rowKey = new IntRowKey(params[0]);
                 break;
             case convert_to_long:
-                rowKey = new LongRowKey(rowValue);
+                rowKey = new LongRowKey(params[0]);
                 break;
             case md5:
-                rowKey = new Md5RowKey(rowValue);
+                rowKey = new Md5RowKey(params[0]);
                 break;
             case md5_prefix:
-                rowKey = new Md5PrefixRowKey(rowValue);
+                rowKey = new Md5PrefixRowKey(params[0]);
                 break;
             case reverse:
-                rowKey = new ReverseRowKey(rowValue);
+                rowKey = new ReverseRowKey(params[0]);
                 break;
             default:
-                rowKey = new StringRowKey(rowValue);
+                rowKey = new StringRowKey(params[0]);
                 break;
         }
         return rowKey;

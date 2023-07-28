@@ -1,4 +1,4 @@
-package com.github.CCwexiao.hbase.sdk.dsl.manual;
+package com.github.CCweixiao.hbase.sdk.dsl.antlr;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import org.antlr.v4.runtime.*;

@@ -4,7 +4,6 @@ import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
-import com.github.CCwexiao.hbase.sdk.dsl.manual.visitor.BaseVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import java.util.Map;
  */
 public class InsertValueVisitor extends BaseVisitor<List<InsertRowData>> {
     private final List<String> insertCols;
-    private long timestamp;
     public InsertValueVisitor(HBaseTableSchema tableSchema, List<String> insertCols) {
         super(tableSchema);
         this.insertCols = insertCols;
@@ -36,6 +34,9 @@ public class InsertValueVisitor extends BaseVisitor<List<InsertRowData>> {
         }
         Map<String, HBaseColumn> allColumnMap = getAllColumns();
         List<HBaseSQLParser.ValueListContext> valueListContexts = ctx.valueList();
+        if (valueListContexts == null || valueListContexts.isEmpty()) {
+            throw new HBaseSqlAnalysisException("Specify the list of values to be inserted.");
+        }
         List<InsertRowData> rowDataList = new ArrayList<>(valueListContexts.size());
 
         for (HBaseSQLParser.ValueListContext valueListContext : valueListContexts) {
@@ -44,7 +45,7 @@ public class InsertValueVisitor extends BaseVisitor<List<InsertRowData>> {
                 throw new HBaseSqlAnalysisException("Insert field list and value list numbers don't match.");
             }
             HBaseSQLParser.ValueContext rowValueContext = valueContexts.get(findRowIndex);
-            String rowValue = parseValueFromValueContext(rowValueContext);
+            String rowValue = extractValueFromValueContext(rowValueContext);
             if (StringUtil.isBlank(rowValue)) {
                 throw new HBaseSqlAnalysisException("Unable to parse the rowKey value from the list of data to be inserted.");
             }
@@ -57,21 +58,20 @@ public class InsertValueVisitor extends BaseVisitor<List<InsertRowData>> {
                 }
                 HBaseSQLParser.ValueContext colValueContext = valueContexts.get(i);
                 String colName = this.insertCols.get(i);
-                HBaseColumn hBaseColumn = allColumnMap.get(colName);
-                if (hBaseColumn == null) {
-                    throw new HBaseSqlAnalysisException("Invalid column name.");
+                HBaseColumn column = allColumnMap.get(colName);
+                if (column == null) {
+                    throw new HBaseSqlAnalysisException("Invalid column name " + colName);
                 }
-                String colValueOri = parseValueFromValueContext(colValueContext);
-                String colValueMatchType;
+                String colValueOri = extractValueFromValueContext(colValueContext);
                 if (StringUtil.isBlank(colValueOri)) {
-                    if (colValueOri == null && !hBaseColumn.isNullable()) {
+                    if (colValueOri == null && !column.isNullable()) {
                         throw new HBaseSqlAnalysisException(String.format("The value of column %s cannot be empty.", colName));
                     }
-                    rowDataBuilder.addColData(hBaseColumn.getFamilyNameBytes(), hBaseColumn.getColumnNameBytes(), null, this.timestamp);
+                    rowDataBuilder.addColData(column.getFamilyNameBytes(), column.getColumnNameBytes(), new byte[0]);
                 } else {
-                    colValueMatchType = hBaseColumn.getColumnType().getTypeHandler().extractMatchTtypeValue(colValueOri);
-                    byte[] valueBytes = hBaseColumn.getColumnType().getTypeHandler().toBytes(colValueMatchType);
-                    rowDataBuilder.addColData(hBaseColumn.getFamilyNameBytes(), hBaseColumn.getColumnNameBytes(), valueBytes, this.timestamp);
+                    byte[] valueBytes = column.getColumnType().getTypeHandler().toBytes(column.getColumnType().getTypeClass(),
+                            colValueOri);
+                    rowDataBuilder.addColData(column.getFamilyNameBytes(), column.getColumnNameBytes(), valueBytes);
                 }
             }
             rowDataList.add(rowDataBuilder.build());

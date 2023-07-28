@@ -2,6 +2,8 @@ package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertColData;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
 import com.github.CCweixiao.hbase.sdk.hql.filter.QueryFilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
@@ -131,6 +133,19 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
             }
         }
         return scan;
+    }
+
+    @Override
+    protected Put constructPut(InsertRowData rowData, long ts) {
+        Put put = new Put(rowData.getRows());
+        for (InsertColData colData : rowData.getColDataList()) {
+            if (ts > 0) {
+                put.addColumn(colData.getFamily(), colData.getQualifier(), ts, colData.getValue());
+            } else {
+                put.addColumn(colData.getFamily(), colData.getQualifier(), colData.getValue());
+            }
+        }
+        return put;
     }
 
     @Override

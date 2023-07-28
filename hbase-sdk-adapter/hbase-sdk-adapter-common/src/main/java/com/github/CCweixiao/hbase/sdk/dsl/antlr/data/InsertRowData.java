@@ -34,12 +34,9 @@ public class InsertRowData {
             return this;
         }
 
-        public Builder addColData(byte[] familyBytes, byte[] qualifierBytes, byte[] valueBytes, long ts) {
-            return this.addColData(new InsertColData(familyBytes, qualifierBytes, valueBytes, ts));
-        }
 
         public Builder addColData(byte[] familyBytes, byte[] qualifierBytes, byte[] valueBytes) {
-            return this.addColData(new InsertColData(familyBytes, qualifierBytes, valueBytes, -1));
+            return this.addColData(new InsertColData(familyBytes, qualifierBytes, valueBytes));
         }
 
         public InsertRowData build() {

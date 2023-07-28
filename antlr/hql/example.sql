@@ -66,6 +66,13 @@ insert into
                  f:age, f2:pay, f3:detail) VALUES('1001','张三', 23.32,null )
         , ( 'null' , '李四' , 23.32, '{\"name\": \"leo\",\"age\": 18}');
 
+select * from test:test_sql where rowKey = 'a1000'
+ and f1:name != ${ username}
+  and f2:age > ${age};
+
+select * from test:test_sql where rowKey = md5 ( `f1:age`, 'a1000', `sd`)
+ and f1:name != ${ username}
+  and f2:age > ${age};
 
 /**
 多行注释

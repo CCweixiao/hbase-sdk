@@ -1,4 +1,4 @@
-// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 
@@ -180,6 +180,12 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFuncParamsList(HBaseSQLParser.FuncParamsListContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#funcCol}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncCol(HBaseSQLParser.FuncColContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code tsrange_startAndEnd}
 	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
 	 * @param ctx the parse tree
@@ -225,6 +231,12 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitVar(HBaseSQLParser.VarContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#varList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarList(HBaseSQLParser.VarListContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#multiVersionExp}.
 	 * @param ctx the parse tree
@@ -276,26 +288,12 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLessequalvar(HBaseSQLParser.LessequalvarContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code notmatchvar}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNotmatchvar(HBaseSQLParser.NotmatchvarContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code notbetweenvar}
 	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitNotbetweenvar(HBaseSQLParser.NotbetweenvarContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code ismissingc}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsmissingc(HBaseSQLParser.IsmissingcContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code andcondition}
 	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
@@ -310,13 +308,6 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitGreaterequalconstant(HBaseSQLParser.GreaterequalconstantContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code notmatchconstant}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNotmatchconstant(HBaseSQLParser.NotmatchconstantContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code equalvar}
 	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
@@ -367,13 +358,6 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNotbetweenconstant(HBaseSQLParser.NotbetweenconstantContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code isnotmissingc}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIsnotmissingc(HBaseSQLParser.IsnotmissingcContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code notinconstantlist}
 	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
 	 * @param ctx the parse tree
@@ -423,13 +407,6 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNotequalconstant(HBaseSQLParser.NotequalconstantContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code matchvar}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMatchvar(HBaseSQLParser.MatchvarContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code invarlist}
 	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
 	 * @param ctx the parse tree
@@ -471,13 +448,6 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitGreatervar(HBaseSQLParser.GreatervarContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code matchconstant}
-	 * labeled alternative in {@link HBaseSQLParser#conditionc}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMatchconstant(HBaseSQLParser.MatchconstantContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#limitExp}.
 	 * @param ctx the parse tree
