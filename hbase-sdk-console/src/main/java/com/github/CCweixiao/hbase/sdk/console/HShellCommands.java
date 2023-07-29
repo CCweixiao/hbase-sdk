@@ -42,6 +42,7 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
     public HShellCommands() {
         try {
             Set<String> allCommands = HBaseShellCommands.getAllCommands();
+            allCommands.add("desc");
             for (String commandName : allCommands) {
                 commandExecute.put(commandName, new CommandMethods(this::execShellCommand, this::defaultCompleter));
             }
