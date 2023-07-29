@@ -13,7 +13,6 @@ import java.util.*;
  */
 public class HBaseTableSchema {
     private final String tableName;
-
     private final String defaultFamily;
     /**
      * qualifier -> family -> HBaseColumnSchema

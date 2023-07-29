@@ -32,8 +32,7 @@ select f:id,f:name, f:age from test:table where STARTKEY = 'start'
 select f:id,f:name, f:age from test:table where ENDKEY = 'end'
 select f:id,f:name, f:age from test:table where rowKey in ('1001','1002',md5('abc'))
 
-select f:id,f:name, f:age from test:table
-where rowKey in ('1001','1002',md5(we,'abc', 'dsd', '23'))
+select f:id,f:name, f:age from test:table where rowKey in ('1001','1002',md5(we,'abc', 'dsd', '23'))
 
 
 
@@ -60,11 +59,7 @@ delete from test:table where rowkey = '1231ew' and (f1:name = 'dew' and  f1:age=
 多行注释
 **/
 -- 单行注释
-insert into
--- 注释
-    test:table ( f:id , f:name,
-                 f:age, f2:pay, f3:detail) VALUES('1001','张三', 23.32,null )
-        , ( 'null' , '李四' , 23.32, '{\"name\": \"leo\",\"age\": 18}');
+insert into test:table ( f:id , f:name, f:age, f2:pay, f3:detail) VALUES('1001','张三', 23.32,null ) , ( 'null' , '李四' , 23.32, '{\"name\": \"leo\",\"age\": 18}')
 
 select * from test:test_sql where rowKey = 'a1000'
  and f1:name != ${ username}

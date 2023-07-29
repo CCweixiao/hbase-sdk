@@ -36,7 +36,10 @@ public class HBaseSQLErrorListener extends BaseErrorListener {
 
         int start = offendingToken.getStartIndex();
         int stop = offendingToken.getStopIndex();
-        if (start >= 0 && stop >= 0) {
+        if (stop < start) {
+            stop = start;
+        }
+        if (start >= 0) {
             for (int i = start; i <= stop; i++) {
                 sb.append("^");
             }

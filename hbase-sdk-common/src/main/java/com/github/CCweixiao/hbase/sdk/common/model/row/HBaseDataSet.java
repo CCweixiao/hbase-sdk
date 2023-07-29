@@ -47,8 +47,12 @@ public class HBaseDataSet {
     }
 
     public void show(boolean showTs) {
+        System.out.println(showTable(showTs));
+    }
+
+    public String showTable(boolean showTs) {
         if (this.getRowSet() == null || this.getRowSet().isEmpty()) {
-            return;
+            return "";
         }
         List<String> colNams = new ArrayList<>();
         HBaseDataRow row = this.getRowSet().get(0);
@@ -78,6 +82,6 @@ public class HBaseDataSet {
             valueList.add(tmpValueList);
         }
         DataSetFormatter dataSetFormatter = new DataSetFormatter(colNams, valueList);
-        System.out.println(dataSetFormatter.printTable());
+        return dataSetFormatter.printTable();
     }
 }

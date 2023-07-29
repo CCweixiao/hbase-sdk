@@ -53,6 +53,7 @@
         <module>hbase-sdk-shell</module>
         <module>spring-boot-starter-hbase</module>
         <module>hbase-sdk-examples</module>
+        <module>hbase-sdk-console</module>
     </modules>
 
     <properties>
@@ -82,6 +83,7 @@
         <jruby.verison>9.3.4.0</jruby.verison>
         <jcodings.version>1.0.56</jcodings.version>
         <joni.version>2.1.42</joni.version>
+        <jline.version>3.23.0</jline.version>
         <slf4j.version>1.7.30</slf4j.version>
         <log4j.version>2.17.1</log4j.version>
         <hbase.sdk.adapter.default.version>1.2</hbase.sdk.adapter.default.version>
@@ -205,7 +207,6 @@
                         <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase1.2.version}</version>
-                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -229,7 +230,6 @@
                         <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase1.4.version}</version>
-                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -253,7 +253,6 @@
                         <groupId>org.apache.hbase</groupId>
                         <artifactId>hbase-server</artifactId>
                         <version>${hbase2.2.version}</version>
-                        <scope>provided</scope>
                     </dependency>
                 </dependencies>
             </dependencyManagement>
@@ -266,7 +265,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>2.2.1</version>
+                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -279,7 +278,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>2.9.1</version>
+                        <version>3.2.0</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
