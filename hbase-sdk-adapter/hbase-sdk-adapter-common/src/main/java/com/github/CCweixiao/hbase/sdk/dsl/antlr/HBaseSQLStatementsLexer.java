@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.dsl.antlr;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLLexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.LexerNoViableAltException;
@@ -15,7 +15,7 @@ public class HBaseSQLStatementsLexer extends HBaseSQLLexer {
 
     @Override
     public void recover(LexerNoViableAltException e) {
-        throw new HBaseOperationsException("lexer error.", e);
+        throw new HBaseSqlAnalysisException("lexer error.", e);
     }
 }
 

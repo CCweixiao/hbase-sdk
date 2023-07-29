@@ -1,6 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.dsl.antlr;
 
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import org.antlr.v4.runtime.*;
 
 /**
@@ -11,13 +11,14 @@ public class HBaseSQLErrorStrategy extends DefaultErrorStrategy {
 
     @Override
     public void recover(Parser recognizer, RecognitionException e) {
-        throw new HBaseOperationsException(e);
+        throw new HBaseSqlAnalysisException(e);
     }
 
     @Override
     public Token recoverInline(Parser recognizer) throws RecognitionException {
-        throw new HBaseOperationsException("parser error.", new InputMismatchException(recognizer));
+        throw new HBaseSqlAnalysisException("parser error.", new InputMismatchException(recognizer));
     }
+
 
     @Override
     public void sync(Parser recognizer) {

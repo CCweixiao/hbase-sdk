@@ -74,6 +74,21 @@ select * from test:test_sql where rowKey = md5 ( `f1:age`, 'a1000', `sd`)
  and f1:name != ${ username}
   and f2:age > ${age};
 
+
+select * from test:test_sql where
+rowKey=md5(`rowkey`,null,`erer`,  'selectds', 'maxversion', where)
+and (f1:name = 'ds' or f1:age < 12 or (f1:pay between 10 and 20))
+and maxversion = 1
+limit 10
+
+
+select * from test:test_sql where
+rowKey=md5(`rowkey`,null,`erer`,  'selectds', 'maxversion', 'where')
+and (f1:name = 'ds' or f1:age < 12 or (f1:pay between 10 and 20))
+-- and ( startTs > 1212 , endTs <= 23 )
+and startTs >= 1212
+limit 10
+
 /**
 多行注释
 **/

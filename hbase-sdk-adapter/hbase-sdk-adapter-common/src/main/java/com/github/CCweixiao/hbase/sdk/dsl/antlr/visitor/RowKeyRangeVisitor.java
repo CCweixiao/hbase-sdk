@@ -1,6 +1,5 @@
 package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
@@ -22,7 +21,10 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> startRowKey = rowKeyConstantVisitor.parseRowKey(startContext.rowKeyExp());
         rowKeyRange.setStart(startRowKey);
-        rowKeyRange.setEnd(endRow());
+        if (startContext.gtOper().GREATEREQUAL() != null) {
+            rowKeyRange.setIncludeStart(true);
+        }
+        rowKeyRange.setMatchScanByStart(true);
         return rowKeyRange;
     }
 
@@ -32,7 +34,11 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> endRowKey = rowKeyConstantVisitor.parseRowKey(endContext.rowKeyExp());
         rowKeyRange.setStart(startRow());
-        rowKeyRange.setEnd(endRowKey);
+
+        if (endContext.leOper().LESSEQUAL() != null) {
+            rowKeyRange.setIncludeStop(true);
+        }
+        rowKeyRange.setStop(endRowKey);
         return rowKeyRange;
     }
 
@@ -40,14 +46,18 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
     @Override
     public RowKeyRange visitRowkeyrange_startAndEnd(HBaseSQLParser.Rowkeyrange_startAndEndContext startAndEndContext) {
         RowKeyRange rowKeyRange = new RowKeyRange();
-
         RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> startRowKey = rowKeyConstantVisitor.parseRowKey(startAndEndContext.rowKeyExp(0));
         rowKeyRange.setStart(startRowKey);
-
+        if (startAndEndContext.gtOper().GREATEREQUAL() != null) {
+            rowKeyRange.setIncludeStart(true);
+        }
         RowKey<?> endRowKey = rowKeyConstantVisitor.parseRowKey(startAndEndContext.rowKeyExp(1));
-        rowKeyRange.setEnd(endRowKey);
-
+        rowKeyRange.setStop(endRowKey);
+        if (startAndEndContext.leOper().LESSEQUAL() != null) {
+            rowKeyRange.setIncludeStop(true);
+        }
+        rowKeyRange.setMatchScanByStartAndEnd(true);
         return rowKeyRange;
     }
 
@@ -57,6 +67,7 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
         RowKey<?> rowKey = rowKeyConstantVisitor.parseRowKey(onerowkeyContext.rowKeyExp());
         rowKeyRange.setEqRow(rowKey);
+        rowKeyRange.setMatchGet(true);
         return rowKeyRange;
     }
 
@@ -66,14 +77,21 @@ public class RowKeyRangeVisitor extends BaseVisitor<RowKeyRange> {
         RowKeyListConstantVisitor rowKeyListConstantVisitor = new RowKeyListConstantVisitor(tableSchema);
         List<RowKey<?>> rowKeyList = insomekeysContext.accept(rowKeyListConstantVisitor);
         rowKeyRange.setInSomeKeys(rowKeyList);
-        rowKeyRange.setStart(null);
-        rowKeyRange.setEnd(null);
+        rowKeyRange.setMatchGetRows(true);
+        return rowKeyRange;
+    }
+
+    @Override
+    public RowKeyRange visitRowkeyrange_prefix(HBaseSQLParser.Rowkeyrange_prefixContext rowkeyrangePrefixContext) {
+        RowKeyRange rowKeyRange = new RowKeyRange();
+        RowKeyConstantVisitor rowKeyConstantVisitor = new RowKeyConstantVisitor(tableSchema);
+        RowKey<?> rowKey = rowKeyConstantVisitor.parseRowKey(rowkeyrangePrefixContext.rowKeyExp());
+        rowKeyRange.setRowPrefix(rowKey);
+        rowKeyRange.setMatchScanByRowPrefix(true);
         return rowKeyRange;
     }
 
     public RowKeyRange extractRowKeyRange(HBaseSQLParser.RowKeyRangeExpContext rowKeyRangeContext) {
-        RowKeyRange rowKeyRange = rowKeyRangeContext.accept(this);
-        MyAssert.checkNotNull(rowKeyRange);
-        return rowKeyRange;
+        return rowKeyRangeContext.accept(this);
     }
 }

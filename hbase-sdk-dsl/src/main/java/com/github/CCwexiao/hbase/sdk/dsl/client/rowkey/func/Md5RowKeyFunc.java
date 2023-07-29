@@ -30,6 +30,6 @@ public class Md5RowKeyFunc implements RowKeyFunc<String> {
 
     @Override
     public String showDesc() {
-        return "MD5 encryption of row key, example md5 ( 'abcdefg' )";
+        return "MD5 encryption of row key, example md5('abcdefg')";
     }
 }

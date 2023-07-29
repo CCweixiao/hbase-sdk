@@ -15,7 +15,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.BytesRowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,19 +62,36 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         if (valueContext == null) {
             return null;
         }
+
         if (valueContext.NULL() != null) {
-            return null;
+            List<TerminalNode> nodeList = valueContext.NULL();
+            if (!nodeList.isEmpty()) {
+                return null;
+            }
         }
         if (valueContext.ID() != null) {
-            return valueContext.ID().getText();
+            List<TerminalNode> nodes = valueContext.ID();
+            if (!nodes.isEmpty()) {
+                return nodes.get(0).getText();
+            }
+        }
+
+        if (valueContext.ROWKEY() != null) {
+            List<TerminalNode> rowNodes = valueContext.ROWKEY();
+            if (!rowNodes.isEmpty()) {
+                return rowNodes.get(0).getText();
+            }
         }
 
         if (valueContext.STRING() != null) {
-            String val = valueContext.STRING().getText();
-            if (StringUtil.isBlank(val)) {
-                return "";
+            List<TerminalNode> nodes = valueContext.STRING();
+            if (!nodes.isEmpty()) {
+                String val = nodes.get(0).getText();
+                if (StringUtil.isBlank(val)) {
+                    return "";
+                }
+                return val.substring(1, val.length() - 1);
             }
-            return val.substring(1, val.length() - 1);
         }
         return null;
     }
@@ -108,7 +125,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
     }
 
     protected List<Object> extractConstantValList(HBaseColumn column,
-                                               List<HBaseSQLParser.ConstantContext> constantContextList) {
+                                                  List<HBaseSQLParser.ConstantContext> constantContextList) {
         List<Object> valList = new ArrayList<>();
         for (HBaseSQLParser.ConstantContext constantContext : constantContextList) {
             valList.add(extractConstantVal(column, constantContext));
@@ -117,7 +134,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
     }
 
     protected List<Object> extractParamValList(List<HBaseSQLParser.VarContext> varContextList,
-                                            Map<String, Object> params) {
+                                               Map<String, Object> params) {
         if (params == null || params.isEmpty()) {
             throw new HBaseSqlAnalysisException("The parameter list cannot be empty.");
         }
@@ -144,11 +161,8 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
     }
 
     protected TimeStampRange extractTimeStampRange(HBaseTableSchema tableSchema, HBaseSQLParser.TsRangeContext tsRangeContext) {
-        MyAssert.checkNotNull(tsRangeContext);
         TimeStampRangeVisitor visitor = new TimeStampRangeVisitor(tableSchema);
-        TimeStampRange timeStampRange = tsRangeContext.accept(visitor);
-        MyAssert.checkNotNull(timeStampRange);
-        return timeStampRange;
+        return visitor.parseTimeStampRange(tsRangeContext);
     }
 
     public QueryExtInfo parseQueryExtInfo(HBaseSQLParser.SelectStatementContext selectStatementContext) {
@@ -183,7 +197,7 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
             } catch (NumberFormatException e) {
                 throw new HBaseSqlAnalysisException("The value of limit must be a number.");
             }
-            if(limit <= 0) {
+            if (limit <= 0) {
                 throw new HBaseSqlAnalysisException("The value of limit must be a positive number.");
             }
             queryExtInfo.setLimit(limit);
@@ -191,39 +205,20 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         return queryExtInfo;
     }
 
-    public QueryExtInfo parseDeleteExtInfo(HBaseSQLParser.DeleteStatementContext deleteStatementContext) {
-        QueryExtInfo queryExtInfo = new QueryExtInfo();
-
-        // 解析最大版本号
-        HBaseSQLParser.MaxVersionExpContext maxVersionExpContext = deleteStatementContext.multiVersionExp().maxVersionExp();
-        if (maxVersionExpContext != null) {
-            int maxVersion;
-            try {
-                maxVersion = Integer.parseInt(maxVersionExpContext.integer().ID().getText());
-            } catch (NumberFormatException e) {
-                throw new HBaseSqlAnalysisException("The value of max version must be one integer number.");
-            }
-            queryExtInfo.setMaxVersions(maxVersion);
-        }
-
-        // 解析起止时间戳范围
-        HBaseSQLParser.TsRangeContext tsRangeContext = deleteStatementContext.multiVersionExp().tsRange();
-        if (tsRangeContext != null) {
-            TimeStampRange timeStampRange = extractTimeStampRange(this.getTableSchema(), tsRangeContext);
-            queryExtInfo.setTimeRange(timeStampRange.getStart(), timeStampRange.getEnd());
-        }
-        return queryExtInfo;
-    }
-
     public long extractTimeStamp(HBaseSQLParser.TsExpContext tsExpContext) {
-        MyAssert.checkNotNull(tsExpContext);
-        String value = tsExpContext.timestamp().getText();
-        MyAssert.checkArgument(StringUtil.isNotBlank(value), "The value of timestamp must not be empty.");
+        String ts = tsExpContext.timestamp().getText();
+        if (StringUtil.isBlank(ts)) {
+            throw new HBaseSqlAnalysisException("The value of timestamp must not be empty.");
+        }
+        String error = String.format("The timestamp %s is not a standard timestamp format, " +
+                "please enter a 13-bit Unix timestamp.", ts);
+        if (ts.length() != 13) {
+            throw new HBaseSqlColValueAnalysisException(error);
+        }
         try {
-            return Long.parseLong(value);
+            return Long.parseLong(ts);
         } catch (NumberFormatException e) {
-            throw new HBaseSqlColValueAnalysisException(String.format("The timestamp %s is not a standard timestamp format, " +
-                    "please enter a 13-bit Unix timestamp.", value));
+            throw new HBaseSqlColValueAnalysisException(error);
         }
     }
 }

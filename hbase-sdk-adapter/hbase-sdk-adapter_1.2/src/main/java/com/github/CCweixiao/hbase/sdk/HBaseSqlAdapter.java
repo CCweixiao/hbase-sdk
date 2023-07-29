@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk;
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertColData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
 import com.github.CCweixiao.hbase.sdk.hql.filter.QueryFilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
@@ -95,12 +96,14 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo,
+    protected Scan constructScan(String tableName, RowKeyRange rowKeyRange, QueryExtInfo queryExtInfo,
                                  Filter filter, List<HBaseColumn> columnList) {
         Scan scan = new Scan();
+        RowKey<?> startRowKey = rowKeyRange.getStart();
         if (startRowKey != null && startRowKey.toBytes() != null) {
             scan.setStartRow(startRowKey.toBytes());
         }
+        RowKey<?> endRowKey = rowKeyRange.getStop();
         if (endRowKey != null && endRowKey.toBytes() != null) {
             scan.setStopRow(endRowKey.toBytes());
         }
@@ -130,6 +133,12 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 scan.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
             }
         }
+        return scan;
+    }
+
+    @Override
+    protected Scan setScanRowPrefixFilter(Scan scan, RowKey<?> rowPrefixKey) {
+        scan.setRowPrefixFilter(rowPrefixKey.toBytes());
         return scan;
     }
 

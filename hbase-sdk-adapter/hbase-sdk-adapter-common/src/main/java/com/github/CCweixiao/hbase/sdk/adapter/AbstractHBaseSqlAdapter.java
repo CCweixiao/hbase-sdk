@@ -13,6 +13,7 @@ import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLErrorListener;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.InsertValueVisitor;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor.RowKeyRangeVisitor;
@@ -21,7 +22,6 @@ import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
 import com.github.CCwexiao.hbase.sdk.dsl.context.HBaseSqlContext;
-import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLErrorStrategy;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLStatementsLexer;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
@@ -77,23 +77,15 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         if (queryColumns == null || queryColumns.isEmpty()) {
             throw new HBaseSqlAnalysisException(String.format("The list of field names to be selected cannot be parsed from hql [%s]", hql));
         }
+        RowKeyRangeVisitor rowKeyRangeVisitor = new RowKeyRangeVisitor(tableSchema);
+        RowKeyRange rowKeyRange = rowKeyRangeVisitor.extractRowKeyRange(selectStatementContext.rowKeyRangeExp());
+        QueryExtInfo queryExtInfo = rowKeyRangeVisitor.parseQueryExtInfo(selectStatementContext);
         // 解析字段或row key的filter条件
         Filter filter = this.parseFilter(selectStatementContext.wherec(), params, tableSchema);
-        RowKeyRangeVisitor rowKeyRangeVisitor = new RowKeyRangeVisitor(tableSchema);
-        // row key range
-        RowKeyRange rowKeyRange = rowKeyRangeVisitor.extractRowKeyRange(selectStatementContext.rowKeyRangeExp());
-        // start or end row
-        RowKey<?> startRowKey = rowKeyRange.getStart();
-        RowKey<?> endRowKey = rowKeyRange.getEnd();
-        // in some keys
-        List<RowKey<?>> queryInRows = rowKeyRange.getInSomeKeys();
-        // eq row
-        RowKey<?> eqRowKey = rowKeyRange.getEqRow();
-        QueryExtInfo queryExtInfo = rowKeyRangeVisitor.parseQueryExtInfo(selectStatementContext);
-
         // = rowKey 即：get row
-        if (eqRowKey != null) {
-            Get get = constructGet(eqRowKey, queryExtInfo, filter, queryColumns);
+
+        if (rowKeyRange.isMatchGet()) {
+            Get get = constructGet(rowKeyRange.getEqRow(), queryExtInfo, filter, queryColumns);
             return this.execute(tableName, table -> {
                 Result result = table.get(get);
                 if (result == null) {
@@ -105,8 +97,9 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         }
 
         // in row keys; get rows
-        if (queryInRows != null && !queryInRows.isEmpty()) {
-            long limit;
+        if (rowKeyRange.isMatchGetRows()) {
+            List<RowKey<?>> queryInRows = rowKeyRange.getInSomeKeys();
+            int limit;
             if (queryExtInfo.isLimitSet()) {
                 limit = queryExtInfo.getLimit();
             } else {
@@ -115,7 +108,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             if (limit > queryInRows.size()) {
                 limit = queryInRows.size();
             }
-            Get[] getArr = new Get[(int) limit];
+            Get[] getArr = new Get[limit];
             for (int i = 0; i < getArr.length; i++) {
                 getArr[i] = constructGet(queryInRows.get(i), queryExtInfo, filter, queryColumns);
             }
@@ -131,36 +124,43 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
                 return dataSet;
             }).orElse(HBaseDataSet.of(tableName));
         }
-
-        // scan 查询
-        Scan scan = constructScan(tableName, startRowKey, endRowKey, queryExtInfo, filter, queryColumns);
+        Scan scan = constructScan(tableName, rowKeyRange, queryExtInfo, filter, queryColumns);
+        // 构造scan查询条件
+       if (rowKeyRange.isMatchScanByRowPrefix()) {
+            scan = setScanRowPrefixFilter(scan, rowKeyRange.getRowPrefix());
+        }
 
         try {
-            return this.execute(tableName, table -> {
-                long limit = Long.MAX_VALUE;
-
-                if (queryExtInfo.isLimitSet()) {
-                    limit = queryExtInfo.getLimit();
-                }
-
-                HBaseDataSet dataSet = HBaseDataSet.of(tableName);
-
-                try (ResultScanner scanner = table.getScanner(scan)) {
-                    long resultCounter = 0L;
-                    Result result;
-                    while ((result = scanner.next()) != null) {
-                        List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
-                        dataSet.appendRows(rowList);
-                        if (++resultCounter >= limit) {
-                            break;
-                        }
-                    }
-                    return dataSet;
-                }
-            }).orElse(HBaseDataSet.of(tableName));
+            return queryToDataSet(tableSchema, queryExtInfo, scan);
         } catch (Exception e) {
             throw new HBaseSqlExecuteException("Select error. hql=" + hql, e);
         }
+    }
+
+    private HBaseDataSet queryToDataSet(HBaseTableSchema tableSchema, QueryExtInfo queryExtInfo, Scan scan) {
+        String tableName = tableSchema.getTableName();
+        return this.execute(tableName, table -> {
+            int limit = Integer.MAX_VALUE;
+
+            if (queryExtInfo.isLimitSet()) {
+                limit = queryExtInfo.getLimit();
+            }
+
+            HBaseDataSet dataSet = HBaseDataSet.of(tableName);
+
+            try (ResultScanner scanner = table.getScanner(scan)) {
+                long resultCounter = 0L;
+                Result result;
+                while ((result = scanner.next()) != null) {
+                    List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
+                    dataSet.appendRows(rowList);
+                    if (++resultCounter >= limit) {
+                        break;
+                    }
+                }
+                return dataSet;
+            }
+        }).orElse(HBaseDataSet.of(tableName));
     }
 
     @Override
@@ -210,29 +210,32 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         RowKeyRangeVisitor rowKeyRangeVisitor = new RowKeyRangeVisitor(tableSchema);
         RowKeyRange rowKeyRange = rowKeyRangeVisitor.extractRowKeyRange(deleteStatementContext.rowKeyRangeExp());
         RowKey<?> startRowKey = rowKeyRange.getStart();
-        RowKey<?> endRowKey = rowKeyRange.getEnd();
+        RowKey<?> endRowKey = rowKeyRange.getStop();
         // delete one row key
         RowKey<?> eqRowKey = rowKeyRange.getEqRow();
         // delete in row key list
         List<RowKey<?>> inRowKeyList = rowKeyRange.getInSomeKeys();
         // filter
         Filter filter = this.parseFilter(deleteStatementContext.wherec(), tableSchema);
-        QueryExtInfo deleteExtInfo = rowKeyRangeVisitor.parseDeleteExtInfo(deleteStatementContext);
+        long ts = 0;
+        if (deleteStatementContext.TS() != null) {
+            ts = rowKeyRangeVisitor.extractTimeStamp(deleteStatementContext.tsExp());
+        }
 
         // delete eq row key
         if (eqRowKey != null) {
-            deleteEqRowKey(tableName, eqRowKey, deleteColumns, 0);
+            deleteEqRowKey(tableName, eqRowKey, deleteColumns, ts);
             return;
         }
         // delete in row keys
         if (inRowKeyList != null && !inRowKeyList.isEmpty()) {
-            deleteInRowKeys(tableName, inRowKeyList, deleteColumns, 0);
+            deleteInRowKeys(tableName, inRowKeyList, deleteColumns, ts);
             return;
         }
         if (startRowKey != null && endRowKey != null) {
             Util.checkRowKey(startRowKey);
             Util.checkRowKey(endRowKey);
-            deleteWithScanFirst(hql, tableName, startRowKey, endRowKey, filter, deleteColumns, 0);
+            deleteWithScanFirst(hql, tableName, rowKeyRange, filter, deleteColumns, ts);
         }
     }
 
@@ -259,12 +262,12 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         this.executeDeleteBatch(tableName, deletes);
     }
 
-    private void deleteWithScanFirst(String hql, String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey,
+    private void deleteWithScanFirst(String hql, String tableName, RowKeyRange rowKeyRange,
                                      Filter filter, List<HBaseColumn> deleteColumns, long ts) {
 
         final int deleteBatch = getDeleteBatch(tableName);
         while (true) {
-            Scan firstScan = constructScan(tableName, startRowKey, endRowKey, null, filter, deleteColumns);
+            Scan firstScan = constructScan(tableName, rowKeyRange, null, filter, deleteColumns);
             // 只扫描row
             firstScan.addFamily(null);
             List<Mutation> deletes = new ArrayList<>(deleteBatch);
@@ -276,7 +279,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
                             deletes.add(constructDelete(result, deleteColumns, ts));
                             if (deletes.size() >= deleteBatch) {
                                 // 重置startKey
-                                startRowKey.setValueBytes(result.getRow());
+                                rowKeyRange.getStart().setValueBytes(result.getRow());
                                 break;
                             }
                         }
@@ -326,8 +329,10 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     protected abstract Get constructGet(RowKey<?> rowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList);
 
-    protected abstract Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo,
+    protected abstract Scan constructScan(String tableName, RowKeyRange rowKeyRange, QueryExtInfo queryExtInfo,
                                           Filter filter, List<HBaseColumn> columnList);
+
+    protected abstract Scan setScanRowPrefixFilter(Scan scan, RowKey<?> rowPrefixKey);
 
     protected abstract Put constructPut(InsertRowData rowData, long ts);
 
@@ -383,7 +388,8 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             HBaseSQLStatementsLexer lexer = new HBaseSQLStatementsLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             HBaseSQLParser parser = new HBaseSQLParser(tokens);
-            parser.setErrorHandler(HBaseSQLErrorStrategy.INSTANCE);
+            parser.removeErrorListeners();
+            parser.addErrorListener(new HBaseSQLErrorListener());
             return parser.query();
         } catch (Exception e) {
             throw new HBaseSqlAnalysisException(String.format("The hql %s was parsed failed.", hql), e);

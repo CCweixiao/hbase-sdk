@@ -9,8 +9,16 @@ import java.util.List;
 public class RowKeyRange {
     private RowKey<?> eqRow;
     private RowKey<?> start;
-    private RowKey<?> end;
+    private boolean includeStart;
+    private RowKey<?> stop;
+    private boolean includeStop;
     private List<RowKey<?>> inSomeKeys;
+    private RowKey<?> rowPrefix;
+    private boolean matchGet;
+    private boolean matchGetRows;
+    private boolean matchScanByStart;
+    private boolean matchScanByStartAndEnd;
+    private boolean matchScanByRowPrefix;
 
     public RowKey<?> getEqRow() {
         return eqRow;
@@ -28,12 +36,28 @@ public class RowKeyRange {
         this.start = start;
     }
 
-    public RowKey<?> getEnd() {
-        return end;
+    public boolean isIncludeStart() {
+        return includeStart;
     }
 
-    public void setEnd(RowKey<?> end) {
-        this.end = end;
+    public void setIncludeStart(boolean includeStart) {
+        this.includeStart = includeStart;
+    }
+
+    public RowKey<?> getStop() {
+        return stop;
+    }
+
+    public void setStop(RowKey<?> stop) {
+        this.stop = stop;
+    }
+
+    public boolean isIncludeStop() {
+        return includeStop;
+    }
+
+    public void setIncludeStop(boolean includeStop) {
+        this.includeStop = includeStop;
     }
 
     public List<RowKey<?>> getInSomeKeys() {
@@ -42,5 +66,52 @@ public class RowKeyRange {
 
     public void setInSomeKeys(List<RowKey<?>> inSomeKeys) {
         this.inSomeKeys = inSomeKeys;
+    }
+
+    public RowKey<?> getRowPrefix() {
+        return rowPrefix;
+    }
+    public void setRowPrefix(RowKey<?> rowPrefix) {
+        this.rowPrefix = rowPrefix;
+    }
+
+    public boolean isMatchGet() {
+        return matchGet;
+    }
+
+    public void setMatchGet(boolean matchGet) {
+        this.matchGet = matchGet;
+    }
+
+    public boolean isMatchGetRows() {
+        return matchGetRows;
+    }
+
+    public void setMatchGetRows(boolean matchGetRows) {
+        this.matchGetRows = matchGetRows;
+    }
+
+    public boolean isMatchScanByStart() {
+        return matchScanByStart;
+    }
+
+    public void setMatchScanByStart(boolean matchScanByStart) {
+        this.matchScanByStart = matchScanByStart;
+    }
+
+    public boolean isMatchScanByStartAndEnd() {
+        return matchScanByStartAndEnd;
+    }
+
+    public void setMatchScanByStartAndEnd(boolean matchScanByStartAndEnd) {
+        this.matchScanByStartAndEnd = matchScanByStartAndEnd;
+    }
+
+    public boolean isMatchScanByRowPrefix() {
+        return matchScanByRowPrefix;
+    }
+
+    public void setMatchScanByRowPrefix(boolean matchScanByRowPrefix) {
+        this.matchScanByRowPrefix = matchScanByRowPrefix;
     }
 }

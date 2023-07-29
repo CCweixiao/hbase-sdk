@@ -87,7 +87,6 @@ fragment X      : [xX];
 fragment Y      : [yY];
 fragment Z      : [zZ];
 
-
 ID : [a-zA-Z0-9_.:]+;
 STRING : DOT_L STR DOT_R;
 
@@ -131,16 +130,16 @@ insertStatement : INSERT INTO tableName LR_BRACKET columnList RR_BRACKET VALUES 
 
 multiValueList : LR_BRACKET valueList RR_BRACKET (COMMA LR_BRACKET valueList RR_BRACKET)*;
 valueList: value ( COMMA value ) *;
-value : STRING | ID | NULL;
+value : (STRING | ID | NULL | ROWKEY)+;
 
 
 selectStatement : SELECT selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND multiVersionExp)? limitExp?;
 
-deleteStatement : DELETE selectColList FROM tableName (WHERE rowKeyRangeExp)? (AND wherec)? (AND multiVersionExp)?;
+deleteStatement : DELETE selectColList FROM tableName WHERE rowKeyRangeExp (AND wherec)? (AND TS EQ tsExp)?;
 
-rowKeyRangeExp : STARTKEY EQ rowKeyExp AND ENDKEY EQ rowKeyExp                   # rowkeyrange_startAndEnd
-                | STARTKEY EQ rowKeyExp                                          # rowkeyrange_start
-                | ENDKEY EQ rowKeyExp		                                     # rowkeyrange_end
+rowKeyRangeExp :  STARTKEY gtOper rowKeyExp AND ENDKEY leOper rowKeyExp            # rowkeyrange_startAndEnd
+                | STARTKEY gtOper rowKeyExp                                          # rowkeyrange_start
+                | ENDKEY leOper rowKeyExp		                                     # rowkeyrange_end
                 | ROWKEY EQ rowKeyExp 			                                 # rowkeyrange_onerowkey
                 | ROWKEY IN LR_BRACKET rowKeyExp (COMMA rowKeyExp)* RR_BRACKET   # rowkeyrange_insomekeys
                 | ROWKEY LIKE rowKeyExp                                          # rowkeyrange_prefix
@@ -152,11 +151,14 @@ rowKeyExp :  LR_BRACKET rowKeyExp RR_BRACKET                              # rowk
     ;
 
 funcParamsList  : LR_BRACKET funcCol ( COMMA funcCol )* RR_BRACKET;
-funcCol: '`' value '`' | '\'' value '\'' | value | '\'' NULL '\'' | '\'' '\'' | ;
+funcCol: '`' value '`' | '\'' value '\'' | value | '\'' '\'' | ;
 
-tsRange : LR_BRACKET STARTTS EQ tsExp COMMA ENDTS EQ tsExp RR_BRACKET      # tsrange_startAndEnd
-		| STARTTS EQ tsExp                                                 # tsrange_start
-		| ENDTS EQ tsExp                                                   # tsrange_end
+gtOper: GREATER | GREATEREQUAL;
+leOper: LESS | LESSEQUAL;
+
+tsRange : LR_BRACKET STARTTS gtOper tsExp COMMA ENDTS leOper tsExp RR_BRACKET      # tsrange_startAndEnd
+		| STARTTS gtOper tsExp                                                 # tsrange_start
+		| ENDTS leOper tsExp                                                   # tsrange_end
 		| TS EQ tsExp                                                      # tsequal
 	    ;
 

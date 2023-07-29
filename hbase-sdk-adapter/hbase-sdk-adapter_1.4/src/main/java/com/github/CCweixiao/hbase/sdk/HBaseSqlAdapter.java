@@ -4,6 +4,7 @@ import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertColData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
+import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
 import com.github.CCweixiao.hbase.sdk.hql.filter.QueryFilterVisitor;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.QueryExtInfo;
@@ -96,13 +97,15 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
     }
 
     @Override
-    protected Scan constructScan(String tableName, RowKey<?> startRowKey, RowKey<?> endRowKey, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList) {
+    protected Scan constructScan(String tableName, RowKeyRange rowKeyRange, QueryExtInfo queryExtInfo, Filter filter, List<HBaseColumn> columnList) {
         Scan scan = new Scan();
+        RowKey<?> startRowKey = rowKeyRange.getStart();
         if (startRowKey != null && startRowKey.toBytes() != null) {
-            scan.withStartRow(startRowKey.toBytes());
+            scan.withStartRow(startRowKey.toBytes(), rowKeyRange.isIncludeStart());
         }
+        RowKey<?> endRowKey = rowKeyRange.getStop();
         if (endRowKey != null && endRowKey.toBytes() != null) {
-            scan.withStopRow(endRowKey.toBytes());
+            scan.withStopRow(endRowKey.toBytes(), rowKeyRange.isIncludeStop());
         }
         if (queryExtInfo.isMaxVersionSet()) {
             scan.setMaxVersions(queryExtInfo.getMaxVersions());
@@ -132,6 +135,12 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
                 scan.addColumn(column.getFamilyNameBytes(), column.getColumnNameBytes());
             }
         }
+        return scan;
+    }
+
+    @Override
+    protected Scan setScanRowPrefixFilter(Scan scan, RowKey<?> rowPrefixKey) {
+        scan.setRowPrefixFilter(rowPrefixKey.toBytes());
         return scan;
     }
 

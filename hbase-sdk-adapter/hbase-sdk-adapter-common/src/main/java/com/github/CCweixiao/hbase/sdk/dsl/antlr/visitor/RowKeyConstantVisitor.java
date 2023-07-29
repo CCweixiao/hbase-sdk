@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.dsl.antlr.visitor;
 
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
-import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCwexiao.hbase.sdk.dsl.antlr.HBaseSQLParser;
 import com.github.CCwexiao.hbase.sdk.dsl.client.rowkey.RowKey;
@@ -29,8 +28,9 @@ public class RowKeyConstantVisitor extends BaseVisitor<RowKey<?>> {
         }
         String[] prams = new String[funcColContexts.size()];
         for (int i = 0; i < funcColContexts.size(); i++) {
-            String val = this.extractValueFromValueContext(funcColContexts.get(i).value());
-            prams[i] = val;
+            HBaseSQLParser.FuncColContext funcColContext = funcColContexts.get(i);
+            // String funcCol = funcColContext.getText();
+            prams[i] = this.extractValueFromValueContext(funcColContext.value());
         }
         return RowKeyFactory.getRowKeyByFuncName(funcName, prams);
     }

@@ -42,24 +42,69 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
     }
 
     @Test
-    public void testSelect() {
-        String sql1 = "select * from test:test_sql where rowKey = 'c1005'";
+    public void testSelectRow() {
+        String sql1 = "select * from test:test_sql where rowKey='c1005'";
         HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
         dataSet1.show();
+    }
 
-        System.out.println("============================================================");
-
-        String sql2 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'a1002' )";
+    @Test
+    public void testSelectByStartAndEndRow() {
+        String sql2 = "select * from test:test_sql where startKey > 'a1000' and endKey < 'a1002'";
         HBaseDataSet dataSet2 = sqlTemplate.select(sql2);
         dataSet2.show();
+    }
 
-        System.out.println("============================================================");
-
-
-        String sql3 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'j1009' ) and ( f1:age >= 25 and f1:age >= 25 ) ";
+    @Test
+    public void testSelectInRows() {
+        String sql3 = "select * from\n" +
+                " test:test_sql where \n" +
+                "rowKey \n" +
+                "in('a1000','a1002')";
         HBaseDataSet dataSet3 = sqlTemplate.select(sql3);
         dataSet3.show();
+    }
+
+    @Test
+    public void testSelectTimeRange() {
+        String sql1 = "select * from test:test_sql where \n" +
+                "-- rowKey = 222\n" +
+                "startkey >= 'ewew', endKey < 'dsdsd'\n" +
+                "and (f1:name = 'ds' or f1:age < 12 or (f1:pay between 10 and 20))\n" +
+                "and ( startTs > 1212 , endTs <= 23 )\n" +
+                "-- and startTs >= 1212 \n" +
+                "limit 10";
+        HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
+    }
+
+    @Test
+    public void testSelectRowFunction() {
+        String sql1 = "select * from test:test_sql where \n" +
+                "rowKey=md5('a1001') and  maxVersion = 3 and ts = 3231 limit 10e";
+        HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
+
+//        String sql2 = "select * from test:test_sql where \n" +
+//                "startKey=md5('a1001') and endKey = '123' ";
+//        HBaseDataSet dataSet2 = sqlTemplate.select(sql2);
+//
+//        String sql3 = "select * from test:test_sql where \n" +
+//                "rowKey in (md5('a1001'), md5('a1002'), 'ewe') ";
+//        HBaseDataSet dataSet3 = sqlTemplate.select(sql3);
+    }
+
+
+
+    @Test
+    public void testSelect() {
+
+
         System.out.println("============================================================");
+
+
+
+        System.out.println("============================================================");
+
+
 
 
         String sql4 = "select * from test:test_sql where ( startKey = 'a1000' , endKey = 'j1009' ) and ( f1:age >= 25 and ( f1:job IS NOT NULL ) ) ";

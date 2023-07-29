@@ -186,6 +186,18 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFuncCol(HBaseSQLParser.FuncColContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#gtOper}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGtOper(HBaseSQLParser.GtOperContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#leOper}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLeOper(HBaseSQLParser.LeOperContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code tsrange_startAndEnd}
 	 * labeled alternative in {@link HBaseSQLParser#tsRange}.
 	 * @param ctx the parse tree
