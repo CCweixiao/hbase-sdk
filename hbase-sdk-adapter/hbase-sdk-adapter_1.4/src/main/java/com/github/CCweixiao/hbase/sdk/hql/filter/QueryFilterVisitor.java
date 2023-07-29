@@ -257,9 +257,6 @@ public class QueryFilterVisitor extends BaseVisitor<Filter> {
     private Filter constructFilter(HBaseColumn column,
                                    CompareFilter.CompareOp compareOp,
                                    byte[] value) {
-        if (value == null || value.length == 0) {
-            return null;
-        }
         SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(column.getFamilyNameBytes(),
                 column.getColumnNameBytes(), compareOp, value);
         singleColumnValueFilter.setFilterIfMissing(true);

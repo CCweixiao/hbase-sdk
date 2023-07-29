@@ -92,6 +92,48 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 //        HBaseDataSet dataSet3 = sqlTemplate.select(sql3);
     }
 
+    @Test
+    public void testSelectFilter() {
+        String sql = "select * from test:test_sql where startkey > 'a1000' and endkey <= 'g1005' and " +
+                "f1:age > 18 and ( (f1:pay > 10000 and f1:job is not null) and (f2:commuter is null " +
+                "or f2:commuter != 'subway' ))";
+
+        HBaseDataSet dataSet = sqlTemplate.select(sql);
+        dataSet.show();
+    }
+
+    @Test
+    public void testInsertMaxVersionData() {
+        String hsql1 = "insert into test:test_sql (row_key, f1:id , f1:name , f1:age )\n" +
+                " values ('r1', 'id1_v1' , 'leo1_v1' , 11 ),\n" +
+                " ('r2', 'id2_v1' , 'leo2_v1' , 21 ),\n" +
+                " ('r3', 'id3_v1' , 'leo3_v1' , 31 )";
+        sqlTemplate.insert(hsql1);
+        String hsql2 = "insert into test:test_sql (row_key, f1:id , f1:name , f1:age )\n" +
+                " values ('r1', 'id2' , 'leo1_v2' , 12 ),\n" +
+                " ('r2', 'id2' , 'leo2_v2' , 22 ),\n" +
+                " ('r3', 'id2' , 'leo2_v2' , 32 )";
+        sqlTemplate.insert(hsql2);
+        String hsql3 = "insert into test:test_sql (row_key, f1:id , f1:name , f1:age )\n" +
+                " values ('r1', 'id3' , 'leo1_v3' , 13 ),\n" +
+                " ('r2', 'id3' , 'leo2_v3' , 23 ),\n" +
+                " ('r3', 'id3' , 'leo3_v3' , 33 )";
+        sqlTemplate.insert(hsql3);
+    }
+
+    @Test
+    public void testDelete() {
+        String hql = "delete * from test:test_sql where rowkey in ('r1', 'r2', 'r3')";
+        sqlTemplate.delete(hql);
+    }
+    @Test
+    public void testSelectMaxVersion() {
+        String hql = "select f1:id,f1:name,f1:age from test:test_sql where rowKey in ('r1','r2','r3') " +
+                "and maxversion = 3";
+        HBaseDataSet dataSet = sqlTemplate.select(hql);
+        dataSet.show(true);
+    }
+
 
 
     @Test
@@ -124,20 +166,6 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 //        String sql32 = "select f1:name , f1:age from test:test_sql where rowKey = 'row_1000' and maxVersion = 3";
 //        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
 //        dataSet32.show();
-    }
-
-    @Test
-    public void testSelectMaxVersion() {
-        String hsql1 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v1' , 'a_leo_v1' , 13 ) where rowKey = 'row_10001'";
-        String hsql2 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v2' , 'a_leo_v2' , 14 ) where rowKey = 'row_10001'";
-        String hsql3 = "insert into test:test_sql ( f1:id , f1:name , f1:age ) values ( '11111_v3' , 'a_leo_v3' , 15 ) where rowKey = 'row_10001'";
-        sqlTemplate.insert(hsql1);
-        sqlTemplate.insert(hsql2);
-        sqlTemplate.insert(hsql3);
-
-        String sql32 = "select * from test:test_sql where rowKey = 'row_10001' and maxVersion = 3";
-        HBaseDataSet dataSet32 = sqlTemplate.select(sql32);
-        dataSet32.show();
     }
 
     @Test

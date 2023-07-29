@@ -120,7 +120,10 @@ public abstract class BaseVisitor<T> extends HBaseSQLBaseVisitor<T> {
         MyAssert.checkNotNull(column);
         MyAssert.checkNotNull(constantContext);
         String constantOriVal = this.extractValueFromValueContext(constantContext.value());
-        MyAssert.checkArgument(StringUtil.isNotBlank(constantOriVal), "The value of a field filter cannot be empty.");
+        if (constantOriVal == null) {
+            throw new HBaseSqlColValueAnalysisException(String.format("The value of a field [%s] filter cannot be null.",
+                    column.getColumnName()));
+        }
         return column.getColumnType().getTypeHandler().extractMatchTtypeValue(constantOriVal);
     }
 

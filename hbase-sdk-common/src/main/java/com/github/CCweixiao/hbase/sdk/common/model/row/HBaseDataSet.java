@@ -43,6 +43,10 @@ public class HBaseDataSet {
     }
 
     public void show() {
+        show(false);
+    }
+
+    public void show(boolean showTs) {
         if (this.getRowSet() == null || this.getRowSet().isEmpty()) {
             return;
         }
@@ -51,18 +55,26 @@ public class HBaseDataSet {
         colNams.add(row.getRowKeyFieldName());
         for (HBaseDataColumn column : row.getColumns()) {
             colNams.add(column.getFamily() + HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR + column.getQualifier());
+            if (showTs) {
+                colNams.add("timestamp");
+            }
         }
         List<List<String>> valueList = new ArrayList<>();
         for (HBaseDataRow r : this.getRowSet()) {
             List<String> tmpValueList = new ArrayList<>(r.getColumns().size() + 1);
             tmpValueList.add(r.getRowKeyVal().toString());
-            tmpValueList.addAll(r.getColumns().stream().map(c -> {
-                if (c.getValue() == null) {
-                    return "NULL";
+
+            for (HBaseDataColumn column : r.getColumns()) {
+                Object value = column.getValue();
+                if (value == null) {
+                    tmpValueList.add("NULL");
                 } else {
-                    return c.getValue().toString();
+                    tmpValueList.add(value.toString());
                 }
-            }).collect(Collectors.toList()));
+                if (showTs) {
+                    tmpValueList.add(String.valueOf(column.getTimestamp()));
+                }
+            }
             valueList.add(tmpValueList);
         }
         DataSetFormatter dataSetFormatter = new DataSetFormatter(colNams, valueList);
