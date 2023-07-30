@@ -5,27 +5,20 @@ import com.github.CCweixiao.hbase.sdk.shell.HBaseShellCommands;
 import com.github.CCweixiao.hbase.sdk.shell.HBaseShellSession;
 import com.github.CCweixiao.hbase.sdk.shell.HBaseShellSessionManager;
 import com.github.CCweixiao.hbase.sdk.shell.Result;
-import org.jline.builtins.Completers;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
 import org.jline.console.CommandMethods;
 import org.jline.console.CommandRegistry;
 import org.jline.console.impl.JlineCommandRegistry;
-import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
-import org.jline.reader.impl.completer.ArgumentCompleter;
-import org.jline.reader.impl.completer.NullCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.completer.SystemCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -56,11 +49,7 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
     }
 
     private HBaseShellSession loadShellSession() {
-        Properties p = new Properties();
-        p.setProperty("hbase.shell.session.debug.log", "true");
-        p.setProperty("hbase.zookeeper.quorum", "myhbase");
-        p.setProperty("hbase.zookeeper.property.clientPort", "2181");
-        return HBaseShellSessionManager.getHBaseShellSession(p);
+        return HBaseShellSessionManager.getHBaseShellSession(HClusterContext.getInstance().getCurrentClusterProperties());
     }
 
     public void setLineReader(LineReader reader) {
@@ -163,14 +152,8 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
         return sb.toString();
     }
 
-    private Set<String> capabilities() {
-        return InfoCmp.getCapabilitiesByName().keySet();
-    }
-
-    private List<Completer> testCompleter(String command) {
-        List<Completer> completerList = new ArrayList<>();
-        completerList.add(new ArgumentCompleter(NullCompleter.INSTANCE,
-                new Completers.OptionCompleter(new StringsCompleter(this::capabilities), this::commandOptions, 1)));
-        return completerList;
+    @Override
+    public String name() {
+        return "hshell";
     }
 }

@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.console;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.shell.HBaseShellCommands;
 import org.jline.builtins.ConfigurationPath;
+import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -15,6 +16,8 @@ import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.OSUtils;
+import org.jline.widget.AutopairWidgets;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,25 +31,36 @@ import java.util.function.Supplier;
  */
 public class HqlConsoleApp {
 
-    private static final String WELCOME_MESSAGE = "#                              ,-,                            #\n" +
-            "#                            ,' /                             #\n" +
-            "#                          ,'  (          _          _        #\n" +
-            "#                  __...--'     `-....__,'(      _,-'/        #\n" +
-            "#         _,---''''                     ````-._,'  ,'         #\n" +
-            "#       ,'  o                                  `  <           #\n" +
-            "#       `.____  )))                          ...'  \\          #\n" +
-            "#          `--..._        .   .__....----''''   `-. \\         #\n" +
-            "#                 ```7--i-`.  \\                    `-`        #\n" +
-            "#                    `.(    `-.`.                             #\n" +
-            "#                      `'      `'                             #\n" +
-            "#          __  ______    __                                   #\n" +
-            "#        / / / / __ \\  / /                                    #\n" +
-            "#       / /_/ / / / / / /                                     #\n" +
-            "#      / __  / /_/ / / /___    v3.0.1                         #\n" +
-            "#     /_/ /_/\\___\\_\\/_____/    author: leojie@apache.org      #\n" +
-            "#                                                             #\n" +
-            "#    Welcome! Enter 'help' to list all available commands.    #\n" +
-            "###############################################################";
+    private static final String WELCOME_MESSAGE = "                       -Q\n" +
+            "                      .QQ\n" +
+            "                      SQQ)\n" +
+            "                      QQQN\n" +
+            "                      RQQQ!\n" +
+            "                      TQQQQQQQQQQQQQQQQT,\n" +
+            "                      4QQQQQQQQQQQQQQQQQQQQ\n" +
+            "                      6QQQQQQQQQQQQQQQQQQQQQQ-\n" +
+            "                     ;QQQQQQQQQQQQQQQQQQQQQQQQE\n" +
+            "                    :QQQQQQQQQQQQQQQQQY     CQQQ\n" +
+            "                   1QQQQQQQQQQQQQQQQ5    GQQQM(QQ\n" +
+            "               ,! 6QQQQQQQQQQQQQQQQ6  (QO  .UMQQQQ-\n" +
+            "               QQ\"QQQQQQQQQQQQQQQQR 1Q         JQQQ\"\n" +
+            "              UQXQQQQQQQQQQQQQQQQQ M.           MR )ME\n" +
+            "              KMQQQQQQQQQQQQQQB666\"...         E !!.  Q!\n" +
+            "              ;WQQQQQQQQQQQQ0QQQQQQQQQ.       E  4H--- Q\n" +
+            "               QQQQQQQ, DQQFQQQQQQQQQ9        HU\"     5Q\n" +
+            "              NQQQQQM   QQ!QQQQQQQQQ.         7        \"\n" +
+            "             .QQQQQQ  &QQRQQQQQQQ3\n" +
+            "             &QQQQQQQQQ: VQ.          \n" +
+            "             SQQQQQQQQ(  M             \n" +
+            "             TQQQQQQB )E.             \n" +
+            "             (QQQQ4 R\"              \n" +
+            "              QQQ.E                           \n" +
+            "               YI                                    \n" +
+            "          __  ______    __                                  \n" +
+            "        / / / / __ \\  / /                                   \n" +
+            "       / /_/ / / / / / /                                    \n" +
+            "      / __  / /_/ / / /___    v3.0.1                        \n" +
+            "     /_/ /_/\\___\\_\\/_____/    Copyright © 2020 - 2023 leojie.    ";
 
     public static void main(String[] args) {
 
@@ -61,11 +75,13 @@ public class HqlConsoleApp {
 
             Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
             ConfigurationPath configPath = new ConfigurationPath(Paths.get("."), Paths.get("."));
+            Builtins builtins = new Builtins(workDir, configPath, null);
             HqlCommands hqlCommands = new HqlCommands();
             HShellCommands shellCommands = new HShellCommands();
+            HClusterCommands clusterCommands = new HClusterCommands();
 
             SystemRegistryImpl masterRegistry = new SystemRegistryImpl(parser, terminal, workDir, configPath);
-            masterRegistry.setCommandRegistries(hqlCommands, shellCommands);
+            masterRegistry.setCommandRegistries(hqlCommands, shellCommands, clusterCommands, builtins);
             Set<String> allShellCommands = HBaseShellCommands.getAllCommands();
             masterRegistry.addCompleter(new StringsCompleter(allShellCommands));
 
@@ -82,11 +98,15 @@ public class HqlConsoleApp {
                     .option(LineReader.Option.USE_FORWARD_SLASH, true)
                     .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                     .build();
+            AutopairWidgets autopairWidgets = new AutopairWidgets(lineReader);
+            autopairWidgets.enable();
             if (OSUtils.IS_WINDOWS) {
                 lineReader.setVariable(LineReader.BLINK_MATCHING_PAREN, 0);
             }
+            builtins.setLineReader(lineReader);
             hqlCommands.setLineReader(lineReader);
             shellCommands.setLineReader(lineReader);
+            clusterCommands.setLineReader(lineReader);
             terminal.writer().append(WELCOME_MESSAGE);
             terminal.writer().append("\n");
             while (true) {

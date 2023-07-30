@@ -2,29 +2,20 @@ package com.github.CCweixiao.hbase.sdk.console;
 
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
-import com.github.CCweixiao.hbase.sdk.template.BaseHBaseSqlTemplate;
 import com.github.CCweixiao.hbase.sdk.template.HBaseSqlTemplate;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
-import org.jline.builtins.Completers;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
 import org.jline.console.CommandMethods;
 import org.jline.console.CommandRegistry;
 import org.jline.console.impl.JlineCommandRegistry;
-import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
-import org.jline.reader.impl.completer.ArgumentCompleter;
-import org.jline.reader.impl.completer.NullCompleter;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.reader.impl.completer.SystemCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -33,7 +24,6 @@ import java.util.Set;
 public class HqlCommands extends JlineCommandRegistry implements CommandRegistry {
     private LineReader reader;
     private Exception exception;
-    private BaseHBaseSqlTemplate sqlTemplate;
 
     private final Map<String, CommandMethods> commandExecute = new HashMap<>();
     private final Map<String, List<String>> commandInfo = new HashMap<>();
@@ -43,18 +33,11 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
         commandExecute.put("select", new CommandMethods(this::select, this::defaultCompleter));
         commandExecute.put("insert", new CommandMethods(this::insert, this::defaultCompleter));
         commandExecute.put("delete", new CommandMethods(this::delete, this::defaultCompleter));
-        commandExecute.put("clear", new CommandMethods(this::clear, this::defaultCompleter));
-        commandInfo.put("clear", Collections.singletonList("clear all input."));
         registerCommands(commandExecute);
-        this.init();
     }
 
-    private void init() {
-        Properties p = new Properties();
-        p.setProperty("hbase.shell.session.debug.log", "true");
-        p.setProperty("hbase.zookeeper.quorum", "myhbase");
-        p.setProperty("hbase.zookeeper.property.clientPort", "2181");
-        HBaseTableSchema tableSchema = HBaseTableSchema.of("test:test_sql")
+    private HBaseTableSchema defaultHBaseTableSchema() {
+        return HBaseTableSchema.of("test:test_sql")
                 .addColumn("f1", "id")
                 .addColumn("f1", "name")
                 .addColumn("f1", "age", ColumnType.IntegerType)
@@ -68,8 +51,6 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
                 .deleteBatch(100)
                 .scanCacheBlocks(false)
                 .build();
-        sqlTemplate = HBaseSqlTemplate.of(p);
-        sqlTemplate.registerTableSchema(tableSchema);
     }
 
     public void setLineReader(LineReader reader) {
@@ -137,6 +118,7 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
     }
 
     private void select(CommandInput input) {
+        HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
         HBaseDataSet dataSet = sqlTemplate.select(hql);
@@ -146,6 +128,7 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
     }
 
     private void insert(CommandInput input) {
+        HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
         sqlTemplate.insert(hql);
@@ -153,6 +136,7 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
     }
 
     private void delete(CommandInput input) {
+        HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
         sqlTemplate.delete(hql);
@@ -177,15 +161,8 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
         return sb.toString();
     }
 
-
-    private Set<String> capabilities() {
-        return InfoCmp.getCapabilitiesByName().keySet();
-    }
-
-    private List<Completer> testCompleter(String command) {
-        List<Completer> completerList = new ArrayList<>();
-        completerList.add(new ArgumentCompleter(NullCompleter.INSTANCE,
-                new Completers.OptionCompleter(new StringsCompleter(this::capabilities), this::commandOptions, 1)));
-        return completerList;
+    @Override
+    public String name() {
+        return "hql";
     }
 }
