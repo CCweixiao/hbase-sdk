@@ -96,7 +96,7 @@ public class HClusterContext {
         return clusterConfDirFile;
     }
 
-    public String getClusterConfigDirPath() {
+    private String getClusterConfigDirPath() {
         File userDirFile = new File(System.getProperty("user.dir"));
         return userDirFile.getAbsolutePath().concat(File.separator).concat("cluster_info_conf");
     }

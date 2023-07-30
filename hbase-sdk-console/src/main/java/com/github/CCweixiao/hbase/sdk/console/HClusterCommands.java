@@ -126,7 +126,7 @@ public class HClusterCommands extends BaseCommands {
             return;
         }
         println("The newly added cluster connection test is successful.");
-        String clusterConfDirPath = HClusterContext.getInstance().getClusterConfigDirPath();
+        String clusterConfDirPath = HClusterContext.getInstance().getClusterConfDirFile().getAbsolutePath();
         File clusterConfFile = new File(clusterConfDirPath.concat(File.separator).concat(clusterName)
                 .concat(".properties"));
         if (clusterConfFile.exists()) {
@@ -208,7 +208,7 @@ public class HClusterCommands extends BaseCommands {
             return;
         }
         String clusterName = commands[1];
-        String clusterConfDirPath = HClusterContext.getInstance().getClusterConfigDirPath();
+        String clusterConfDirPath = HClusterContext.getInstance().getClusterConfDirFile().getAbsolutePath();
         File clusterConfFile = new File(clusterConfDirPath.concat(File.separator).concat(clusterName)
                 .concat(".properties"));
         if (!clusterConfFile.exists()) {
