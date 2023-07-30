@@ -87,7 +87,7 @@ public class HClusterContext {
         String clusterConfDirPath = getClusterConfigDirPath();
         File clusterConfDirFile = new File(clusterConfDirPath);
         if (!clusterConfDirFile.exists()) {
-            clusterConfDirFile.mkdir();
+            clusterConfDirFile.mkdirs();
         }
         if (!clusterConfDirFile.isDirectory()) {
             throw new HBaseShellSessionEnvInitException("Please ensure that the default storage path of the cluster" +
