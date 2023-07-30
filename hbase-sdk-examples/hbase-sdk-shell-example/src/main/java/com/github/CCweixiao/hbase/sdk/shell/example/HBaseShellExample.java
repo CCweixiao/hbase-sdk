@@ -26,7 +26,8 @@ public class HBaseShellExample {
 //        Result res3 = shellSession.execute("put 't1', '1001', 'f', 'leo'");
 //        System.out.println(res3);
 
-        Result res4 = shellSession.execute("scan 't1', {LIMIT => 10}");
+        Result res4 = shellSession.execute("puts \"Hello World\"");
+       // Result res5 = shellSession.execute("puts a");
         System.out.println(res4);
 
 

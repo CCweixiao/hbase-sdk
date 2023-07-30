@@ -222,9 +222,13 @@ public class HBaseShellSession implements ShellSession {
     private Result executeCmd(String cmd) {
         try {
             this.writer.getBuffer().setLength(0);
-            this.scriptingContainer.runScriptlet(cmd);
+            Object o = this.scriptingContainer.runScriptlet(cmd);
             this.writer.flush();
-            return Result.ok(writer.toString());
+            String res = writer.toString();
+            if (StringUtil.isBlank(res) && o != null) {
+                res = o.toString();
+            }
+            return Result.ok(res);
         } catch (Exception e) {
             return Result.failed(getStackTrace(e));
         }

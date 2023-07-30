@@ -8,11 +8,8 @@ import com.github.CCweixiao.hbase.sdk.shell.Result;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
 import org.jline.console.CommandMethods;
-import org.jline.console.CommandRegistry;
-import org.jline.console.impl.JlineCommandRegistry;
-import org.jline.reader.LineReader;
+import org.jline.console.Printer;
 import org.jline.reader.impl.completer.SystemCompleter;
-import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp;
 import java.io.IOException;
 import java.util.Collections;
@@ -24,15 +21,14 @@ import java.util.Set;
 /**
  * @author leojie 2023/7/29 21:15
  */
-public class HShellCommands extends JlineCommandRegistry implements CommandRegistry {
-    private LineReader reader;
-    private Exception exception;
-
+public class HShellCommands extends BaseCommands {
     private final Map<String, CommandMethods> commandExecute = new HashMap<>();
     private final Map<String, List<String>> commandInfo = new HashMap<>();
     private final Map<String, String> aliasCommand = new HashMap<>();
 
-    public HShellCommands() {
+
+    public HShellCommands(Printer printer) {
+        super(printer);
         try {
             Set<String> allCommands = HBaseShellCommands.getAllCommands();
             allCommands.add("desc");
@@ -43,6 +39,7 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
             throw new HBaseShellSessionEnvInitException(e);
         }
 
+        commandExecute.put("ruby_exec", new CommandMethods(this::rubyExec, this::defaultCompleter));
         commandExecute.put("clear", new CommandMethods(this::clear, this::defaultCompleter));
         commandInfo.put("clear", Collections.singletonList("clear all input."));
         registerCommands(commandExecute);
@@ -50,14 +47,6 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
 
     private HBaseShellSession loadShellSession() {
         return HBaseShellSessionManager.getHBaseShellSession(HClusterContext.getInstance().getCurrentClusterProperties());
-    }
-
-    public void setLineReader(LineReader reader) {
-        this.reader = reader;
-    }
-
-    private Terminal terminal() {
-        return reader.getTerminal();
     }
 
     public Map<String, String> commandAliases() {
@@ -93,12 +82,7 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
     }
 
     public Object invoke(CommandSession session, String command, Object... args) throws Exception {
-        exception = null;
-        Object out = commandExecute.get(command(command)).execute().apply(new CommandInput(command, args, session));
-        if (exception != null) {
-            throw exception;
-        }
-        return out;
+        return commandExecute.get(command(command)).execute().apply(new CommandInput(command, args, session));
     }
 
     public CmdDesc commandDescription(List<String> args) {
@@ -108,25 +92,34 @@ public class HShellCommands extends JlineCommandRegistry implements CommandRegis
 
 
     private void clear(CommandInput input) {
-        try {
-            terminal().puts(InfoCmp.Capability.clear_screen);
-            terminal().flush();
-        } catch (Exception e) {
-            exception = e;
-        }
+        terminal().puts(InfoCmp.Capability.clear_screen);
+        terminal().flush();
+    }
+
+    private void rubyExec(CommandInput input) {
+        long start = System.currentTimeMillis();
+        String command = parseCommand(input);
+        execCommand(command, start);
     }
 
     private void execShellCommand(CommandInput input) {
-        long start = System.currentTimeMillis();
         String command = parseCommand(input);
+        execCommand(command, 0);
+    }
+
+    private void execCommand(String command, long start) {
         HBaseShellSession shellSession = loadShellSession();
         Result execute = shellSession.execute(command);
         if (execute.isSuccess()) {
-            terminal().writer().println(execute.getResult());
-            terminal().writer().println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+            println(execute.getResult());
+            if (start > 0) {
+                println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+            }
         }else {
-            terminal().writer().println(execute.getResult());
-            terminal().writer().println("ERROR," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+            println(execute.getResult());
+            if (start > 0) {
+                println("ERROR," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+            }
         }
     }
 

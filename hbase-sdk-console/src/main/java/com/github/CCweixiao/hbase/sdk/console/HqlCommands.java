@@ -7,12 +7,8 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
 import org.jline.console.CommandMethods;
-import org.jline.console.CommandRegistry;
-import org.jline.console.impl.JlineCommandRegistry;
-import org.jline.reader.LineReader;
+import org.jline.console.Printer;
 import org.jline.reader.impl.completer.SystemCompleter;
-import org.jline.terminal.Terminal;
-import org.jline.utils.InfoCmp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +17,14 @@ import java.util.Set;
 /**
  * @author leojie 2023/7/29 21:15
  */
-public class HqlCommands extends JlineCommandRegistry implements CommandRegistry {
-    private LineReader reader;
-    private Exception exception;
+public class HqlCommands extends BaseCommands {
 
     private final Map<String, CommandMethods> commandExecute = new HashMap<>();
     private final Map<String, List<String>> commandInfo = new HashMap<>();
     private final Map<String, String> aliasCommand = new HashMap<>();
 
-    public HqlCommands() {
+    public HqlCommands(Printer printer) {
+        super(printer);
         commandExecute.put("select", new CommandMethods(this::select, this::defaultCompleter));
         commandExecute.put("insert", new CommandMethods(this::insert, this::defaultCompleter));
         commandExecute.put("delete", new CommandMethods(this::delete, this::defaultCompleter));
@@ -51,14 +46,6 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
                 .deleteBatch(100)
                 .scanCacheBlocks(false)
                 .build();
-    }
-
-    public void setLineReader(LineReader reader) {
-        this.reader = reader;
-    }
-
-    private Terminal terminal() {
-        return reader.getTerminal();
     }
 
     public Map<String, String> commandAliases() {
@@ -94,27 +81,12 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
     }
 
     public Object invoke(CommandSession session, String command, Object... args) throws Exception {
-        exception = null;
-        Object out = commandExecute.get(command(command)).execute().apply(new CommandInput(command, args, session));
-        if (exception != null) {
-            throw exception;
-        }
-        return out;
+        return commandExecute.get(command(command)).execute().apply(new CommandInput(command, args, session));
     }
 
     public CmdDesc commandDescription(List<String> args) {
         // TODO
         return new CmdDesc(false);
-    }
-
-
-    private void clear(CommandInput input) {
-        try {
-            terminal().puts(InfoCmp.Capability.clear_screen);
-            terminal().flush();
-        } catch (Exception e) {
-            exception = e;
-        }
     }
 
     private void select(CommandInput input) {
@@ -123,8 +95,8 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
         String hql = parseSql(input);
         HBaseDataSet dataSet = sqlTemplate.select(hql);
         String table = dataSet.showTable(true);
-        terminal().writer().println(table);
-        terminal().writer().println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+        println(table);
+        println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
     }
 
     private void insert(CommandInput input) {
@@ -132,7 +104,7 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
         sqlTemplate.insert(hql);
-        terminal().writer().println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+        println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
     }
 
     private void delete(CommandInput input) {
@@ -140,7 +112,7 @@ public class HqlCommands extends JlineCommandRegistry implements CommandRegistry
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
         sqlTemplate.delete(hql);
-        terminal().writer().println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
+        println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
     }
 
     private String parseSql(CommandInput input) {

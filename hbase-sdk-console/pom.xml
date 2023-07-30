@@ -69,7 +69,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.github.CCweixiao.hbase.sdk.console.HqlConsoleApp</mainClass>
+                            <mainClass>com.github.CCweixiao.hbase.sdk.console.HqlConsole</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -171,7 +171,7 @@
                     </descriptors>
                     <archive>
                         <manifest>
-                            <mainClass>wc.WordCountMain</mainClass>
+                            <mainClass>com.github.CCweixiao.hbase.sdk.console.HqlConsole</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -188,76 +188,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-shade-plugin</artifactId>-->
-<!--                <version>3.2.3</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>uber-jar</id>-->
-<!--                        <phase>package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>shade</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <createSourcesJar>true</createSourcesJar>-->
-<!--                            <shadeSourcesContent>true</shadeSourcesContent>-->
-<!--                            <createDependencyReducedPom>true</createDependencyReducedPom>-->
-<!--                            <finalName>${artifactId}-${project.version}</finalName>-->
-<!--                            <shadedArtifactAttached>true</shadedArtifactAttached>-->
-<!--                            <artifactSet>-->
-<!--                                <excludes>-->
-<!--                                    &lt;!&ndash; Leave slf4j unshaded so downstream users can configure logging &ndash;&gt;-->
-<!--                                    <exclude>org.slf4j:*</exclude>-->
-<!--                                    &lt;!&ndash; Leave commons-logging unshaded so downstream users can configure logging &ndash;&gt;-->
-<!--                                    <exclude>commons-logging:commons-logging</exclude>-->
-<!--                                    &lt;!&ndash; Leave log4j unshaded so downstream users can configure logging &ndash;&gt;-->
-<!--                                    <exclude>log4j:log4j</exclude>-->
-<!--                                    <exclude>org.apache.logging.log4j:log4j-api</exclude>-->
-<!--                                    <exclude>org.apache.logging.log4j:log4j-core</exclude>-->
-<!--                                    <exclude>org.apache.logging.log4j:log4j-slf4j-impl</exclude>-->
-<!--                                </excludes>-->
-<!--                            </artifactSet>-->
-<!--                            <filters>-->
-<!--                                &lt;!&ndash; Exclude source code included in non-source jar &ndash;&gt;-->
-<!--                                <filter>-->
-<!--                                    <artifact>org.apache.zookeeper:zookeeper-jute</artifact>-->
-<!--                                    <excludes>-->
-<!--                                        <exclude>**/*.java</exclude>-->
-<!--                                    </excludes>-->
-<!--                                </filter>-->
-<!--                                <filter>-->
-<!--                                    <artifact>*:*</artifact>-->
-<!--                                    <excludes>-->
-<!--                                        <exclude>LICENSE</exclude>-->
-<!--                                        <exclude>META-INF/LICENSE</exclude>-->
-<!--                                        <exclude>META-INF/*.SF</exclude>-->
-<!--                                        <exclude>META-INF/*.DSA</exclude>-->
-<!--                                        <exclude>META-INF/*.RSA</exclude>-->
-<!--                                    </excludes>-->
-<!--                                </filter>-->
-<!--                            </filters>-->
-<!--                            <transformers>-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />-->
-<!--                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">-->
-<!--                                    <resources>-->
-<!--                                        <resource>NOTICE.txt</resource>-->
-<!--                                        <resource>NOTICE</resource>-->
-<!--                                        <resource>LICENSE</resource>-->
-<!--                                        <resource>Log4j-charsets.properties</resource>-->
-<!--                                        <resource>Log4j-config.xsd</resource>-->
-<!--                                        <resource>Log4j-events.dtd</resource>-->
-<!--                                        <resource>Log4j-events.xsd</resource>-->
-<!--                                        <resource>Log4j-levels.xsd</resource>-->
-<!--                                    </resources>-->
-<!--                                </transformer>-->
-<!--                            </transformers>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
         </plugins>
     </build>
 
