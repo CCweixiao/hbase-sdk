@@ -71,14 +71,11 @@ public class HqlConsole {
             DefaultParser parser = new DefaultParser();
             parser.setEofOnUnclosedBracket(Bracket.CURLY);
 
-            parser.setRegexCommand("[:]{0,1}[a-zA-Z!]{1,}\\S*"); // change default regex to support shell commands
-            parser.blockCommentDelims(new DefaultParser.BlockCommentDelims("/*", "*/"))
-                    .lineCommentDelims(new String[]{"//"});
-
             Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
             ConfigurationPath configPath = new ConfigurationPath(Paths.get("."), Paths.get("."));
             Builtins builtins = new Builtins(workDir, configPath, null);
             SystemRegistryImpl systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, configPath);
+
             // commands注册
             Printer printer = new HqlPrinter(configPath, terminal);
             HqlCommands hqlCommands = new HqlCommands(printer);

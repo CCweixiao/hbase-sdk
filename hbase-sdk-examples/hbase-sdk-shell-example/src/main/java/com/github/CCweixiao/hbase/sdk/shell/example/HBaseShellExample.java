@@ -27,7 +27,8 @@ public class HBaseShellExample {
 //        System.out.println(res3);
 
         Result res4 = shellSession.execute("puts \"Hello World\"");
-       // Result res5 = shellSession.execute("puts a");
+        Result res5 = shellSession.execute("a = 1 + 1");
+       Result res6 = shellSession.execute("puts a");
         System.out.println(res4);
 
 
