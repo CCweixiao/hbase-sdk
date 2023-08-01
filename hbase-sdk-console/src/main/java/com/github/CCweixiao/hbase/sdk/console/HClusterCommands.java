@@ -104,7 +104,7 @@ public class HClusterCommands extends BaseCommands {
 
     private void addCluster(CommandInput input) {
         long start = System.currentTimeMillis();
-        String command = parseCommand(input);
+        String command = parseCommand(input, true);
         String[] commands = command.split("\\s+");
         if (commands.length != 3) {
             println("Failed to add the cluster, please enter the correct command, such as:\n");
@@ -200,7 +200,7 @@ public class HClusterCommands extends BaseCommands {
 
     private void removeCluster(CommandInput input) {
         long start = System.currentTimeMillis();
-        String command = parseCommand(input);
+        String command = parseCommand(input, true);
         String[] commands = command.split("\\s+");
         if (commands.length != 2) {
             println("Failed to remove cluster, please enter the correct command, such as:\n");
@@ -226,7 +226,7 @@ public class HClusterCommands extends BaseCommands {
     }
 
     private void switchCluster(CommandInput input) {
-        String command = parseCommand(input);
+        String command = parseCommand(input, true);
         String[] commands = command.split("\\s+");
         if (commands.length != 2) {
             println("Failed to switch cluster, please enter the correct command, such as:\n");
@@ -235,28 +235,6 @@ public class HClusterCommands extends BaseCommands {
         }
         HClusterContext.getInstance().setCurrentSelectedCluster(commands[1].trim());
         println(String.format("The currently selected cluster is %s.", commands[1]));
-    }
-
-    private String parseCommand(CommandInput input) {
-        String[] args = input.args();
-        if (args != null && args.length == 1) {
-            String line = args[0];
-            return line.substring(1, line.length() - 1);
-        }
-        StringBuilder sb = new StringBuilder();
-
-        if (args != null && args.length > 1) {
-            for (int i = 0; i < args.length; i++) {
-                if (i == 0) {
-                    sb.append(args[i].substring(1)).append(" ");
-                } else if (i == args.length - 1) {
-                    sb.append(args[i], 0, args[i].length() - 1).append(" ");
-                } else {
-                    sb.append(args[i]).append(" ");
-                }
-            }
-        }
-        return sb.toString();
     }
 
     @Override

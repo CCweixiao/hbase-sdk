@@ -90,9 +90,9 @@ public class HqlCommands extends BaseCommands {
     }
 
     private void select(CommandInput input) {
-        HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         long start = System.currentTimeMillis();
         String hql = parseSql(input);
+        HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         HBaseDataSet dataSet = sqlTemplate.select(hql);
         String table = dataSet.showTable(true);
         println(table);
@@ -116,21 +116,7 @@ public class HqlCommands extends BaseCommands {
     }
 
     private String parseSql(CommandInput input) {
-        StringBuilder sb = new StringBuilder();
-
-        String[] args = input.args();
-        if (args != null && args.length > 0) {
-            for (int i = 0; i < args.length; i++) {
-                if (i == 0) {
-                    sb.append(args[i].substring(1)).append(" ");
-                } else if (i == args.length - 1) {
-                    sb.append(args[i], 0, args[i].length() - 1).append(" ");
-                } else {
-                    sb.append(args[i]).append(" ");
-                }
-            }
-        }
-        return sb.toString();
+        return this.parseCommand(input, true);
     }
 
     @Override

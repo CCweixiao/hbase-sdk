@@ -1,5 +1,6 @@
 package com.github.CCweixiao.hbase.sdk.console;
 
+import org.jline.console.CommandInput;
 import org.jline.console.Printer;
 import org.jline.console.impl.JlineCommandRegistry;
 import org.jline.reader.LineReader;
@@ -39,5 +40,22 @@ public abstract class BaseCommands extends JlineCommandRegistry {
 
     public void setReader(LineReader reader) {
         this.reader = reader;
+    }
+
+    protected String parseCommand(CommandInput input, boolean withCommand) {
+        String[] args = input.args();
+        StringBuilder sb;
+        if (withCommand) {
+            sb = new StringBuilder(input.command());
+            sb.append(" ");
+        } else {
+            sb = new StringBuilder();
+        }
+        if (args != null && args.length > 0) {
+            for (String arg : args) {
+                sb.append(arg).append(" ");
+            }
+        }
+        return sb.toString();
     }
 }

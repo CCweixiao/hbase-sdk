@@ -1,24 +1,20 @@
 package com.github.CCweixiao.hbase.sdk.console;
 
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.github.CCweixiao.hbase.sdk.shell.HBaseShellCommands;
 import org.jline.builtins.ConfigurationPath;
 import org.jline.console.Printer;
 import org.jline.console.impl.Builtins;
-import org.jline.console.impl.SystemRegistryImpl;
+import org.jline.console.impl.CustomSystemRegistryImpl;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.MaskingCallback;
 import org.jline.reader.UserInterruptException;
-import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.DefaultParser.Bracket;
 import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.OSUtils;
 import org.jline.widget.AutosuggestionWidgets;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -68,13 +64,13 @@ public class HqlConsole {
 
         try {
             Terminal terminal = TerminalBuilder.builder().system(true).build();
-            DefaultParser parser = new DefaultParser();
-            parser.setEofOnUnclosedBracket(Bracket.CURLY);
+            HqlParser parser = new HqlParser();
+            parser.setEofOnUnclosedBracket(HqlParser.Bracket.CURLY);
 
             Supplier<Path> workDir = () -> Paths.get(System.getProperty("user.dir"));
             ConfigurationPath configPath = new ConfigurationPath(Paths.get("."), Paths.get("."));
             Builtins builtins = new Builtins(workDir, configPath, null);
-            SystemRegistryImpl systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, configPath);
+            CustomSystemRegistryImpl systemRegistry = new CustomSystemRegistryImpl(parser, terminal, workDir, configPath);
 
             // commands注册
             Printer printer = new HqlPrinter(configPath, terminal);
@@ -127,13 +123,14 @@ public class HqlConsole {
                         }
                         command = parser.getCommand(line);
                         if (StringUtil.isBlank(command)) {
-                            command = "ruby_exec" + " `" + line + "`";
+                            command = "ruby_exec " + line;
                         } else if (allShellCommands.contains(command)) {
-                            command = command + " `" + line + "`";
+                            command = line;
                         } else {
-                            command = "ruby_exec" + " `" + line + "`";
+                            command = "ruby_exec " + line;
                         }
                     }
+                    command = command.replaceAll("\n", "");
                     systemRegistry.execute(command);
                 } catch (UserInterruptException e) {
                     // Ignore

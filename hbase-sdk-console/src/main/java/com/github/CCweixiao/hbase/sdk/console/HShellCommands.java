@@ -98,12 +98,12 @@ public class HShellCommands extends BaseCommands {
 
     private void rubyExec(CommandInput input) {
         long start = System.currentTimeMillis();
-        String command = parseCommand(input);
+        String command = parseCommand(input, false);
         execCommand(command, start);
     }
 
     private void execShellCommand(CommandInput input) {
-        String command = parseCommand(input);
+        String command = parseCommand(input, true);
         execCommand(command, 0);
     }
 
@@ -121,28 +121,6 @@ public class HShellCommands extends BaseCommands {
                 println("ERROR," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
             }
         }
-    }
-
-    private String parseCommand(CommandInput input) {
-        String[] args = input.args();
-        if (args != null && args.length == 1) {
-            String line = args[0];
-            return line.substring(1, line.length() - 1);
-        }
-        StringBuilder sb = new StringBuilder();
-
-        if (args != null && args.length > 1) {
-            for (int i = 0; i < args.length; i++) {
-                if (i == 0) {
-                    sb.append(args[i].substring(1)).append(" ");
-                } else if (i == args.length - 1) {
-                    sb.append(args[i], 0, args[i].length() - 1).append(" ");
-                } else {
-                    sb.append(args[i]).append(" ");
-                }
-            }
-        }
-        return sb.toString();
     }
 
     @Override
