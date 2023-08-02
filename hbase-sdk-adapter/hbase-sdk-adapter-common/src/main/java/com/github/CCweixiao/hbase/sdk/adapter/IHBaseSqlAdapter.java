@@ -11,6 +11,8 @@ import java.util.Map;
  */
 public interface IHBaseSqlAdapter {
 
+    void dropVirtualTable(String hql);
+
     void createVirtualTable(String hql);
 
     HBaseDataSet select(String hql);

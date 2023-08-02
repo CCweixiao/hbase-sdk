@@ -1,9 +1,7 @@
 package com.github.CCweixiao.hbase.sdk.console;
 
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
-import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.template.HBaseSqlTemplate;
-import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import org.jline.console.CmdDesc;
 import org.jline.console.CommandInput;
 import org.jline.console.CommandMethods;
@@ -29,23 +27,6 @@ public class HqlCommands extends BaseCommands {
         commandExecute.put("insert", new CommandMethods(this::insert, this::defaultCompleter));
         commandExecute.put("delete", new CommandMethods(this::delete, this::defaultCompleter));
         registerCommands(commandExecute);
-    }
-
-    private HBaseTableSchema defaultHBaseTableSchema() {
-        return HBaseTableSchema.of("test:test_sql")
-                .addColumn("f1", "id")
-                .addColumn("f1", "name")
-                .addColumn("f1", "age", ColumnType.IntegerType)
-                .addColumn("f1", "job")
-                .addColumn("f1", "pay", ColumnType.DoubleType)
-                .addColumn("f2", "address")
-                .addColumn("f2", "commuter")
-                .addRow("row_key")
-                .scanBatch(100)
-                .scanCaching(1000)
-                .deleteBatch(100)
-                .scanCacheBlocks(false)
-                .build();
     }
 
     public Map<String, String> commandAliases() {

@@ -2,6 +2,23 @@
 insert into test:table(f:id,f:name,f:age, f2:pay)values('1001','张三', 23.32)
 where ts = 12234243;
 
+
+drop virtual
+table
+ f:test ;
+
+
+ create virtual table test:test_sql (
+ row_key string isrowkey,
+ f1:id string nullable,
+ f1:name string nullable,
+ f1:age int nullable,
+ f1:job string nullable,
+ f1:pay double nullable,
+ f2:address string nullable,
+ f2:commuter string nullable
+ );
+
 -- 插入单条语句，不指定时间戳
 insert into test:table(f:id,f:name,f:age, f2:pay)values('1001','张三', 23.32);
 

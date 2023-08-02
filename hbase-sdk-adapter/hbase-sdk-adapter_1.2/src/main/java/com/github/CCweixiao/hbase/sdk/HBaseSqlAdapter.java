@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
-import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
@@ -47,13 +46,12 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
     @Override
     protected void checkAndCreateHqlMetaTable() {
-        TableName tableName = TableName.valueOf(HBaseConfigKeys.HQL_META_DATA_TABLE_NAME);
         this.execute(admin -> {
-            if (admin.tableExists(tableName)) {
+            if (admin.tableExists(HQL_META_DATA_TABLE_NAME)) {
                 return true;
             }
-            HTableDescriptor tableDescriptor = new HTableDescriptor(tableName);
-            HColumnDescriptor columnDescriptor = new HColumnDescriptor(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY);
+            HTableDescriptor tableDescriptor = new HTableDescriptor(HQL_META_DATA_TABLE_NAME);
+            HColumnDescriptor columnDescriptor = new HColumnDescriptor(HQL_META_DATA_TABLE_FAMILY);
             tableDescriptor.addFamily(columnDescriptor);
             admin.createTable(tableDescriptor);
             return true;
@@ -62,8 +60,14 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
     @Override
     protected boolean saveTableSchemaMeta(HBaseTableSchema tableSchema) {
-        String tableSchemaJson = tableSchema.toJson();
         String tableName = HMHBaseConstants.getFullTableName(tableSchema.getTableName());
+        Boolean oriTableExists = this.execute(admin -> admin.tableExists(TableName.valueOf(tableName)));
+        if (!oriTableExists) {
+            throw new HBaseSqlAnalysisException(String.format("The virtual table %s was created failed, " +
+                    "because the original table %s does not exist.", tableName, tableName));
+        }
+
+        String tableSchemaJson = tableSchema.toJson();
         Get get = new Get(Bytes.toBytes(tableName));
         Optional<String> res = this.execute(tableName, table -> {
             Result result = table.get(get);
@@ -73,18 +77,12 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
             return Bytes.toString(result.getRow());
         });
         if (StringUtil.isNotBlank(res.orElse(""))) {
-            throw new HBaseSqlAnalysisException(String.format("The schema of table %s has been created.", tableName));
+            throw new HBaseSqlAnalysisException(String.format("The virtual table %s has been created.", tableName));
         }
         Put put = new Put(Bytes.toBytes(tableName));
-        put.addColumn(Bytes.toBytes(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY), Bytes.toBytes("schema"),
-                Bytes.toBytes(tableSchemaJson));
-        this.executeSave(tableName, put);
+        put.addColumn(HQL_META_DATA_TABLE_FAMILY, HQL_META_DATA_TABLE_QUALIFIER, Bytes.toBytes(tableSchemaJson));
+        this.executeSave(HQL_META_DATA_TABLE_NAME.getNameAsString(), put);
         return true;
-    }
-
-    @Override
-    protected HBaseTableSchema getTableSchema(String tableName) {
-        return null;
     }
 
     @Override

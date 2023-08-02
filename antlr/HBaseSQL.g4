@@ -37,6 +37,7 @@ TS : T S ;
 STARTTS : S T A R T T S ;
 ENDTS : E N D T S;
 CREATE : C R E A T E;
+DROP : D R O P;
 VIRTUAL : V I R T U A L;
 TABLE : T A B L E;
 WITH : W I T H ;
@@ -102,15 +103,16 @@ fragment DOT_R : '\'';
 
 /* parser rules */
 query : createTableStatement
+      | dropTableStatement
       | insertStatement
       | selectStatement
       | deleteStatement
       ;
 
 createTableStatement : CREATE VIRTUAL TABLE tableName '(' fields ')' (WITH PROPERTIES '(' properties ')')? ';'?;
+dropTableStatement : DROP VIRTUAL TABLE tableName ';'?;
 
 tableName : ID;
-columnFamily : ID;
 
 fields : field (',' field)* ;
 field : fieldName fieldType ISROWKEY? NULLABLE? ;
@@ -126,11 +128,8 @@ selectColList : '*'          # colList_Star
 			  | columnList   # colList_ColList
 	     	  ;
 columnList : column (COMMA column)*;
-columnFamilyList : columnFamily (COMMA columnFamily)*;
 
 insertStatement : INSERT INTO tableName LR_BRACKET columnList RR_BRACKET VALUES multiValueList (WHERE TS EQ tsExp)?;
-
-
 
 multiValueList : LR_BRACKET valueList RR_BRACKET (COMMA LR_BRACKET valueList RR_BRACKET)*;
 valueList: value ( COMMA value ) *;

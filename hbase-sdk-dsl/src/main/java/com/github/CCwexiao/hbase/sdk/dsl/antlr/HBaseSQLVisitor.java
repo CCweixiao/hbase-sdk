@@ -1,4 +1,4 @@
-// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 
@@ -25,17 +25,17 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitCreateTableStatement(HBaseSQLParser.CreateTableStatementContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#dropTableStatement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDropTableStatement(HBaseSQLParser.DropTableStatementContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#tableName}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitTableName(HBaseSQLParser.TableNameContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#columnFamily}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColumnFamily(HBaseSQLParser.ColumnFamilyContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#fields}.
 	 * @param ctx the parse tree
@@ -104,12 +104,6 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitColumnList(HBaseSQLParser.ColumnListContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link HBaseSQLParser#columnFamilyList}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitColumnFamilyList(HBaseSQLParser.ColumnFamilyListContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#insertStatement}.
 	 * @param ctx the parse tree

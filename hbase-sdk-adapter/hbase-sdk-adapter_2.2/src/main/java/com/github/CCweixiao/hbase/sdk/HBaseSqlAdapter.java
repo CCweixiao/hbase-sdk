@@ -1,7 +1,6 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
-import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
@@ -17,14 +16,10 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -48,14 +43,13 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
     @Override
     protected void checkAndCreateHqlMetaTable() {
-        TableName tableName = TableName.valueOf(HBaseConfigKeys.HQL_META_DATA_TABLE_NAME);
         this.execute(admin -> {
-            if (admin.tableExists(tableName)) {
+            if (admin.tableExists(HQL_META_DATA_TABLE_NAME)) {
                 return true;
             }
-            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(tableName);
+            TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(HQL_META_DATA_TABLE_NAME);
             ColumnFamilyDescriptor columnFamilyDescriptor = ColumnFamilyDescriptorBuilder.
-                    of(Bytes.toBytes(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY));
+                    of(HQL_META_DATA_TABLE_FAMILY);
             tableDescriptorBuilder.setColumnFamily(columnFamilyDescriptor);
             admin.createTable(tableDescriptorBuilder.build());
             return true;
@@ -78,15 +72,9 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
             throw new HBaseSqlAnalysisException(String.format("The schema of table %s has been created.", tableName));
         }
         Put put = new Put(Bytes.toBytes(tableName));
-        put.addColumn(Bytes.toBytes(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY), Bytes.toBytes("schema"),
-                Bytes.toBytes(tableSchemaJson));
-        this.executeSave(tableName, put);
+        put.addColumn(HQL_META_DATA_TABLE_FAMILY, HQL_META_DATA_TABLE_QUALIFIER, Bytes.toBytes(tableSchemaJson));
+        this.executeSave(HQL_META_DATA_TABLE_NAME.getNameAsString(), put);
         return true;
-    }
-
-    @Override
-    protected HBaseTableSchema getTableSchema(String tableName) {
-        return null;
     }
 
     @Override

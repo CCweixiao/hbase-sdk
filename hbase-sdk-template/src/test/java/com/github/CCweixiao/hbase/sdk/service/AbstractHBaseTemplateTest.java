@@ -43,10 +43,11 @@ public abstract class AbstractHBaseTemplateTest {
                 .deleteBatch(100)
                 .scanCacheBlocks(false)
                 .build();
-        System.out.println("tableSchema.printSchema();");
-        tableSchema.printSchema();
+//        String s = tableSchema.toJson();
+//        System.out.println("tableSchema.printSchema();");
+//        tableSchema.printSchema();
         sqlTemplate = HBaseSqlTemplate.of(getProperties());
-        sqlTemplate.registerTableSchema(tableSchema);
+//        sqlTemplate.registerTableSchema(tableSchema);
     }
 
     protected Properties getProperties() {

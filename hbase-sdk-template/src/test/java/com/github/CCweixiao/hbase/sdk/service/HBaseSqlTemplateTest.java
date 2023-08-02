@@ -43,6 +43,20 @@ public class HBaseSqlTemplateTest extends AbstractHBaseTemplateTest {
 
     @Test
     public void testSelectRow() {
+        String hql1 = "create virtual table test:test_sql (\n" +
+                " row_key string isrowkey,\n" +
+                " f1:id string nullable,\n" +
+                " f1:name string nullable,\n" +
+                " f1:age int nullable,\n" +
+                " f1:job string nullable,\n" +
+                " f1:pay double nullable,\n" +
+                " f2:address string nullable,\n" +
+                " f2:commuter string nullable\n" +
+                " );";
+        sqlTemplate.createVirtualTable(hql1);
+         // String hql2 = "drop virtual table test:test_sql;";
+        // sqlTemplate.dropVirtualTable(hql2);
+//        sqlTemplate.createVirtualTable(hql1);
         String sql1 = "select * from test:test_sql where rowKey='c1005'";
         HBaseDataSet dataSet1 = sqlTemplate.select(sql1);
         dataSet1.show();

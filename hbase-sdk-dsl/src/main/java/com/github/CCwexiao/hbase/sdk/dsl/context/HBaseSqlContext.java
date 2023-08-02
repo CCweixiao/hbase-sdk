@@ -39,6 +39,13 @@ public class HBaseSqlContext {
         tableSchemaMap.put(schemaUniqueKey, tableSchema);
     }
 
+    public void removeTableSchema(String schemaUniqueKey) {
+        if (StringUtil.isBlank(schemaUniqueKey)) {
+            return;
+        }
+        tableSchemaMap.remove(schemaUniqueKey);
+    }
+
     public HBaseTableSchema getTableSchema(String schemaUniqueKey) {
         if (StringUtil.isBlank(schemaUniqueKey)) {
             throw new IllegalArgumentException("The schemaUniqueKey is not empty.");

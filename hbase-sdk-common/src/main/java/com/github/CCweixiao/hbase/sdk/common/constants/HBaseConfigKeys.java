@@ -32,9 +32,4 @@ public class HBaseConfigKeys {
     public static final String HBASE_CLIENT_SCANNER_CACHING = "hbase.client.scanner.caching";
     public static final String HBASE_CLIENT_BLOCK_CACHE = "hbase.client.block.cache";
     public static final int HBASE_CLIENT_DEFAULT_SCANNER_CACHING = 1000;
-
-    public static final String HQL_META_DATA_TABLE_NAME = "HQL.META_DATA";
-    public static final String HQL_META_DATA_TABLE_FAMILY = "f";
-
-    public static final String HQL_META_DATA_TABLE_SPLIT_POLICY = "hbase.regionserver.region.split.policy";
 }

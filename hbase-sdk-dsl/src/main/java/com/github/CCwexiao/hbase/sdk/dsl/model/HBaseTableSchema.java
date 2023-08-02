@@ -4,11 +4,12 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseColumnNotFoundException;
+import com.github.CCweixiao.hbase.sdk.common.lang.Converter;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author leojie 2020/11/27 10:53 下午
@@ -254,7 +255,7 @@ public class HBaseTableSchema {
         this.tableQueryProperties = tableQueryProperties;
     }
 
-    public TableQueryProperties getTableQuerySetting() {
+    public TableQueryProperties getTableQueryProperties() {
         return tableQueryProperties;
     }
 
@@ -264,6 +265,159 @@ public class HBaseTableSchema {
         }
         String fullTableName = HMHBaseConstants.getFullTableName(tableName);
         return new Builder(fullTableName);
+    }
+
+    public static Builder empty() {
+        return new Builder("");
+    }
+
+    static class TableColumn {
+        private String family;
+        private String qualifier;
+        private String type;
+        private boolean nullable;
+        private boolean rowKey;
+
+        public String getFamily() {
+            return family;
+        }
+
+        public void setFamily(String family) {
+            this.family = family;
+        }
+
+        public String getQualifier() {
+            return qualifier;
+        }
+
+        public void setQualifier(String qualifier) {
+            this.qualifier = qualifier;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        public void setNullable(boolean nullable) {
+            this.nullable = nullable;
+        }
+
+        public boolean isRowKey() {
+            return rowKey;
+        }
+
+        public void setRowKey(boolean rowKey) {
+            this.rowKey = rowKey;
+        }
+    }
+
+    static class TableSchema extends Converter<TableSchema, HBaseTableSchema> {
+        private String name;
+        private List<TableColumn> columns;
+        private TableQueryProperties properties;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public List<TableColumn> getColumns() {
+            return columns;
+        }
+
+        public void setColumns(List<TableColumn> columns) {
+            this.columns = columns;
+        }
+
+        public TableQueryProperties getProperties() {
+            return properties;
+        }
+
+        public void setProperties(TableQueryProperties properties) {
+            this.properties = properties;
+        }
+
+        public HBaseTableSchema convertFor() {
+            return this.convert(this);
+        }
+
+        public TableSchema convertTo(HBaseTableSchema tableSchema) {
+            return this.reverse().convert(tableSchema);
+        }
+
+        @Override
+        protected HBaseTableSchema doForward(TableSchema tableSchema) {
+            if (tableSchema == null) {
+                return null;
+            }
+            Builder builder = HBaseTableSchema.of(tableSchema.getName());
+            for (TableColumn column : tableSchema.getColumns()) {
+                if (column.isRowKey()) {
+                    builder.addRow(column.getQualifier(), ColumnType.getColumnType(column.getType()));
+                    continue;
+                }
+                builder.addColumn(column.getFamily(), column.getQualifier(),
+                        ColumnType.getColumnType(column.getType()), false, column.isNullable());
+            }
+            TableQueryProperties properties = tableSchema.getProperties();
+            if (properties != null) {
+                builder = builder.tableQueryProperties(properties);
+            }
+            return builder.build();
+        }
+
+        @Override
+        protected TableSchema doBackward(HBaseTableSchema tableSchema) {
+            if (tableSchema == null) {
+                return null;
+            }
+            String tableName = tableSchema.getTableName();
+            TableSchema schema = new TableSchema();
+            schema.setName(tableName);
+            List<TableColumn> columns = tableSchema.getColumnSchemaMap().values().stream()
+                    .map(c -> {
+                        TableColumn column = new TableColumn();
+                        if (c.columnIsRow()) {
+                            column.setRowKey(true);
+                            column.setFamily("");
+                            column.setNullable(false);
+                        } else {
+                            column.setFamily(c.getFamily());
+                            column.setNullable(c.isNullable());
+                            column.setRowKey(false);
+                        }
+                        column.setQualifier(c.getColumnName());
+                        column.setType(c.getColumnType().getTypeName());
+                        return column;
+                    }).collect(Collectors.toList());
+            schema.setColumns(columns);
+            schema.setProperties(tableSchema.getTableQueryProperties());
+            return schema;
+        }
+    }
+
+    public HBaseTableSchema convert(String tableSchemaJson) {
+        if (StringUtil.isBlank(tableSchemaJson)) {
+            return null;
+        }
+        TableSchema tableSchema = JSONObject.parseObject(tableSchemaJson, TableSchema.class);
+        return tableSchema.convertFor();
+    }
+
+    public String toJson() {
+        TableSchema tableSchema = new TableSchema().convertTo(this);
+        return JSON.toJSONString(tableSchema);
     }
 
     @Override
@@ -299,16 +453,5 @@ public class HBaseTableSchema {
 
     public void printSchema() {
         System.out.println(this);
-    }
-
-    public String toJson() {
-        return JSON.toJSONString(this);
-    }
-
-    public HBaseTableSchema toSchemaFromJson(String schemaJson) {
-        if (StringUtil.isBlank(schemaJson)) {
-            throw new IllegalArgumentException("The json string defining tableSchema cannot be empty.");
-        }
-        JSONObject schemaJsonObj = JSON.parseObject(schemaJson);
     }
 }

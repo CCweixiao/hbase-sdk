@@ -5,6 +5,7 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
@@ -33,8 +34,10 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -50,6 +53,9 @@ import java.util.stream.Collectors;
  */
 @InterfaceAudience.Private
 public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter implements IHBaseSqlAdapter {
+    protected static final TableName HQL_META_DATA_TABLE_NAME = TableName.valueOf("HQL.META_DATA");
+    protected static final byte[] HQL_META_DATA_TABLE_FAMILY = Bytes.toBytes( "f");
+    protected static final byte[] HQL_META_DATA_TABLE_QUALIFIER = Bytes.toBytes( "schema");
 
     public AbstractHBaseSqlAdapter(Properties properties) {
         super(properties);
@@ -67,10 +73,13 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     public void createVirtualTable(String hql) {
         HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
         HBaseSQLParser.CreateTableStatementContext createTableStatementContext = queryContext.createTableStatement();
+        if (createTableStatementContext == null) {
+            throw new HBaseSqlAnalysisException("Please enter the statement create virtual table.");
+        }
         HBaseSQLParser.FieldsContext fieldsContext = createTableStatementContext.fields();
         List<HBaseSQLParser.FieldContext> fields = fieldsContext.field();
-        String tableName = createTableStatementContext.tableName().ID().getText();
-        HBaseTableSchema.Builder tableSchemaBuilder = HBaseTableSchema.of(tableName);
+        String virtualTableName = HMHBaseConstants.getFullTableName(createTableStatementContext.tableName().getText().trim());
+        HBaseTableSchema.Builder tableSchemaBuilder = HBaseTableSchema.of(virtualTableName);
         for (HBaseSQLParser.FieldContext fieldContext : fields) {
             String filedName = fieldContext.fieldName().ID().getText();
             String fieldType = fieldContext.fieldType().ID().getText();
@@ -110,11 +119,67 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         }
     }
 
+    @Override
+    public void dropVirtualTable(String hql) {
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        HBaseSQLParser.DropTableStatementContext dropTableStatementContext = queryContext.dropTableStatement();
+        if (dropTableStatementContext == null) {
+            throw new HBaseSqlAnalysisException("Please enter the statement drop virtual table.");
+        }
+        String virtualTableName = HMHBaseConstants.getFullTableName(dropTableStatementContext.tableName().getText().trim());
+
+        Get get = new Get(Bytes.toBytes(virtualTableName));
+        boolean virtualTableExists = this.execute(HQL_META_DATA_TABLE_NAME.getNameAsString(), table -> {
+            Result result = table.get(get);
+            if (result == null) {
+                return false;
+            }
+            byte[] value = result.getValue(HQL_META_DATA_TABLE_FAMILY, HQL_META_DATA_TABLE_QUALIFIER);
+            return value != null && StringUtil.isNotBlank(Bytes.toString(value));
+        }).orElse(false);
+        if (!virtualTableExists) {
+            throw new HBaseSqlAnalysisException(String.format("The virtual table %s does not exist.", virtualTableName));
+        }
+        Delete delete = new Delete(Bytes.toBytes(virtualTableName));
+        boolean deleteRes = this.execute(HQL_META_DATA_TABLE_NAME.getNameAsString(), table -> {
+            table.delete(delete);
+            return true;
+        }).orElse(false);
+        if (!deleteRes) {
+            throw new HBaseSqlAnalysisException(String.format("The virtual table %s failed to be deleted.", virtualTableName));
+        }
+        removeTableSchema(virtualTableName);
+    }
+
     protected abstract void checkAndCreateHqlMetaTable();
 
     protected abstract boolean saveTableSchemaMeta(HBaseTableSchema tableSchema);
 
-    protected abstract HBaseTableSchema getTableSchema(String tableName);
+    protected HBaseTableSchema getTableSchema(String tableName) {
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        uniqueKey = uniqueKey + "#" + HMHBaseConstants.getFullTableName(tableName);
+        HBaseTableSchema tableSchema = HBaseSqlContext.getInstance().getTableSchema(uniqueKey);
+        if (tableSchema != null) {
+            return tableSchema;
+        }
+        Get get = new Get(Bytes.toBytes(tableName));
+        String tableSchemaJson = this.execute(HQL_META_DATA_TABLE_NAME.getNameAsString(), table -> {
+            Result result = table.get(get);
+            if (result == null) {
+                return "";
+            }
+            byte[] value = result.getValue(HQL_META_DATA_TABLE_FAMILY, HQL_META_DATA_TABLE_QUALIFIER);
+            return Bytes.toString(value);
+        }).orElse("");
+        tableSchema = HBaseTableSchema.empty().build();
+        tableSchema = tableSchema.convert(tableSchemaJson);
+        if (tableSchema == null) {
+            throw new HBaseSqlTableSchemaMissingException(
+                    String.format("The table [%s] has no table schema, please register first.", tableName));
+        }
+        this.registerTableSchema(tableSchema);
+        return tableSchema;
+    }
 
     private HBaseColumn getColumn(String filedName, String fieldType, TerminalNode nullable) {
         String[] cols = filedName.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
@@ -150,6 +215,9 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     public HBaseDataSet select(String hql, Map<String, Object> params) {
         HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
         HBaseSQLParser.SelectStatementContext selectStatementContext = queryContext.selectStatement();
+        if (selectStatementContext == null) {
+            throw new HBaseSqlAnalysisException("Please enter the statement select table.");
+        }
         String tableName = selectStatementContext.tableName().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         // 解析查询字段 * 或指定字段
@@ -255,6 +323,9 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     public void insert(String hql) {
         HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
         HBaseSQLParser.InsertStatementContext insertStatementContext = queryContext.insertStatement();
+        if (insertStatementContext == null) {
+            throw new HBaseSqlAnalysisException("Please enter the statement insert into table.");
+        }
         String tableName = insertStatementContext.tableName().ID().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
 
@@ -281,6 +352,9 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     public void delete(String hql) {
         HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
         HBaseSQLParser.DeleteStatementContext deleteStatementContext = queryContext.deleteStatement();
+        if (deleteStatementContext == null) {
+            throw new HBaseSqlAnalysisException("Please enter the statement delete from table.");
+        }
         String tableName = deleteStatementContext.tableName().getText();
         HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         // 解析删除字段 * 或指定字段
@@ -454,7 +528,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     private TableQueryProperties getTableQueryProperties(String tableName) {
-        return this.getTableSchema(tableName).getTableQuerySetting();
+        return this.getTableSchema(tableName).getTableQueryProperties();
     }
 
     protected HBaseSQLParser.QueryContext parseQueryContext(String hql) {
@@ -523,12 +597,18 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         uniqueKey = uniqueKey + "#" + tableSchema.getTableName();
         int caching = this.getConfiguration().getInt(HBaseConfigKeys.HBASE_CLIENT_SCANNER_CACHING,
                 HBaseConfigKeys.HBASE_CLIENT_DEFAULT_SCANNER_CACHING);
-        TableQueryProperties tableQueryProperties = tableSchema.getTableQuerySetting();
+        TableQueryProperties tableQueryProperties = tableSchema.getTableQueryProperties();
         if (tableQueryProperties.getScanCaching() < 1) {
             tableQueryProperties.setScanCaching(caching);
         }
         tableSchema.setTableQuerySetting(tableQueryProperties);
         HBaseSqlContext.getInstance().registerTableSchema(uniqueKey, tableSchema);
+    }
+
+    private void removeTableSchema(String virtualTableName) {
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        uniqueKey = uniqueKey + "#" + virtualTableName;
+        HBaseSqlContext.getInstance().removeTableSchema(uniqueKey);
     }
 
 

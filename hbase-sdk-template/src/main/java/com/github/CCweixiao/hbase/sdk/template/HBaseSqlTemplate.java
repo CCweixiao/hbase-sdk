@@ -22,6 +22,16 @@ public class HBaseSqlTemplate implements BaseHBaseSqlTemplate {
     }
 
     @Override
+    public void dropVirtualTable(String hql) {
+        sqlAdapter.dropVirtualTable(hql);
+    }
+
+    @Override
+    public void createVirtualTable(String hql) {
+        sqlAdapter.createVirtualTable(hql);
+    }
+
+    @Override
     public HBaseDataSet select(String hql) {
         return sqlAdapter.select(hql);
     }
@@ -54,11 +64,6 @@ public class HBaseSqlTemplate implements BaseHBaseSqlTemplate {
     @Override
     public void registerTableSchema(HBaseTableSchema tableSchema) {
         sqlAdapter.registerTableSchema(tableSchema);
-    }
-
-    @Override
-    public HBaseTableSchema getTableSchema(String tableName) {
-        return sqlAdapter.getTableSchema(tableName);
     }
 
     @Override
