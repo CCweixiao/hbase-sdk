@@ -1,6 +1,10 @@
 package com.github.CCweixiao.hbase.sdk;
 
 import com.github.CCweixiao.hbase.sdk.adapter.AbstractHBaseSqlAdapter;
+import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
+import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
+import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
+import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertColData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.InsertRowData;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.data.RowKeyRange;
@@ -12,8 +16,12 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseColumn;
 import com.github.CCwexiao.hbase.sdk.dsl.model.HBaseTableSchema;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.HColumnDescriptor;
+import org.apache.hadoop.hbase.HTableDescriptor;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.yetus.audience.InterfaceAudience;
 
 import java.io.IOException;
@@ -35,6 +43,48 @@ public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
     public HBaseSqlAdapter(Configuration configuration) {
         super(configuration);
+    }
+
+    @Override
+    protected void checkAndCreateHqlMetaTable() {
+        TableName tableName = TableName.valueOf(HBaseConfigKeys.HQL_META_DATA_TABLE_NAME);
+        this.execute(admin -> {
+            if (admin.tableExists(tableName)) {
+                return true;
+            }
+            HTableDescriptor tableDescriptor = new HTableDescriptor(tableName);
+            HColumnDescriptor columnDescriptor = new HColumnDescriptor(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY);
+            tableDescriptor.addFamily(columnDescriptor);
+            admin.createTable(tableDescriptor);
+            return true;
+        });
+    }
+
+    @Override
+    protected boolean saveTableSchemaMeta(HBaseTableSchema tableSchema) {
+        String tableSchemaJson = tableSchema.toJson();
+        String tableName = HMHBaseConstants.getFullTableName(tableSchema.getTableName());
+        Get get = new Get(Bytes.toBytes(tableName));
+        Optional<String> res = this.execute(tableName, table -> {
+            Result result = table.get(get);
+            if (result == null) {
+                return "";
+            }
+            return Bytes.toString(result.getRow());
+        });
+        if (StringUtil.isNotBlank(res.orElse(""))) {
+            throw new HBaseSqlAnalysisException(String.format("The schema of table %s has been created.", tableName));
+        }
+        Put put = new Put(Bytes.toBytes(tableName));
+        put.addColumn(Bytes.toBytes(HBaseConfigKeys.HQL_META_DATA_TABLE_FAMILY), Bytes.toBytes("schema"),
+                Bytes.toBytes(tableSchemaJson));
+        this.executeSave(tableName, put);
+        return true;
+    }
+
+    @Override
+    protected HBaseTableSchema getTableSchema(String tableName) {
+        return null;
     }
 
     @Override

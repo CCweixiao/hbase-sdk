@@ -1,4 +1,4 @@
-// Generated from HBaseSQL.g4 by ANTLR 4.5.1
+// Generated from ./HBaseSQL.g4 by ANTLR 4.5.1
 
 package com.github.CCwexiao.hbase.sdk.dsl.antlr;
 
@@ -36,6 +36,42 @@ public interface HBaseSQLVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitColumnFamily(HBaseSQLParser.ColumnFamilyContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#fields}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFields(HBaseSQLParser.FieldsContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#field}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitField(HBaseSQLParser.FieldContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#fieldName}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFieldName(HBaseSQLParser.FieldNameContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#fieldType}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFieldType(HBaseSQLParser.FieldTypeContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#properties}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProperties(HBaseSQLParser.PropertiesContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link HBaseSQLParser#keyValue}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitKeyValue(HBaseSQLParser.KeyValueContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link HBaseSQLParser#column}.
 	 * @param ctx the parse tree

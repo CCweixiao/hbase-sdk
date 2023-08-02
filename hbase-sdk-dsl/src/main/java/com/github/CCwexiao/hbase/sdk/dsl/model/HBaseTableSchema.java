@@ -1,5 +1,7 @@
 package com.github.CCwexiao.hbase.sdk.dsl.model;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseColumnNotFoundException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
@@ -56,6 +58,13 @@ public class HBaseTableSchema {
             String columnName = column.getColumnName();
             if (this.columnSchemaMap.containsKey(columnName)) {
                 throw new IllegalArgumentException("Added duplicate field " + columnName);
+            }
+            if (column.columnIsRow()) {
+                for (HBaseColumn c : this.columnSchemaMap.values()) {
+                    if (c.columnIsRow() && c.getColumnName().equals(columnName)) {
+                        throw new IllegalArgumentException("Added duplicate rowKey field " + columnName);
+                    }
+                }
             }
             if (column.columnIsRow()) {
                 Map<String, HBaseColumn> newColumnMap = new LinkedHashMap<>();
@@ -290,5 +299,16 @@ public class HBaseTableSchema {
 
     public void printSchema() {
         System.out.println(this);
+    }
+
+    public String toJson() {
+        return JSON.toJSONString(this);
+    }
+
+    public HBaseTableSchema toSchemaFromJson(String schemaJson) {
+        if (StringUtil.isBlank(schemaJson)) {
+            throw new IllegalArgumentException("The json string defining tableSchema cannot be empty.");
+        }
+        JSONObject schemaJsonObj = JSON.parseObject(schemaJson);
     }
 }

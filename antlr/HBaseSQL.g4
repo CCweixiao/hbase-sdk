@@ -37,6 +37,11 @@ TS : T S ;
 STARTTS : S T A R T T S ;
 ENDTS : E N D T S;
 CREATE : C R E A T E;
+VIRTUAL : V I R T U A L;
+TABLE : T A B L E;
+WITH : W I T H ;
+PROPERTIES : P R O P E R T I E S;
+NULLABLE : N U L L A B L E;
 INSERT : I N S E R T ;
 INTO   : I N T O ;
 VALUES : V A L U E S ;
@@ -45,7 +50,6 @@ UPDATE : U P D A T E ;
 SET : S E T ;
 DELETE : D E L E T E ;
 FROM   : F R O M;
-TABLE : T A B L E;
 COLUMNFAMILY : C O L U M N F A M I L Y;
 WHERE : W H E R E ;
 AND : A N D ;
@@ -56,6 +60,7 @@ NULL : N U L L;
 NOT : N O T ;
 INTEGER : I N T E G E R;
 ROWKEY   : R O W K E Y ;
+ISROWKEY   : I S R O W K E Y ;
 STARTKEY : S T A R T K E Y ;
 ENDKEY   : E N D K E Y ;
 MAXVERSION    : M A X V E R S I O N ;
@@ -93,15 +98,6 @@ STRING : DOT_L STR DOT_R;
 fragment STR : ([a-zA-Z0-9\u0020\u0080-\uFFFF_:*-+.,\\|=&^%$#@{}[\]!~`()<>\r\t\n"])*;
 fragment DOT_L : '\'';
 fragment DOT_R : '\'';
-//  STRING : '"' ('\\' . | ~[\\\r\n])* '"';
-
-
-//STRING : '\'' ( ESC | ~["\\\r\n] )* '\'';
-//fragment ESC : '\\' (["\\/bfnrt] | UNICODE);
-//fragment UNICODE : 'u' HEX HEX HEX HEX;
-//fragment HEX : [0-9a-fA-F];
-
-// ---------------------------------------------------------------------------------------------------------------------
 
 
 /* parser rules */
@@ -111,10 +107,18 @@ query : createTableStatement
       | deleteStatement
       ;
 
-createTableStatement : CREATE TABLE tableName LR_BRACKET columnFamilyList RR_BRACKET;
+createTableStatement : CREATE VIRTUAL TABLE tableName '(' fields ')' (WITH PROPERTIES '(' properties ')')? ';'?;
 
 tableName : ID;
 columnFamily : ID;
+
+fields : field (',' field)* ;
+field : fieldName fieldType ISROWKEY? NULLABLE? ;
+fieldName : ID ;
+fieldType : ID ;
+properties : keyValue (',' keyValue)* ;
+keyValue : ID '=' ID ;
+
 column : ID;
 funcname : ID;
 

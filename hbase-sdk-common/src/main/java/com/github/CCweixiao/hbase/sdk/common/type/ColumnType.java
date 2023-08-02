@@ -127,6 +127,6 @@ public enum ColumnType {
                 return value;
             }
         }
-        throw new IllegalArgumentException("Unsupported type " + typeName);
+        throw new IllegalArgumentException("Unsupported field type " + typeName);
     }
 }

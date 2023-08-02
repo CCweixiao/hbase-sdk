@@ -5,12 +5,11 @@ import com.github.CCweixiao.hbase.sdk.common.constants.HMHBaseConstants;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseOperationsException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlAnalysisException;
 import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlExecuteException;
-import com.github.CCweixiao.hbase.sdk.common.exception.HBaseSqlTableSchemaMissingException;
 import com.github.CCweixiao.hbase.sdk.common.lang.MyAssert;
 import com.github.CCweixiao.hbase.sdk.common.model.HQLType;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataRow;
 import com.github.CCweixiao.hbase.sdk.common.model.row.HBaseDataSet;
-import com.github.CCweixiao.hbase.sdk.common.type.TypeHandler;
+import com.github.CCweixiao.hbase.sdk.common.type.ColumnType;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
 import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
 import com.github.CCweixiao.hbase.sdk.dsl.antlr.HBaseSQLErrorListener;
@@ -30,6 +29,7 @@ import com.github.CCwexiao.hbase.sdk.dsl.model.TableQueryProperties;
 import com.github.CCwexiao.hbase.sdk.dsl.util.Util;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
@@ -61,6 +61,89 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     public AbstractHBaseSqlAdapter(Configuration configuration) {
         super(configuration);
+    }
+
+    @Override
+    public void createVirtualTable(String hql) {
+        HBaseSQLParser.QueryContext queryContext = parseQueryContext(hql);
+        HBaseSQLParser.CreateTableStatementContext createTableStatementContext = queryContext.createTableStatement();
+        HBaseSQLParser.FieldsContext fieldsContext = createTableStatementContext.fields();
+        List<HBaseSQLParser.FieldContext> fields = fieldsContext.field();
+        String tableName = createTableStatementContext.tableName().ID().getText();
+        HBaseTableSchema.Builder tableSchemaBuilder = HBaseTableSchema.of(tableName);
+        for (HBaseSQLParser.FieldContext fieldContext : fields) {
+            String filedName = fieldContext.fieldName().ID().getText();
+            String fieldType = fieldContext.fieldType().ID().getText();
+            TerminalNode nullable = fieldContext.NULLABLE();
+            HBaseColumn row = getRowColumn(fieldContext, filedName, fieldType, nullable);
+            if (row != null) {
+                tableSchemaBuilder.addColumn(row);
+            } else {
+                HBaseColumn column = getColumn(filedName, fieldType, nullable);
+                if (column != null) {
+                    tableSchemaBuilder.addColumn(column);
+                }
+            }
+        }
+
+        HBaseSQLParser.PropertiesContext properties = createTableStatementContext.properties();
+        if (properties != null) {
+            List<HBaseSQLParser.KeyValueContext> keyValueContexts = properties.keyValue();
+            for (HBaseSQLParser.KeyValueContext keyValueContext : keyValueContexts) {
+                List<TerminalNode> kvs = keyValueContext.ID();
+                String key = kvs.get(0).getText().trim();
+                String value = kvs.get(1).getText().trim();
+                if (HBaseConfigKeys.HBASE_CLIENT_SCANNER_CACHING.equals(key)) {
+                    tableSchemaBuilder.scanCaching(Integer.parseInt(value));
+                } else if (HBaseConfigKeys.HBASE_CLIENT_BLOCK_CACHE.equals(key)) {
+                    tableSchemaBuilder.scanCacheBlocks(Boolean.parseBoolean(value));
+                } else {
+                    throw new HBaseSqlAnalysisException(String.format("Configuration [%s] not currently supported.", key));
+                }
+            }
+        }
+        HBaseTableSchema tableSchema = tableSchemaBuilder.build();
+        checkAndCreateHqlMetaTable();
+        boolean res = saveTableSchemaMeta(tableSchema);
+        if (res) {
+            registerTableSchema(tableSchema);
+        }
+    }
+
+    protected abstract void checkAndCreateHqlMetaTable();
+
+    protected abstract boolean saveTableSchemaMeta(HBaseTableSchema tableSchema);
+
+    protected abstract HBaseTableSchema getTableSchema(String tableName);
+
+    private HBaseColumn getColumn(String filedName, String fieldType, TerminalNode nullable) {
+        String[] cols = filedName.split(HMHBaseConstants.FAMILY_QUALIFIER_SEPARATOR);
+        if (cols.length != 2) {
+            throw new HBaseSqlAnalysisException("An example field name is family:qualifier.");
+        }
+        String family = cols[0].trim();
+        String qualifier = cols[1].trim();
+        return HBaseColumn.of(family, qualifier)
+                .nullable(nullable != null)
+                .columnType(ColumnType.getColumnType(fieldType)).build();
+    }
+
+
+    private HBaseColumn getRowColumn(HBaseSQLParser.FieldContext fieldContext, String filedName,
+                                     String fieldType, TerminalNode nullable) {
+        TerminalNode isRowKey = fieldContext.ISROWKEY();
+        if (isRowKey == null) {
+            return null;
+        }
+        if (nullable != null) {
+            throw new HBaseSqlAnalysisException("The rowKey field cannot be nullable.");
+        }
+        fieldType = fieldType.toLowerCase();
+        return HBaseColumn.of("", filedName)
+                .columnIsRow(true)
+                .columnType(ColumnType.getColumnType(fieldType))
+                .nullable(false)
+                .build();
     }
 
     @Override
@@ -115,7 +198,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
             return this.execute(tableName, table -> {
                 HBaseDataSet dataSet = HBaseDataSet.of(tableName);
                 final Result[] results = table.get(Arrays.asList(getArr));
-                if (results != null && results.length > 0) {
+                if (results != null) {
                     for (Result result : results) {
                         List<HBaseDataRow> rowList = convertResultToDataRow(result, tableSchema, queryExtInfo);
                         dataSet.appendRows(rowList);
@@ -370,11 +453,6 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         return dataRows;
     }
 
-    private byte[] convertValueToBytes(Object value, HBaseColumn column) {
-        TypeHandler<?> typeHandler = column.getColumnType().getTypeHandler();
-        return typeHandler.toBytes(column.getColumnType().getTypeClass(), value);
-    }
-
     private TableQueryProperties getTableQueryProperties(String tableName) {
         return this.getTableSchema(tableName).getTableQuerySetting();
     }
@@ -435,10 +513,6 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         throw new HBaseOperationsException("can't parse hql type.");
     }
 
-    protected void checkHqlIsNotEmpty(String hql) {
-        MyAssert.checkArgument(StringUtil.isNotBlank(hql), "The hql is not empty.");
-    }
-
     private void checkTableNameIsNotEmpty(String tableName) {
         MyAssert.checkArgument(StringUtil.isNotBlank(tableName), "The table name is not empty.");
     }
@@ -457,21 +531,10 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
         HBaseSqlContext.getInstance().registerTableSchema(uniqueKey, tableSchema);
     }
 
-    @Override
-    public HBaseTableSchema getTableSchema(String tableName) {
-        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
-        uniqueKey = uniqueKey + "#" + HMHBaseConstants.getFullTableName(tableName);
-        HBaseTableSchema tableSchema = HBaseSqlContext.getInstance().getTableSchema(uniqueKey);
-        if (tableSchema == null) {
-            throw new HBaseSqlTableSchemaMissingException(
-                    String.format("The table [%s] has no table schema, please register first.", tableName));
-        }
-        return tableSchema;
-    }
 
     @Override
     public void printTableSchema(String tableName) {
-        HBaseTableSchema tableSchema = getTableSchema(tableName);
+        HBaseTableSchema tableSchema = this.getTableSchema(tableName);
         if (tableSchema == null) {
             return;
         }
