@@ -17,6 +17,8 @@ public class HBaseShellExample {
         p.setProperty("hbase.zookeeper.property.clientPort", "2181");
 
         HBaseShellSession shellSession = HBaseShellSessionManager.getHBaseShellSession(p);
+        Result res2 = shellSession.execute("list");
+         System.out.println(res2);
 //        Result res = shellSession.execute("list_namespace");
 //        System.out.println(res);
 //

@@ -1,7 +1,8 @@
 package com.github.CCweixiao.hbase.sdk.shell;
 
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
-import com.github.CCweixiao.hbase.sdk.connection.HBaseConnectionUtil;
+import com.github.weixiao.hbase.sdk.connection.HBaseConnectionManagerRuby;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -42,7 +43,7 @@ public class HBaseShellSessionManager {
     }
 
     private static String generateUniqueSessionId(Properties properties) {
-        String connectionUniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(properties);
+        String connectionUniqueKey = HBaseConnectionManagerRuby.uniqueShellSessionConnectionId(properties);
         String clusterId = properties.getProperty("hbase.shell.session.cluster");
         String sessionId = "";
         if (StringUtil.isNotBlank(clusterId)) {

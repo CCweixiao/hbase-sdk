@@ -3,6 +3,7 @@ package com.github.CCweixiao.hbase.sdk.connection;
 import com.github.CCweixiao.hbase.sdk.common.constants.HBaseConfigKeys;
 import com.github.CCweixiao.hbase.sdk.common.util.DigestUtil;
 import com.github.CCweixiao.hbase.sdk.common.util.StringUtil;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HConstants;
 
 import java.util.Properties;
@@ -12,16 +13,16 @@ import java.util.Properties;
  */
 public class HBaseConnectionUtil {
 
-    public static String generateUniqueConnectionKey(Properties properties, String tableName) {
-        return generateUniqueConnectionKey(properties).concat("#").concat(tableName);
+    public static String generateUniqueConnectionKey(Configuration configuration, String tableName) {
+        return generateUniqueConnectionKey(configuration).concat("#").concat(tableName);
     }
 
-    public static String generateUniqueConnectionKey(Properties properties) {
-        String zkQuorum = properties.getProperty(HConstants.ZOOKEEPER_QUORUM);
-        String zkClientPort = properties.getProperty(HConstants.ZOOKEEPER_CLIENT_PORT);
+    public static String generateUniqueConnectionKey(Configuration configuration) {
+        String zkQuorum = configuration.get(HConstants.ZOOKEEPER_QUORUM);
+        String zkClientPort = configuration.get(HConstants.ZOOKEEPER_CLIENT_PORT);
         String proxyUser = "";
-        if (isProxyUserEnabled(properties)) {
-            proxyUser = proxyUser(properties);
+        if (isProxyUserEnabled(configuration)) {
+            proxyUser = proxyUser(configuration);
         }
         return generateUniqueConnectionKey(zkQuorum, zkClientPort, proxyUser);
     }
@@ -40,12 +41,12 @@ public class HBaseConnectionUtil {
         return uniqueKey;
     }
 
-    public static boolean isProxyUserEnabled(Properties properties) {
-        String val = proxyUser(properties);
+    public static boolean isProxyUserEnabled(Configuration configuration) {
+        String val = proxyUser(configuration);
         return StringUtil.isNotBlank(val);
     }
 
-    public static String proxyUser(Properties properties) {
-        return properties.getProperty(HBaseConfigKeys.KERBEROS_PROXY_USER);
+    public static String proxyUser(Configuration configuration) {
+        return configuration.get(HBaseConfigKeys.KERBEROS_PROXY_USER);
     }
 }

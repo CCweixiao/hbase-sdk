@@ -45,7 +45,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -56,14 +55,6 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     protected static final TableName HQL_META_DATA_TABLE_NAME = TableName.valueOf("HQL.META_DATA");
     protected static final byte[] HQL_META_DATA_TABLE_FAMILY = Bytes.toBytes( "f");
     protected static final byte[] HQL_META_DATA_TABLE_QUALIFIER = Bytes.toBytes( "schema");
-
-    public AbstractHBaseSqlAdapter(Properties properties) {
-        super(properties);
-    }
-
-    public AbstractHBaseSqlAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
 
     public AbstractHBaseSqlAdapter(Configuration configuration) {
         super(configuration);
@@ -156,7 +147,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     protected abstract boolean saveTableSchemaMeta(HBaseTableSchema tableSchema);
 
     protected HBaseTableSchema getTableSchema(String tableName) {
-        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getConfiguration());
         uniqueKey = uniqueKey + "#" + HMHBaseConstants.getFullTableName(tableName);
         HBaseTableSchema tableSchema = HBaseSqlContext.getInstance().getTableSchema(uniqueKey);
         if (tableSchema != null) {
@@ -593,7 +584,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
 
     @Override
     public void registerTableSchema(HBaseTableSchema tableSchema) {
-        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getConfiguration());
         uniqueKey = uniqueKey + "#" + tableSchema.getTableName();
         int caching = this.getConfiguration().getInt(HBaseConfigKeys.HBASE_CLIENT_SCANNER_CACHING,
                 HBaseConfigKeys.HBASE_CLIENT_DEFAULT_SCANNER_CACHING);
@@ -606,7 +597,7 @@ public abstract class AbstractHBaseSqlAdapter extends AbstractHBaseBaseAdapter i
     }
 
     private void removeTableSchema(String virtualTableName) {
-        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getProperties());
+        String uniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(this.getConfiguration());
         uniqueKey = uniqueKey + "#" + virtualTableName;
         HBaseSqlContext.getInstance().removeTableSchema(uniqueKey);
     }

@@ -49,14 +49,6 @@ public class HBaseAdminAdapter extends AbstractHBaseAdminAdapter implements HBas
         super(configuration);
     }
 
-    public HBaseAdminAdapter(Properties properties) {
-        super(properties);
-    }
-
-    public HBaseAdminAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
-
     @Override
     @SuppressWarnings("unchecked")
     public List<HTableDesc> listTableDesc(String regex, boolean includeSysTables) {

@@ -24,13 +24,6 @@ public class HBaseTableAdapter extends BaseHBaseTableAdapter {
     public HBaseTableAdapter(Configuration configuration) {
         super(configuration);
     }
-
-    public HBaseTableAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
-    public HBaseTableAdapter(Properties properties) {
-        super(properties);
-    }
     @Override
     public Get buildGet(GetRowParam getRowParam) {
         Get get = new Get(Bytes.toBytes(getRowParam.getRowKey()));

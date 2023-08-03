@@ -24,14 +24,6 @@ public abstract class AbstractHBaseAdminAdapter extends AbstractHBaseBaseAdapter
         super(configuration);
     }
 
-    public AbstractHBaseAdminAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
-
-    public AbstractHBaseAdminAdapter(Properties properties) {
-        super(properties);
-    }
-
     @Override
     public boolean tableExists(String tableName) {
         return this.execute(admin -> admin.tableExists(TableName.valueOf(tableName)));

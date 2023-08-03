@@ -29,14 +29,6 @@ import java.util.*;
 @InterfaceAudience.Private
 public class HBaseSqlAdapter extends AbstractHBaseSqlAdapter {
 
-    public HBaseSqlAdapter(Properties properties) {
-        super(properties);
-    }
-
-    public HBaseSqlAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
-
     public HBaseSqlAdapter(Configuration configuration) {
         super(configuration);
     }

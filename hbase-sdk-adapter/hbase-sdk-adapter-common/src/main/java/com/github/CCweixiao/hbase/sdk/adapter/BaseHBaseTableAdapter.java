@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
@@ -36,14 +35,6 @@ import java.util.stream.Collectors;
 public abstract class BaseHBaseTableAdapter extends AbstractHBaseBaseAdapter implements IHBaseTableOpAdapter, IHBaseTableGetAdapter, IHBaseTablePutAdapter, IHBaseTableDeleteAdapter, IHBaseTableScanAdapter {
     public BaseHBaseTableAdapter(Configuration configuration) {
         super(configuration);
-    }
-
-    public BaseHBaseTableAdapter(String zkHost, String zkPort) {
-        super(zkHost, zkPort);
-    }
-
-    public BaseHBaseTableAdapter(Properties properties) {
-        super(properties);
     }
 
     @Override
