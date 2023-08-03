@@ -75,7 +75,7 @@ public class HqlCommands extends BaseCommands {
         String hql = parseSql(input);
         HBaseSqlTemplate sqlTemplate = HBaseSqlTemplate.of(HClusterContext.getInstance().getCurrentClusterProperties());
         HBaseDataSet dataSet = sqlTemplate.select(hql);
-        String table = dataSet.showTable(true);
+        String table = dataSet.showTable(false);
         println(table);
         println("OK," + " cost: " + TimeConverter.humanReadableCost(System.currentTimeMillis() - start));
     }

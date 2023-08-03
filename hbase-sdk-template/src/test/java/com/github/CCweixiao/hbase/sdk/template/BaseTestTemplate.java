@@ -4,10 +4,6 @@ import com.github.CCweixiao.hbase.sdk.schema.ColumnFamilyDesc;
 import com.github.CCweixiao.hbase.sdk.schema.HTableDesc;
 import com.github.CCweixiao.hbase.sdk.service.model.CityModel;
 import com.github.CCweixiao.hbase.sdk.service.model.CityTag;
-import com.github.CCweixiao.hbase.sdk.template.BaseHBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.BaseHBaseTableTemplate;
-import com.github.CCweixiao.hbase.sdk.template.HBaseAdminTemplate;
-import com.github.CCweixiao.hbase.sdk.template.HBaseTableTemplate;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -20,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2023/7/3 11:01
  */
-public class BaseTestAdapter {
+public class BaseTestTemplate {
     public static final String TEST_TABLE = "test_table";
     protected static BaseHBaseAdminTemplate adminTemplate;
     protected static BaseHBaseTableTemplate tableTemplate;

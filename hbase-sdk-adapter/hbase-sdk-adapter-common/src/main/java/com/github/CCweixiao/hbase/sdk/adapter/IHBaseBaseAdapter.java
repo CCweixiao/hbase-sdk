@@ -27,11 +27,19 @@ import java.util.concurrent.*;
 @InterfaceAudience.Private
 public interface IHBaseBaseAdapter {
     Connection getConnection();
+
     BufferedMutator getBufferedMutator(String tableName);
+
     Connection getHedgedReadClusterConnection();
+
     BufferedMutator getHedgedReadClusterBufferedMutator(String tableName);
+
     boolean hedgedReadIsOpen();
-    long hedgedReadTimeout();
+
+    boolean hedgedReadWriteDisable();
+
+    long hedgedReadThresholdMillis();
+
     int initHedgedReadPoolSize();
 
     default <T> T execute(AdminCallback<T, Admin> action) {
@@ -63,34 +71,37 @@ public interface IHBaseBaseAdapter {
             ArrayList<Future<T>> futures = new ArrayList<>();
             CompletionService<T> hedgedService =
                     new ExecutorCompletionService<>(HBaseHedgedReadExecutor.getHBaseHedgedReadExecutor(initHedgedReadPoolSize()));
-
+                // There is no read request already executing
             Callable<T> executeInSource = () -> executeOnSource(tableName, action);
             Future<T> firstRequest = hedgedService.submit(executeInSource);
             futures.add(firstRequest);
             Future<T> future = null;
             try {
-                future = hedgedService.poll(hedgedReadTimeout(), TimeUnit.MICROSECONDS);
+                long thresholdMillis = hedgedReadThresholdMillis();
+                future = hedgedService.poll(thresholdMillis, TimeUnit.MICROSECONDS);
+                long start = System.currentTimeMillis();
+                while (future == null && (System.currentTimeMillis() - start) < thresholdMillis) {
+                    future = hedgedService.poll(thresholdMillis, TimeUnit.MICROSECONDS);
+                }
                 if (future != null) {
                     return Optional.ofNullable(future.get());
                 }
             } catch (ExecutionException e) {
                 futures.remove(future);
             } catch (InterruptedException e) {
-                throw new HBaseSdkException("Interrupted while waiting for reading task.");
+                throw new HBaseSdkException("Interrupted while waiting for reading task");
             }
-
             Callable<T> executeInTarget = () -> executeOnTarget(tableName, action);
             Future<T> oneMoreRequest = hedgedService.submit(executeInTarget);
             futures.add(oneMoreRequest);
-
             try {
                 T result = getFirstToComplete(hedgedService, futures);
                 cancelAll(futures);
                 return Optional.ofNullable(result);
             } catch (InterruptedException e) {
-                throw new HBaseSdkException(e);
+                // Ignore and retry
             }
-
+            return Optional.empty();
         } else {
             try {
                 return Optional.ofNullable(executeOnSource(tableName, action));
@@ -118,8 +129,9 @@ public interface IHBaseBaseAdapter {
             throw new HBaseOperationsException(throwable);
         }
     }
+
     default void execute(String tableName, MutatorCallback<BufferedMutator> action) {
-        if (hedgedReadIsOpen()) {
+        if (hedgedReadIsOpen() && !hedgedReadWriteDisable()) {
             ArrayList<Future<Void>> futures = new ArrayList<>();
             CompletionService<Void> hedgedService =
                     new ExecutorCompletionService<>(HBaseHedgedReadExecutor.getHBaseHedgedReadExecutor(initHedgedReadPoolSize()));
@@ -133,7 +145,12 @@ public interface IHBaseBaseAdapter {
             futures.add(firstRequest);
             Future<Void> future = null;
             try {
-                future = hedgedService.poll(hedgedReadTimeout(), TimeUnit.MICROSECONDS);
+                long thresholdMillis = hedgedReadThresholdMillis();
+                future = hedgedService.poll(thresholdMillis, TimeUnit.MICROSECONDS);
+                long start = System.currentTimeMillis();
+                while (future == null && (System.currentTimeMillis() - start) < thresholdMillis) {
+                    future = hedgedService.poll(thresholdMillis, TimeUnit.MICROSECONDS);
+                }
                 if (future != null) {
                     future.get();
                     return;
@@ -176,8 +193,9 @@ public interface IHBaseBaseAdapter {
         Future<T> future = null;
         try {
             future = hedgedService.take();
+            T t = future.get();
             futures.remove(future);
-            return future.get();
+            return t;
         } catch (ExecutionException | CancellationException e) {
             futures.remove(future);
         }
@@ -192,17 +210,40 @@ public interface IHBaseBaseAdapter {
     }
 
     default void executeSave(String tableName, Put put) {
-        this.execute(tableName, table -> {
-            table.put(put);
-            return true;
-        });
+        if (this.hedgedReadWriteDisable()) {
+            try {
+                this.executeOnSource(tableName, table -> {
+                    table.put(put);
+                    return true;
+                });
+            } catch (IOException e) {
+                throw new HBaseSdkException(e);
+            }
+        } else {
+            this.execute(tableName, table -> {
+                table.put(put);
+                return true;
+            });
+        }
     }
 
     default void executeDelete(String tableName, Delete delete) {
-        this.execute(tableName, table -> {
-            table.delete(delete);
-            return true;
-        });
+        if (this.hedgedReadWriteDisable()) {
+            try {
+                this.executeOnSource(tableName, table -> {
+                    table.delete(delete);
+                    return true;
+                });
+            } catch (IOException e) {
+                throw new HBaseSdkException(e);
+            }
+        } else {
+            this.execute(tableName, table -> {
+                table.delete(delete);
+                return true;
+            });
+        }
+
     }
 
     default void executeSaveBatch(String tableName, List<Mutation> puts) {

@@ -21,6 +21,9 @@ public class HBaseConfigKeys {
     public static final String KRB5_CONF_PATH = "java.security.krb5.conf";
     public static final String KRB5_REALM = "java.security.krb5.realm";
     public static final String KRB5_KDC_SERVER_ADDR = "java.security.krb5.kdc";
+
+    public static final String HEDGED_READ_WRITE_DISABLE = "hbase.client.hedged.read.write.disable";
+    public static final String HBASE_CLIENT_HEDGED_READ_WRITE_DISABLE = "true";
     public static final String HBASE_CLIENT_HEDGED_READ_SWITCH = "hbase.client.hedged.read.open";
     public static final String HBASE_CLIENT_HEDGED_READ_SWITCH_DEFAULT = "false";
     public static final String HBASE_CLIENT_HEDGED_READ_TIME_OUT = "hbase.client.hedged.read.timeout";

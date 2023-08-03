@@ -93,7 +93,6 @@ public class HClusterCommands extends BaseCommands {
             for (int i = 0; i < confFiles.length; i++) {
                 result.append(i).append(": ");
                 result.append(confFiles[i], 0, confFiles[i].lastIndexOf(".properties"));
-                result.append("\n");
             }
             println("Existing cluster list: \n");
             println(result);

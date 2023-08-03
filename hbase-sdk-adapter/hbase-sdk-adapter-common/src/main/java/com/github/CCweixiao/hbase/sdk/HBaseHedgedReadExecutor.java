@@ -20,7 +20,7 @@ public class HBaseHedgedReadExecutor {
         if (HEDGED_READ_THREAD_POOL == null) {
             synchronized (HBaseHedgedReadExecutor.class) {
                 if (HEDGED_READ_THREAD_POOL == null) {
-                    ThreadPoolExecutor threadPool = getThreadPoolExecutor(1,
+                    ThreadPoolExecutor threadPool = getThreadPoolExecutor(2,
                             num, 60, new SynchronousQueue<>(),
                             "HBaseClientHedgedRead-", true);
                     threadPool.allowCoreThreadTimeOut(true);

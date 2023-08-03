@@ -10,11 +10,11 @@ import java.util.Properties;
  */
 public class HBaseConnectionManagerRuby {
     public static Connection getConnection(Properties prop) {
-        return HBaseConnectionManager.getConnection(prop);
+        return HBaseConnectionManager.getInstance().getConnection(prop);
     }
 
     public static Configuration getConfiguration(Properties prop) {
-        return HBaseConnectionManager.getConfiguration(prop);
+        return HBaseConnectionManager.getInstance().getConfiguration(prop);
     }
 }
 

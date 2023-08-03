@@ -14,10 +14,13 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.PrivilegedAction;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -25,92 +28,99 @@ import java.util.stream.Collectors;
  */
 public class HBaseConnectionManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(HBaseConnectionManager.class);
-    private volatile static Map<String, Connection> connectionMap;
-    private volatile static Map<String, BufferedMutator> bufferedMutatorMap;
-    private volatile static boolean kerberosEnvInit = false;
+    private final Map<String, Connection> connectionMap;
+    private final Map<String, BufferedMutator> bufferedMutatorMap;
+    private static final AtomicBoolean kerberosEnvInit = new AtomicBoolean(false);
     private static final int KERBEROS_RE_LOGIN_MAX_RETRY = 5;
     private static final long KERBEROS_RE_LOGIN_INTERVAL = 30 * 60 * 1000L;
 
     private static final String KERBEROS = "kerberos";
 
+    private static volatile HBaseConnectionManager instance = null;
+
 
     private HBaseConnectionManager() {
+        connectionMap = new ConcurrentHashMap<>();
+        bufferedMutatorMap = new ConcurrentHashMap<>();
     }
 
-    public static Connection getConnection(Properties prop) {
-        String clusterConnUniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(prop);
-
-        if (connectionMap == null || !connectionMap.containsKey(clusterConnUniqueKey)) {
+    public static HBaseConnectionManager getInstance() {
+        if (instance == null) {
             synchronized (HBaseConnectionManager.class) {
-                if (connectionMap == null || !connectionMap.containsKey(clusterConnUniqueKey)) {
-                    try {
-                        if (connectionMap == null) {
-                            connectionMap = new HashMap<>(2);
-                        }
-                        if (!connectionMap.containsKey(clusterConnUniqueKey)) {
-                            Configuration configuration = getConfiguration(prop);
-                            if (!kerberosEnvInit) {
-                                doKerberosLogin(configuration, prop);
-                            }
-                            Connection connection;
-                            if (HBaseConnectionUtil.isProxyUserEnabled(prop)) {
-                                String proxyUser = HBaseConnectionUtil.proxyUser(prop);
-                                UserGroupInformation ugi =
-                                        UserGroupInformation.createProxyUser(proxyUser, UserGroupInformation.getLoginUser());
-                                connection = ugi.doAs((PrivilegedAction<Connection>) () -> {
-                                    try {
-                                        return ConnectionFactory.createConnection(configuration);
-                                    } catch (IOException e) {
-                                        throw new HBaseSdkConnectionException(e);
-                                    }
-                                });
-                            } else {
-                                connection = ConnectionFactory.createConnection(configuration);
-                            }
-                            connectionMap.put(clusterConnUniqueKey, connection);
-                        }
-                    } catch (IOException e) {
-                        throw new HBaseSdkConnectionException(e);
-                    }
+                if (instance == null) {
+                    instance = new HBaseConnectionManager();
                 }
             }
+        }
+        return instance;
+    }
+
+
+    public Connection getConnection(Properties prop) {
+        String clusterConnUniqueKey = HBaseConnectionUtil.generateUniqueConnectionKey(prop);
+        LOGGER.debug("Start to get connection for cluster {}:{}:{}.",
+                prop.getProperty(HBaseConfigKeys.ZOOKEEPER_QUORUM),
+                prop.getProperty(HBaseConfigKeys.ZOOKEEPER_CLIENT_PORT), clusterConnUniqueKey);
+
+        try {
+            if (!connectionMap.containsKey(clusterConnUniqueKey)) {
+                Configuration configuration = getConfiguration(prop);
+                if (kerberosEnvInit.compareAndSet(false, true)) {
+                    doKerberosLogin(configuration, prop);
+                }
+                Connection connection;
+                if (HBaseConnectionUtil.isProxyUserEnabled(prop)) {
+                    String proxyUser = HBaseConnectionUtil.proxyUser(prop);
+                    UserGroupInformation ugi =
+                            UserGroupInformation.createProxyUser(proxyUser, UserGroupInformation.getLoginUser());
+                    connection = ugi.doAs((PrivilegedAction<Connection>) () -> {
+                        try {
+                            return ConnectionFactory.createConnection(configuration);
+                        } catch (IOException e) {
+                            throw new HBaseSdkConnectionException(e);
+                        }
+                    });
+                    LOGGER.info("Successfully create a connection and proxy user " + proxyUser);
+                } else {
+                    connection = ConnectionFactory.createConnection(configuration);
+                    LOGGER.info("Successfully create a connection.");
+                }
+                connectionMap.putIfAbsent(clusterConnUniqueKey, connection);
+                return connection;
+            }
+        } catch (IOException e) {
+            throw new HBaseSdkConnectionException(e);
         }
         return connectionMap.get(clusterConnUniqueKey);
     }
 
-    public static BufferedMutator getBufferedMutator(String tableName, Connection connection) {
-        String clusterConnUniqueKey = tableName;
-
-        if (bufferedMutatorMap == null || !bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
-            synchronized (HBaseConnectionManager.class) {
-                if (bufferedMutatorMap == null || !bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
-                    try {
-                        if (bufferedMutatorMap == null) {
-                            bufferedMutatorMap = new HashMap<>(2);
-                        }
-                        if (!bufferedMutatorMap.containsKey(clusterConnUniqueKey)) {
-                            BufferedMutatorParams mutatorParams =
-                                    new BufferedMutatorParams(TableName.valueOf(tableName));
-                            BufferedMutator mutator = connection.getBufferedMutator(mutatorParams);
-                            bufferedMutatorMap.put(clusterConnUniqueKey, mutator);
-                        }
-                    } catch (IOException e) {
-                        throw new HBaseSdkConnectionException(e);
-                    }
-                }
-            }
+    public BufferedMutator getBufferedMutator(String tableName, Properties properties) {
+        if (StringUtil.isBlank(tableName)) {
+            throw new IllegalArgumentException("The table name cannot be empty.");
         }
-        return bufferedMutatorMap.get(clusterConnUniqueKey);
+        String uniqueConnectionKey = HBaseConnectionUtil.generateUniqueConnectionKey(properties, tableName);
+
+        try {
+            if (!bufferedMutatorMap.containsKey(uniqueConnectionKey)) {
+                BufferedMutatorParams mutatorParams = new BufferedMutatorParams(TableName.valueOf(tableName));
+                BufferedMutator mutator = this.getConnection(properties).getBufferedMutator(mutatorParams);
+                bufferedMutatorMap.putIfAbsent(tableName, mutator);
+                return mutator;
+            }
+        } catch (IOException e) {
+            throw new HBaseSdkConnectionException(e);
+        }
+        return bufferedMutatorMap.get(uniqueConnectionKey);
     }
 
-    public static Connection getConnection(Configuration configuration) {
+    public Connection getConnection(Configuration configuration) {
         Set<String> finalParameters = configuration.getFinalParameters();
         Properties properties = new Properties();
         finalParameters.forEach((p -> properties.setProperty(p, configuration.get(p))));
-        return getConnection(properties);
+        return this.getConnection(properties);
     }
 
-    public static Configuration getConfiguration(Properties properties) {
+    public Configuration getConfiguration(Properties properties) {
         AuthType auth = getAuthType(properties.getProperty(HBaseConfigKeys.HBASE_SECURITY_AUTH, ""));
         Configuration configuration = HBaseConfiguration.create();
         final List<String> keys = properties.keySet().stream().map(Object::toString).collect(Collectors.toList());
@@ -135,37 +145,42 @@ public class HBaseConnectionManager {
         return configuration;
     }
 
-    private static void doKerberosLogin(Configuration configuration, Properties properties) {
+    private void doKerberosLogin(Configuration configuration, Properties properties) {
         if (!isKerberosAuthType(configuration)) {
+            kerberosEnvInit.set(false);
             return;
         }
         String principal = properties.getProperty(HBaseConfigKeys.KERBEROS_PRINCIPAL);
         if (StringUtil.isBlank(principal)) {
+            kerberosEnvInit.set(false);
             throw new HBaseSdkConnectionException("The kerberos principal is not empty.");
         }
         String keytab = properties.getProperty(HBaseConfigKeys.KERBEROS_KEYTAB_FILE);
         if (StringUtil.isBlank(keytab)) {
+            kerberosEnvInit.set(false);
             throw new HBaseSdkConnectionException("The keytab file path is not empty.");
         }
         File file = new File(keytab);
         if (!file.exists()) {
+            kerberosEnvInit.set(false);
             throw new HBaseSdkConnectionException("The keytab file is not exists.");
         }
         if (!file.isFile()) {
+            kerberosEnvInit.set(false);
             throw new HBaseSdkConnectionException("The keytab file is not a file.");
         }
         try {
             UserGroupInformation.setConfiguration(configuration);
             UserGroupInformation.loginUserFromKeytab(principal, keytab);
             LOGGER.info("Login successfully via keytab: {} and principal: {}", keytab, principal);
-            kerberosEnvInit = true;
             doKerberosReLogin();
         } catch (IOException e) {
+            kerberosEnvInit.set(false);
             throw new HBaseSdkConnectionException(e);
         }
     }
 
-    private static boolean runKerberosLogin() {
+    private boolean runKerberosLogin() {
         Configuration conf = new org.apache.hadoop.conf.Configuration();
         conf.set("hadoop.security.authentication", KERBEROS);
         UserGroupInformation.setConfiguration(conf);
@@ -185,7 +200,7 @@ public class HBaseConnectionManager {
         return false;
     }
 
-    private static void doKerberosReLogin() {
+    private void doKerberosReLogin() {
         if (!UserGroupInformation.isSecurityEnabled()) {
             return;
         }
@@ -218,7 +233,7 @@ public class HBaseConnectionManager {
         reLoginThread.start();
     }
 
-    private static AuthType getAuthType(String auth) {
+    private AuthType getAuthType(String auth) {
         if (StringUtil.isBlank(auth)) {
             return AuthType.SIMPLE;
         }
@@ -230,14 +245,29 @@ public class HBaseConnectionManager {
         throw new HBaseSdkConnectionException("Auth type " + auth + " is not supported.");
     }
 
-    private static boolean isKerberosAuthType(Configuration configuration) {
-        String authType = configuration.get(KERBEROS, "");
+    private boolean isKerberosAuthType(Configuration configuration) {
+        String authType = configuration.get(HBaseConfigKeys.HBASE_SECURITY_AUTH, "");
         if (StringUtil.isBlank(authType)) {
             return false;
         }
         return KERBEROS.equalsIgnoreCase(authType);
     }
 
+    public void destroy() {
+        try {
+            for (BufferedMutator mutator : bufferedMutatorMap.values()) {
+                mutator.close();
+            }
+            bufferedMutatorMap.clear();
+            for (Connection connection : connectionMap.values()) {
+                connection.close();
+            }
+            connectionMap.clear();
+        } catch (IOException e) {
+            LOGGER.warn("An exception occurred while destroy resources.", e);
+        }
+
+    }
 
 }
 

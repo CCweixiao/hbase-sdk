@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * @author leojie 2023/7/3 11:00
  */
-public class TestHBaseTableTemplate extends BaseTestAdapter {
+public class TestHBaseTableTemplate extends BaseTestTemplate {
 
     @Test
     public void testSaveMap() {
